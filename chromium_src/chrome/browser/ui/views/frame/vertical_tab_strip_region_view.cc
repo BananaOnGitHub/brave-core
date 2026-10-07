@@ -21,7 +21,8 @@
 
 // Defined in //brave/browser/ui/views/tabs/vertical_tab_utils.cc.
 bool BraveIsInVerticalTabHotCorner(const gfx::PointF& point_in_screen,
-                                   BrowserView* browser_view);
+                                   BrowserView* browser_view,
+                                   bool is_on_right);
 
 namespace {
 
@@ -85,7 +86,8 @@ void VerticalTabStripRegionView::HandleMouseMoveEvent(
 
   UpdateExpandOnHoverState(
       IsMouseHovered() ||
-      BraveIsInVerticalTabHotCorner(point_in_screen, browser_view()));
+      BraveIsInVerticalTabHotCorner(point_in_screen, browser_view(),
+                                    state_controller_->IsVerticalTabOnRight()));
 }
 
 bool VerticalTabStripRegionView::IsMouseInHotCorner() const {
@@ -95,5 +97,31 @@ bool VerticalTabStripRegionView::IsMouseInHotCorner() const {
 
   return BraveIsInVerticalTabHotCorner(
       gfx::PointF(display::Screen::Get()->GetCursorScreenPoint()),
-      browser_view());
+      browser_view(), state_controller_->IsVerticalTabOnRight());
+}
+
+bool VerticalTabStripRegionView::IsVerticalTabStripLeading() const {
+  // Region view bounds are in layout coordinates, where the leading edge is
+  // the physical left in LTR and the physical right in RTL. Flip the pref in
+  // RTL so the strip always ends up on the physical side the user chose.
+  return state_controller_->IsVerticalTabOnRight() == base::i18n::IsRTL();
+}
+
+// Upstream has no left/right placement of the vertical tab strip, so observe
+// Brave's kVerticalTabsOnRight pref to relayout the region when it changes.
+void VerticalTabStripRegionView::ObserveVerticalTabOnRightPref() {
+  vertical_tab_on_right_pref_registrar_.Init(
+      browser_view()->GetProfile()->GetPrefs());
+  vertical_tab_on_right_pref_registrar_.Add(
+      brave_tabs::kVerticalTabsOnRight,
+      base::BindRepeating(
+          &VerticalTabStripRegionView::OnVerticalTabOnRightPrefChanged,
+          base::Unretained(this)));
+}
+
+// Relayouts the region, as the strip moves to the other side when the pref
+// changes.
+void VerticalTabStripRegionView::OnVerticalTabOnRightPrefChanged() {
+  InvalidateLayout();
+  PreferredSizeChanged();
 }

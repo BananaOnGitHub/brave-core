@@ -24,11 +24,14 @@
 #include "chrome/browser/ui/views/bookmarks/bookmark_bar_view.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/frame/custom_corners_background.h"
+#include "chrome/browser/ui/views/frame/custom_floating_corner.h"
 #include "chrome/browser/ui/views/frame/layout/browser_view_layout_delegate.h"
 #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+#include "chrome/browser/ui/views/frame/vertical_tab_strip_region_view.h"
 #include "chrome/browser/ui/views/infobars/infobar_container_view.h"
 #include "chrome/browser/ui/views/side_panel/side_panel.h"
 #include "ui/views/border.h"
+#include "ui/views/controls/separator.h"
 #include "ui/views/layout/layout_provider.h"
 #include "ui/views/view_class_properties.h"
 
@@ -44,6 +47,23 @@ void BraveBrowserViewTabbedLayoutImpl::ConfigureTopContainerBackground(
     CustomCornersBackground* background) {
   BrowserViewTabbedLayoutImpl::ConfigureTopContainerBackground(params,
                                                                background);
+
+  // The upstream vertical tab strip abuts the top container's trailing edge
+  // when it's placed on the trailing side, so only the leading corner is the
+  // window's corner, unless the strip is pushed down by the trailing caption
+  // buttons.
+  if (delegate().GetTabStripType() == TabStripType::kVertical &&
+      delegate().GetBrowserWindowState() == WindowState::kNormal &&
+      views().vertical_tab_strip_region_view && !IsVerticalTabStripLeading()) {
+    CustomCornersBackground::Corners corners;
+    corners[CornerOrientation::kTopLeading] =
+        background->GetWindowCorner(/*upper=*/true);
+    if (!params.trailing_exclusion.IsEmpty()) {
+      corners[CornerOrientation::kTopTrailing] =
+          background->GetWindowCorner(/*upper=*/true);
+    }
+    background->SetCorners(corners);
+  }
 #if BUILDFLAG(IS_LINUX)
   // Curve top container corners like window corner as it's top-most UI
   // in vertical tabs.
@@ -177,6 +197,8 @@ BraveBrowserViewTabbedLayoutImpl::CalculateProposedLayout(
   ProposedLayout layout =
       BrowserViewTabbedLayoutImpl::CalculateProposedLayout(params);
 
+  MirrorUpstreamVerticalTabStripCorners(layout);
+
   if (IsParentedToAndVisible(views().focus_mode_title_bar,
                              views().browser_view)) {
     // Place the title bar at the top of the client area. `params` here is the
@@ -236,6 +258,56 @@ BraveBrowserViewTabbedLayoutImpl::CalculateProposedLayout(
   AdjustInfobarLayout(layout, params);
 
   return layout;
+}
+
+void BraveBrowserViewTabbedLayoutImpl::MirrorUpstreamVerticalTabStripCorners(
+    ProposedLayout& layout) const {
+  if (!views().vertical_tab_strip_region_view) {
+    return;
+  }
+
+  const bool leading = IsVerticalTabStripLeading();
+  auto* const strip_layout =
+      layout.GetLayoutFor(views().vertical_tab_strip_region_view);
+
+  const bool sidebar_next_to_strip =
+      views().sidebar_container &&
+      views().sidebar_container->IsSidebarVisible() &&
+      IsSidebarLeading() == leading;
+
+  // Upstream lays the corners out next to the strip's trailing edge, i.e. as if
+  // the strip was on the leading side. Move them to the content-facing side.
+  auto update_corner = [&](CustomFloatingCorner* corner, bool top) {
+    if (!corner) {
+      return;
+    }
+    if (top) {
+      corner->SetOrientation(leading ? CornerOrientation::kTopLeading
+                                     : CornerOrientation::kTopTrailing);
+    } else {
+      corner->SetOrientation(leading ? CornerOrientation::kBottomLeading
+                                     : CornerOrientation::kBottomTrailing);
+    }
+    auto* const corner_layout = layout.GetLayoutFor(corner);
+    // The sidebar control view sits between the contents and the strip when
+    // they're on the same side, so there's no contents corner to carve. Showing
+    // the corner would cut a rounded corner out of the sidebar.
+    if (!top && corner_layout && sidebar_next_to_strip) {
+      corner_layout->visibility = false;
+    }
+    if (leading || !strip_layout || !corner_layout ||
+        corner_layout->bounds.IsEmpty()) {
+      return;
+    }
+    // Upstream outsets the bounds by the stroke thickness on the strip side.
+    const int corner_width =
+        corner_layout->bounds.width() - views::Separator::kThickness;
+    gfx::Rect bounds = corner_layout->bounds;
+    bounds.set_x(strip_layout->bounds.x() - corner_width);
+    corner_layout->bounds = bounds;
+  };
+  update_corner(views().vertical_tab_strip_top_corner, /*top=*/true);
+  update_corner(views().vertical_tab_strip_bottom_corner, /*top=*/false);
 }
 
 void BraveBrowserViewTabbedLayoutImpl::AdjustInfobarLayout(
@@ -445,13 +517,22 @@ void BraveBrowserViewTabbedLayoutImpl::CalculateSideBarLayout(
   // lambda below.
 
   // Vertical tab is outermost when on the same side as the sidebar.
-  const bool vtab_on_same_side =
-      views().vertical_tab_strip_host && delegate().ShouldShowVerticalTabs() &&
-      (sidebar_leading == IsVerticalTabStripLeading());
-  const int vtab_width =
-      vtab_on_same_side
-          ? views().vertical_tab_strip_host->GetPreferredSize().width()
-          : 0;
+  const bool vtab_on_same_side_as_sidebar =
+      sidebar_leading == IsVerticalTabStripLeading();
+  int vtab_width = 0;
+  bool is_upstream_vtab_width = false;
+  if (vtab_on_same_side_as_sidebar) {
+    if (views().vertical_tab_strip_host &&
+        delegate().ShouldShowVerticalTabs()) {
+      vtab_width = views().vertical_tab_strip_host->GetPreferredSize().width();
+    } else {
+      // Upstream's vertical tab strip. Upstream's layout has already excluded
+      // it from the contents and the side panel's anchor, but the sidebar is
+      // positioned against the browser edges.
+      vtab_width = GetUpstreamVerticalTabStripWidth();
+      is_upstream_vtab_width = vtab_width > 0;
+    }
+  }
 
   // Outer available edges, inset for any vertical tab on the same side.
   const gfx::Rect browser_bounds = views().browser_view->GetLocalBounds();
@@ -480,9 +561,15 @@ void BraveBrowserViewTabbedLayoutImpl::CalculateSideBarLayout(
     if (!panel_layout) {
       return;
     }
+    // Upstream anchored the panel to the area excluding its vertical tab strip.
+    gfx::Rect anchor_area = params.visual_client_area;
+    if (is_upstream_vtab_width) {
+      anchor_area.Inset(sidebar_leading
+                            ? gfx::Insets::TLBR(0, vtab_width, 0, 0)
+                            : gfx::Insets::TLBR(0, 0, 0, vtab_width));
+    }
     panel_layout->bounds = ComputeAdjustedPanelBounds(
-        sidebar_leading, sidebar_bounds, panel_layout->bounds,
-        params.visual_client_area);
+        sidebar_leading, sidebar_bounds, panel_layout->bounds, anchor_area);
     // The upstream layout offsets the panel -1px above the contents to overlap
     // the toolbar separator. Brave doesn't need that overlap; align the panel's
     // vertical extent with the contents container instead.
@@ -671,9 +758,20 @@ bool BraveBrowserViewTabbedLayoutImpl::IsVerticalTabStripAtContentsEdge()
   // A vertical tab strip that reports no width floats above the contents
   // instead of sitting beside it. This is the same test used to decide whether
   // the contents are inset for it.
-  return delegate().ShouldShowVerticalTabs() &&
-         views().vertical_tab_strip_host &&
-         views().vertical_tab_strip_host->GetPreferredSize().width() != 0;
+  return (delegate().ShouldShowVerticalTabs() &&
+          views().vertical_tab_strip_host &&
+          views().vertical_tab_strip_host->GetPreferredSize().width() != 0) ||
+         GetUpstreamVerticalTabStripWidth() != 0;
+}
+
+int BraveBrowserViewTabbedLayoutImpl::GetUpstreamVerticalTabStripWidth() const {
+  if (delegate().ShouldShowVerticalTabs() ||
+      delegate().GetTabStripType() != TabStripType::kVertical ||
+      !IsParentedTo(views().vertical_tab_strip_region_view,
+                    views().browser_view)) {
+    return 0;
+  }
+  return views().vertical_tab_strip_region_view->GetPreferredSize().width();
 }
 
 bool BraveBrowserViewTabbedLayoutImpl::IsSidebarAtContentsEdge() const {

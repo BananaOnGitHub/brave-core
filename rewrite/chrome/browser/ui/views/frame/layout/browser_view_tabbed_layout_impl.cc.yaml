@@ -34,3 +34,69 @@ substitutions:
         (layout.AddChild\(views\(\)\.vertical_tab_strip_region_view,.*?)\)
       re_flags: [DOTALL]
       replace: '\1 && !vertical_tab_strip_bounds.IsEmpty());'
+
+  - description: |-
+      Determine which side the vertical tab strip is placed on. When it is on
+      the trailing side, the strip doesn't share the top row with the leading
+      caption buttons but with the trailing ones instead, so offset it by their
+      height.
+    regex:
+      pattern: 'gfx::Rect vertical_tab_strip_bounds;'
+      replace: |-
+        gfx::Rect vertical_tab_strip_bounds;
+          const bool vertical_tab_strip_leading =
+              brave_vtab_layout::IsStripLeading(
+                  views().vertical_tab_strip_region_view);
+          const int vertical_tab_strip_top_offset =
+              brave_vtab_layout::GetStripTopOffset(
+                  vertical_tab_strip_leading,
+                  vertical_tab_strip_animation.top_offset,
+                  layout_data_->revised_params.trailing_exclusion
+                      .ContentWithPadding()
+                      .height());
+
+  - description: |-
+      Don't bump the top container's leading margin out to cover the collapsed
+      vertical tab strip when the strip is not on the leading side.
+    regex:
+      pattern: 'if (vertical_tab_strip_animation.top_offset > 0'
+      replace: |-
+        if (vertical_tab_strip_leading &&
+              vertical_tab_strip_animation.top_offset > 0
+
+  - description: Place the vertical tab strip on the left or right.
+    regex:
+      re_pattern: |-
+        gfx::Rect\(params\.visual_client_area\.x\(\),\s*params\.visual_client_area\.y\(\) \+\s*vertical_tab_strip_animation\.top_offset,\s*vertical_tab_strip_width,\s*params\.visual_client_area\.height\(\) -\s*vertical_tab_strip_animation\.top_offset\)
+      replace: |-
+        brave_vtab_layout::GetStripBounds(
+                  params.visual_client_area, vertical_tab_strip_width,
+                  vertical_tab_strip_top_offset, vertical_tab_strip_leading)
+
+  - description: Inset the content area from the side the strip is placed on.
+    regex:
+      pattern: 'params.InsetHorizontal(inset_amount, /*leading=*/true);'
+      replace:
+        'params.InsetHorizontal(inset_amount, vertical_tab_strip_leading);'
+
+  - description: Keep the content area unclipped on the side the strip is on.
+    count: 0
+    regex:
+      re_pattern: |-
+        unclipped_contents_region\.Inset\(gfx::Insets::TLBR\(\s*0, ([^,]+?), 0, 0\)\);
+      replace: |-
+        InsetHorizontal(unclipped_contents_region, \1,
+                              vertical_tab_strip_width);
+
+  - description: |-
+      Mirror the window and concave corners of the vertical tab strip's own
+      background when it is on the trailing side.
+    regex:
+      pattern: 'vertical_tabs_background->SetCorners(vertical_tabs_corners);'
+      replace: |-
+        brave_vtab_layout::MirrorVerticalTabsCorners(
+              *vertical_tabs_background, vertical_tabs_corners,
+              views().vertical_tab_strip_region_view,
+              layout_data_->window_state == WindowState::kNormal &&
+                  layout_data_->revised_params.trailing_exclusion.IsEmpty());
+          vertical_tabs_background->SetCorners(vertical_tabs_corners);

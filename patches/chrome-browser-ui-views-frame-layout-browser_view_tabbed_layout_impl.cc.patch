@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
-index 389c6f8c6e66768cb20a960f11ba620c7516f44b..68fd41dd5a1e8b693c01c56e3052a378397650d3 100644
+index 389c6f8c6e66768cb20a960f11ba620c7516f44b..4eb66e76efc47771781a4b56f52a71628d2f1a21 100644
 --- a/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 +++ b/chrome/browser/ui/views/frame/layout/browser_view_tabbed_layout_impl.cc
 @@ -764,7 +764,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
@@ -11,16 +11,68 @@ index 389c6f8c6e66768cb20a960f11ba620c7516f44b..68fd41dd5a1e8b693c01c56e3052a378
    const HorizontalLayout& horizontal_layout = layout_data_->horizontal_layout;
  
    if (IsParentedTo(views().organizer_tray, views().browser_view)) {
-@@ -889,7 +889,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+@@ -822,10 +822,21 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+   const VerticalTabStripAnimation& vertical_tab_strip_animation =
+       layout_data_->vertical_tab_strip_animation;
+   gfx::Rect vertical_tab_strip_bounds;
++  const bool vertical_tab_strip_leading =
++      brave_vtab_layout::IsStripLeading(
++          views().vertical_tab_strip_region_view);
++  const int vertical_tab_strip_top_offset =
++      brave_vtab_layout::GetStripTopOffset(
++          vertical_tab_strip_leading,
++          vertical_tab_strip_animation.top_offset,
++          layout_data_->revised_params.trailing_exclusion
++              .ContentWithPadding()
++              .height());
+   if (IsParentedTo(views().vertical_tab_strip_region_view,
+                    views().browser_view)) {
+     if (layout_data_->tab_strip_type == TabStripType::kVertical) {
+-      if (vertical_tab_strip_animation.top_offset > 0) {
++      if (vertical_tab_strip_leading &&
++      vertical_tab_strip_animation.top_offset > 0) {
+         collapsed_vertical_tab_strip_adjustment =
+             horizontal_layout.vertical_tab_strip_width;
+       }
+@@ -858,12 +869,9 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+       }
+ 
+       vertical_tab_strip_bounds =
+-          gfx::Rect(params.visual_client_area.x(),
+-                    params.visual_client_area.y() +
+-                        vertical_tab_strip_animation.top_offset,
+-                    vertical_tab_strip_width,
+-                    params.visual_client_area.height() -
+-                        vertical_tab_strip_animation.top_offset);
++          brave_vtab_layout::GetStripBounds(
++          params.visual_client_area, vertical_tab_strip_width,
++          vertical_tab_strip_top_offset, vertical_tab_strip_leading);
+ 
+       if (layout_data_->window_state == WindowState::kFullscreenWithToolbar &&
+           layout_data_->separator_info.adjust_for_missing_separator) {
+@@ -879,7 +887,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+ 
+       const int inset_amount = horizontal_layout.vertical_tab_strip_width -
+                                GetVerticalTabStripContentOverlap();
+-      params.InsetHorizontal(inset_amount, /*leading=*/true);
++      params.InsetHorizontal(inset_amount, vertical_tab_strip_leading);
+ 
+       // Let the vertical tab strip animate out over the content.
+       if (vertical_tab_strip_animation.current_motion) {
+@@ -888,16 +896,16 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+                 TabStripAnimations::kExpand ||
              vertical_tab_strip_animation.current_motion ==
                  TabStripAnimations::kCollapse;
-         unclipped_contents_region.Inset(gfx::Insets::TLBR(
+-        unclipped_contents_region.Inset(gfx::Insets::TLBR(
 -            0, VerticalTabStripRegionView::kCollapsedWidth, 0, 0));
-+            0, views().vertical_tab_strip_region_view->GetCollapsedWidth(), 0, 0));
++        InsetHorizontal(unclipped_contents_region, views().vertical_tab_strip_region_view->GetCollapsedWidth(),
++                      vertical_tab_strip_width);
        } else {
-         unclipped_contents_region.Inset(gfx::Insets::TLBR(
-             0, horizontal_layout.vertical_tab_strip_width, 0, 0));
-@@ -897,7 +897,7 @@ BrowserViewTabbedLayoutImpl::CalculateProposedLayout(
+-        unclipped_contents_region.Inset(gfx::Insets::TLBR(
+-            0, horizontal_layout.vertical_tab_strip_width, 0, 0));
++        InsetHorizontal(unclipped_contents_region, horizontal_layout.vertical_tab_strip_width,
++                      vertical_tab_strip_width);
+       }
      }
      layout.AddChild(views().vertical_tab_strip_region_view,
                      vertical_tab_strip_bounds,
@@ -29,3 +81,17 @@ index 389c6f8c6e66768cb20a960f11ba620c7516f44b..68fd41dd5a1e8b693c01c56e3052a378
    }
  
    if (IsParentedTo(views().vertical_tab_strip_background_blur_backdrop,
+@@ -1595,7 +1603,12 @@ void BrowserViewTabbedLayoutImpl::DoPostLayoutVisualAdjustments(
+           vertical_tabs_bottom_corner_size;
+     }
+ 
+-    vertical_tabs_background->SetCorners(vertical_tabs_corners);
++    brave_vtab_layout::MirrorVerticalTabsCorners(
++      *vertical_tabs_background, vertical_tabs_corners,
++      views().vertical_tab_strip_region_view,
++      layout_data_->window_state == WindowState::kNormal &&
++          layout_data_->revised_params.trailing_exclusion.IsEmpty());
++  vertical_tabs_background->SetCorners(vertical_tabs_corners);
+ 
+     // Apply shadow for expand-on-hover.
+     auto* const shadow_frame =
