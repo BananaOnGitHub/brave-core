@@ -8,7 +8,9 @@
 #include "base/bit_cast.h"
 #include "base/check.h"
 #include "base/containers/extend.h"
+#include "base/containers/fixed_flat_map.h"
 #include "base/containers/flat_map.h"
+#include "base/containers/map_util.h"
 #include "base/containers/span.h"
 #include "base/containers/span_reader.h"
 #include "base/containers/to_vector.h"
@@ -1007,7 +1009,32 @@ void PolkadotSubstrateRpc::OnGetEvents(GetEventsCallback callback,
 }
 
 GURL PolkadotSubstrateRpc::GetNetworkURL(std::string_view chain_id) {
-  return network_manager_->GetNetworkURL(chain_id, mojom::CoinType::DOT);
+  GURL url = network_manager_->GetNetworkURL(chain_id, mojom::CoinType::DOT);
+  if (url.is_empty()) {
+    url = GetRpcUrlFromChainId(chain_id);
+  }
+  return url;
+}
+
+GURL PolkadotSubstrateRpc::GetRpcUrlFromChainId(std::string_view chain_id) {
+  static constexpr auto kChainIdUrlMap =
+      base::MakeFixedFlatMap<std::string_view, std::string_view>({
+          {mojom::kPolkadotAcala, "https://acala-rpc-0.aca-api.network"},
+          {mojom::kPolkadotBifrost, "https://hk.p.bifrost-rpc.liebi.com"},
+          {mojom::kPolkadotHydration, "https://hydration-rpc.n.dwellir.com"},
+          {mojom::kPolkadotNeuroWeb,
+           "https://parachain-rpc.origin-trail.network"},
+          {mojom::kPolkadotJamton, "https://rpc.jamton.network"},
+          {mojom::kPolkadotKusamaHub,
+           "https://rpc-asset-hub-kusama.luckyfriday.io"},
+      });
+
+  const auto* url = base::FindOrNull(kChainIdUrlMap, chain_id);
+  if (!url) {
+    return GURL();
+  }
+
+  return GURL(*url);
 }
 
 void PolkadotSubstrateRpc::MakePostRequestInternal(
