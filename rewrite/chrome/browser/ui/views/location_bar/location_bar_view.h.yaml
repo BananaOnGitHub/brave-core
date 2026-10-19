@@ -17,7 +17,8 @@ substitutions:
         virtual std::vector<views::View*> GetRightMostTrailingViews();
         virtual std::vector<views::View*> GetLeftMostTrailingViews();
 
-  - description: 'Make GetMinimumTrailingWidth virtual for BraveLocationBarView.'
+  - description:
+      'Make GetMinimumTrailingWidth virtual for BraveLocationBarView.'
     make_virtual:
       class_name: LocationBarView
       method_name: GetMinimumTrailingWidth

@@ -30,7 +30,10 @@ substitutions:
       We don't use different colors when the omnibox doesn't have focus but
       still contains in-progress user input.
     regex:
-      re_pattern: 'normal = color_provider->GetColor\(kColorOmniboxResultsBackground\);\s*hovered = color_provider->GetColor\(kColorOmniboxResultsBackgroundHovered\);'
+      re_pattern:
+        'normal =
+        color_provider->GetColor\(kColorOmniboxResultsBackground\);\s*hovered =
+        color_provider->GetColor\(kColorOmniboxResultsBackgroundHovered\);'
       replace: |-
         normal = color_provider->GetColor(kColorLocationBarBackground);
             hovered = color_provider->GetColor(kColorLocationBarBackgroundHovered);
