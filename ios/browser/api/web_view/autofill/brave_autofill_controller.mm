@@ -307,6 +307,8 @@ using UserDecision = autofill::AutofillClient::AddressPromptUserDecision;
 }
 
 - (BOOL)canAuthenticateUser {
+  // TODO(https://github.com/brave/brave-browser/issues/60051):
+  // Investigate if we should implement.
   return NO;
 }
 
