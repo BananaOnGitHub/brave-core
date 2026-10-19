@@ -1,0 +1,29 @@
+diff --git a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoBarController.java b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoBarController.java
+index b90bce1de35056e1f3c0df81d3618985e1661bb6..7f81c950592526cbd455e82b8a88b3f1010dbcc7 100644
+--- a/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoBarController.java
++++ b/chrome/android/java/src/org/chromium/chrome/browser/undo_tab_close_snackbar/UndoBarController.java
+@@ -4,6 +4,9 @@
+ 
+ package org.chromium.chrome.browser.undo_tab_close_snackbar;
+ 
++import org.chromium.base.BravePreferenceKeys;
++import org.chromium.chrome.browser.preferences.ChromeSharedPreferences;
++
+ import static org.chromium.build.NullUtil.assumeNonNull;
+ 
+ import android.content.Context;
+@@ -135,6 +138,14 @@ public abstract class UndoBarController
+     private void showUndoBar(UndoClosureSnapshot snapshot) {
+         if (snapshot.isEmpty()) return;
+ 
++        if (!ChromeSharedPreferences.getInstance()
++                .readBoolean(BravePreferenceKeys.SHOW_UNDO_WHEN_TABS_CLOSED, true)) {
++            for (int tabId : snapshot.tabIds()) {
++                commitTabClosure(tabId);
++            }
++            return;
++        }
++
+         UndoBarContent barContent = UndoBarContentFactory.create(mContext, snapshot);
+ 
+         mSnackbarManageable
