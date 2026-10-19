@@ -6,8 +6,6 @@
 // Schema for Meld responses.
 namespace meld_integration_responses {
     dictionary Logos {
-        DOMString? dark;
-        DOMString? light;
         DOMString? darkShort;
         DOMString? lightShort;
     };
@@ -15,30 +13,45 @@ namespace meld_integration_responses {
     dictionary Country {
         DOMString countryCode;
         DOMString? name;
-        DOMString? flagImageUrl;
+    };
+
+    dictionary CountriesResponse {
+        Country[] countries;
     };
 
     dictionary CryptoCurrency {
         DOMString currencyCode;
         DOMString name;
         DOMString chainCode;
-        DOMString chainName;
         DOMString? chainId;
-        DOMString? contractAddress;
-        DOMString symbolImageUrl;
+        DOMString? contract;
+        DOMString symbol;
+    };
+
+    dictionary CryptoCurrenciesResponse {
+        CryptoCurrency[] currencies;
     };
 
     dictionary FiatCurrency {
         DOMString currencyCode;
         DOMString? name;
-        DOMString? symbolImageUrl;
+        DOMString? symbol;
+    };
+
+    dictionary FiatCurrenciesResponse {
+        FiatCurrency[] currencies;
+    };
+
+    dictionary PaymentMethodLogo {
+        DOMString? dark;
+        DOMString? light;
     };
 
     dictionary PaymentMethod {
-        DOMString paymentMethod;
+        DOMString method;
         DOMString? name;
-        DOMString? paymentType;
-        Logos? logos;
+        DOMString? type;
+        PaymentMethodLogo? logo;
     };
 
     dictionary CryptoQuote {
