@@ -4,6 +4,7 @@
  * You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import {
+  IconType,
   SecondaryTextPlacement,
   SuggestStyle,
 } from 'chrome://resources/mojo/components/omnibox/browser/suggest_template_info.mojom-webui.js'
@@ -18,6 +19,8 @@ function suggestTemplate(primaryText: string, secondaryText: string) {
     secondaryTextPlacement: SecondaryTextPlacement.kUnspecified,
     image: null,
     style: SuggestStyle.kUnspecified,
+    typeIcon: IconType.kIconTypeUnspecified,
+    fuseboxAction: null,
   }
 }
 
