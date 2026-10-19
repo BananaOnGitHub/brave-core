@@ -420,9 +420,6 @@
   <message name="IDS_AUTOFILL_PAYMENT_METHODS" desc="Title for the list of saved payment methods that can be used to fill in forms. Also used as the title for the Autofill settings page that allows user to manage their list of saved payment methods and Autofill preferences for payment methods. Sentence-Cased." formatter_data="android_java">
     Payment methods
   </message>
-  <message name="IDS_AUTOFILL_PAYMENT_METHODS_KEYWORDS" desc="Keyword list for search in settings" formatter_data="android_java">
-    Credit,Card,Debit
-  </message>
   <message name="IDS_AUTOFILL_PAYMENT_METHODS_TABLE_ARIA_LABEL" is_accessibility_with_no_ui="true" desc="Aria label for the list of saved payment methods that can be used to fill in forms.">
     Saved payment methods table
   </message>
@@ -547,8 +544,8 @@
     <message name="IDS_AUTOFILL_ADDRESS_SHEET_EMPTY_MESSAGE" desc="Message indicating that no addresses are available for filling.">
       No saved addresses
     </message>
-    <message name="IDS_AUTOFILL_ADDRESS_SHEET_ALL_ADDRESSES_LINK" desc="The text of the link in the address sheet that opens the address management section.">
-      Manage addresses
+    <message name="IDS_AUTOFILL_ADDRESS_SHEET_ALL_ADDRESSES_LINK" desc="The text of the link in the address sheet that opens the contact info management section.">
+      Manage contact info
     </message>
     <message name="IDS_AUTOFILL_LOYALTY_CARDS_ALL_YOUR_CARDS_SUGGESTION" desc="The keyboard accessory suggestion to open the loyalty cards bottom sheet containing all the user loyalty cards.">
       Your loyalty cards
@@ -971,6 +968,11 @@
   </message>
   <message name="IDS_AUTOFILL_AI_SUGGESTED_BY_GEMINI_WITH_SOURCES" desc="Header for Autofill AI personal context child menu attributing the information to source applications. $1 is the formatted list of sources with citation badges (e.g. Gmail [1] [2] · Photos [1])." translateable="false">
     From Gemini and connected apps · <ph name="SOURCES">$1<ex>Gmail [1] [2] · Photos [1]</ex></ph>
+  </message>
+  <message name="IDS_AUTOFILL_AI_SUGGESTED_BY_GEMINI_MORE_SOURCES_SUFFIX" desc="Suffix appended to the source attribution header in the Autofill AI personal context child menu when there are more sources than the maximum number of citation badges shown. The plural selector is the number of additional sources not shown as citation badges.">
+    {NUM_SOURCES, plural,
+     =1 {+ 1 other source}
+     other {+ # other sources}}
   </message>
   <message name="IDS_AUTOFILL_AI_SOURCE_APP_PHOTOS" desc="App name for Google Photos." formatter_data="android_java">
     Photos
