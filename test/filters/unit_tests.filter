@@ -733,6 +733,7 @@
 -RenderViewContextMenuListenToThisPageTest.MenuItemPresentWhenEnabled
 -RenderViewContextMenuMenuSimplificationTest.PageMenuSeparators
 -RenderViewContextMenuMenuSimplificationTest.PureSelectionLayout
+-RenderViewContextMenuMenuSimplificationTest.ReadAnythingOnlyOnceWhenMenuSimplificationAndShuffleExperimentPlaceAtBottom
 
 # These tests fail because it's expected that the generated tabs have
 # suggestions like "Ask Google about this tab", whereas our results have

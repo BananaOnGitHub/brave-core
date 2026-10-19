@@ -826,12 +826,10 @@
 -SigninPromoTabHelperTest.CallPasswordMoveCallbackAfterSignInFromTab
 -SigninViewControllerBrowserCookieParamTest.SignOut/NoCookie
 -SigninViewControllerBrowserTest.SignoutOrReauth*
--SigninViewControllerBrowserTest.ShowChromeSigninBubble_Accepted
--SigninViewControllerBrowserTest.ShowChromeSigninBubble_ConflictWithInterceptionBubble
--SigninViewControllerBrowserTest.ShowChromeSigninBubble_Declined
+-SigninViewControllerBrowserTest.ShowChromeSigninBubble_*
 -SigninViewControllerBrowserTest.ShowChromeSigninDialogForExtensionsPromptKeyjackingProtection
--SigninViewControllerBrowserTest.ShowSigninInterceptionBubble
--SigninViewControllerBrowserTest.ShowSigninInterceptionBubble_ReplacedBySecondBubble
+-SigninViewControllerBrowserTest.ShowDiceAddAccountTabReason*
+-SigninViewControllerBrowserTest.ShowSigninInterceptionBubble*
 -SigninViewControllerBrowserTest.UpdateAccessPointOfSignInTab
 -SigninViewControllerInteractiveBrowserTest.*
 -SupervisedProfilePickerHideGuestModeTest.DeleteLastSupervisedProfile
@@ -1743,7 +1741,7 @@
 -ABASearchJourneysContextMenuBrowserTest.*
 -CopySearchJourneyTabFeatureBrowserTest.*
 -CopyTextJourneysContextMenuBrowserTest.*
--ExtensionOpenSidePanelBrowserTest.PinExtensionViaSidePanelJourneyCompletion
+-ExtensionOpenSidePanelViewsToolbarBrowserTest.PinExtensionViaSidePanelJourneyCompletion
 -HistoryClustersPolicyTest.HistoryClustersVisible
 -HistoryClustersSidePanelCoordinatorBrowserTest.*
 -HistoryClustersSidePanelCoordinatorBrowserTest.ShowRespectsManagedPolicy
@@ -1958,8 +1956,9 @@
 -PageContentAnnotationsService*.*
 -PageContextMonitorBrowserTest.*
 -ToolControllerBrowserTest.*
+-ToolControllerScrollPageBrowserTest.*
 -ToolControllerTranslateBrowserTest.*
--TtcSessionJournalBrowserTest.JournalFollowsTheSessionTask
+-TtcSessionJournalImplBrowserTest.JournalFollowsTheSessionTask
 
 # These tests fail because we override prefs::kSearchSuggestEnabled to false.
 -All/SearchEnginePreconnectorEnabledOnlyBrowserTest.AllowedSearch/*
@@ -2877,14 +2876,8 @@
 -All/OtherFrameNavigationDownloadBrowserTest_AdFrame.*
 -All/PDFExtensionJSInk2SaveTest.Ink2Save/*
 -All/PDFExtensionJSInk2SaveToDriveBeforeUnloadTest.UploadFinished/*
--All/PDFExtensionJSInk2Test.Ink2/*
--All/PDFExtensionJSInk2Test.Ink2BottomToolbar/*
--All/PDFExtensionJSInk2Test.Ink2BottomToolbarDropdown/*
--All/PDFExtensionJSInk2Test.Ink2BottomToolbarDropdown/*
--All/PDFExtensionJSInk2Test.Ink2SidePanel/*
--All/PDFExtensionJSInk2Test.Ink2ViewerToolbar/*
--All/PDFExtensionJSInk2TextTest.Ink2TextBottomToolbar/*
--All/PDFExtensionJSInk2TextTest.Ink2TextSidePanel/*
+-All/PDFExtensionJSInk2Test.Ink2*/*
+-All/PDFExtensionJSInk2TextTest.Ink2*/*
 -All/PDFExtensionJSTest.ViewerFilePicker/*
 -All/PDFExtensionTest.FullPagePdfHasFocus/0
 -All/PDFExtensionTest.SandboxedPdfIframeNavigationDownloads/*
