@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/content_settings/content_setting_image_model.cc b/chrome/browser/ui/content_settings/content_setting_image_model.cc
-index d48d0c006c6a33ba46289a9027112608bb16d36c..5d41a8b85104c6da88d512d92acd7d19c1889aa0 100644
+index c604a5b690dc1870b344ddeebd0d34ac8232ed17..f0c36f9b7f6378136e4189a57d0ae348316c3469 100644
 --- a/chrome/browser/ui/content_settings/content_setting_image_model.cc
 +++ b/chrome/browser/ui/content_settings/content_setting_image_model.cc
 @@ -644,6 +644,7 @@ void GetIconFromType(ContentSettingsType type,
@@ -10,7 +10,7 @@ index d48d0c006c6a33ba46289a9027112608bb16d36c..5d41a8b85104c6da88d512d92acd7d19
    *badge = &gfx::VectorIcon::EmptyIcon();
    GetIconChromeRefresh(type, blocked, icon);
  }
-@@ -1582,6 +1583,7 @@ ContentSettingImageModel::CreateBubbleModel(
+@@ -1587,6 +1588,7 @@ ContentSettingImageModel::CreateBubbleModel(
  // static
  std::vector<std::unique_ptr<ContentSettingImageModel>>
  ContentSettingImageModel::GenerateContentSettingImageModels() {
@@ -18,7 +18,7 @@ index d48d0c006c6a33ba46289a9027112608bb16d36c..5d41a8b85104c6da88d512d92acd7d19
    std::vector<std::unique_ptr<ContentSettingImageModel>> result;
    for (auto type : kContentSettingImageOrder) {
  #if BUILDFLAG(IS_WIN)
-@@ -1595,11 +1597,15 @@ ContentSettingImageModel::GenerateContentSettingImageModels() {
+@@ -1600,11 +1602,15 @@ ContentSettingImageModel::GenerateContentSettingImageModels() {
    }
  
    return result;

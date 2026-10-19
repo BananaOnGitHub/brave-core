@@ -1,5 +1,5 @@
 diff --git a/ui/base/BUILD.gn b/ui/base/BUILD.gn
-index dd9811827c1d7a4a0afe006ba6c0bbc17f58d3a6..c9e374b48e180f31b06f3b967ee8fdd1483e0666 100644
+index c92c5700536048d3fafc030ff259526c6e7dba55..4b13633a938bd2e5086f0ddbae3e43e6e654f4ee 100644
 --- a/ui/base/BUILD.gn
 +++ b/ui/base/BUILD.gn
 @@ -2,6 +2,7 @@
@@ -10,7 +10,7 @@ index dd9811827c1d7a4a0afe006ba6c0bbc17f58d3a6..c9e374b48e180f31b06f3b967ee8fdd1
  import("//build/buildflag_header.gni")
  import("//build/config/compiler/compiler.gni")
  import("//build/config/dcheck_always_on.gni")
-@@ -522,6 +523,7 @@ component("base") {
+@@ -520,6 +521,7 @@ component("base") {
      "//ui/webui/resources:resources_grit",
      "//url",
    ]

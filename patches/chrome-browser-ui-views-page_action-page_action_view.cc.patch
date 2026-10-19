@@ -1,5 +1,5 @@
 diff --git a/chrome/browser/ui/views/page_action/page_action_view.cc b/chrome/browser/ui/views/page_action/page_action_view.cc
-index 6038ec29261dcc155da395a9242937c4002eefff..79070048a760fe8fdadb762df7de1579db71f750 100644
+index b1bc82e4eeef83330bbfe9be5f098c7c93b8b330..ca37848517dc9293f4bef32fcf34a18eeabb0ccc 100644
 --- a/chrome/browser/ui/views/page_action/page_action_view.cc
 +++ b/chrome/browser/ui/views/page_action/page_action_view.cc
 @@ -82,7 +82,7 @@ PageActionView::PageActionView(actions::ActionItem* action_item,
@@ -76,7 +76,7 @@ index 6038ec29261dcc155da395a9242937c4002eefff..79070048a760fe8fdadb762df7de1579
    action_item_->InvokeAction(std::move(builder).Build());
  }
  
-@@ -492,6 +509,7 @@ void PageActionView::SetModel(PageActionModelInterface* model) {
+@@ -496,6 +513,7 @@ void PageActionView::SetModel(PageActionModelInterface* model) {
  }
  
  gfx::Size PageActionView::GetMinimumSize() const {
@@ -84,7 +84,7 @@ index 6038ec29261dcc155da395a9242937c4002eefff..79070048a760fe8fdadb762df7de1579
    gfx::Size icon_preferred_size = image_container_view()->GetPreferredSize();
    if (observation_.IsObserving() &&
        !observation_.GetSource()->GetImage().IsVectorIcon()) {
-@@ -502,6 +520,15 @@ gfx::Size PageActionView::GetMinimumSize() const {
+@@ -506,6 +524,15 @@ gfx::Size PageActionView::GetMinimumSize() const {
    }
  
    return icon_preferred_size;
@@ -100,7 +100,7 @@ index 6038ec29261dcc155da395a9242937c4002eefff..79070048a760fe8fdadb762df7de1579
  }
  
  bool PageActionView::IsBubbleShowing() const {
-@@ -728,6 +755,9 @@ void PageActionView::MaybeRecordCollapsedMetrics(int label_width) {
+@@ -732,6 +759,9 @@ void PageActionView::MaybeRecordCollapsedMetrics(int label_width) {
  }
  
  SkColor PageActionView::GetBackgroundColor() const {
@@ -110,7 +110,7 @@ index 6038ec29261dcc155da395a9242937c4002eefff..79070048a760fe8fdadb762df7de1579
    if (observation_.IsObserving() &&
        observation_.GetSource()->GetOverrideBackgroundColorId().has_value() &&
        GetColorProvider()) {
-@@ -738,6 +768,9 @@ SkColor PageActionView::GetBackgroundColor() const {
+@@ -742,6 +772,9 @@ SkColor PageActionView::GetBackgroundColor() const {
  }
  
  SkColor PageActionView::GetForegroundColor() const {
