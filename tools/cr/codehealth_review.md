@@ -177,11 +177,13 @@ Brave-relevant part: `git show <hash> -- <overridden paths>`. Look for:
   `Foo_ChromiumImpl` renames, look for upstream calls to `Foo()` inside the same
   file: those skip Brave's wrapper, and a default flip can make a dormant one
   live (M158: `ShouldTypeExpireActively()` and `kActiveContentSettingExpiry`). A
-  private method may never reach the wrapper at all (`CancelBrowserClose`). When
-  upstream adds a post-processing pass inside a function Brave extends, check
-  whether Brave's additions land before or after it (a miss, found in the
-  rebase: accelerators got action IDs in a loop that runs before Brave's
-  `GetAcceleratorList()` appends its own).
+  private method may never reach the wrapper at all (`CancelBrowserClose`), and
+  neither does a function in an anonymous namespace: Brave's wrapper is then a
+  different function that nothing calls (M158, 8111.0: the commander group in
+  `BuildDefaultGroups()`, dead since M131). When upstream adds a post-processing
+  pass inside a function Brave extends, check whether Brave's additions land
+  before or after it (a miss, found in the rebase: accelerators got action IDs
+  in a loop that runs before Brave's `GetAcceleratorList()` appends its own).
 - **A predicate Brave pins was removed.** "Remove X from Y" and flag clean-ups
   hard-code the launched branch exactly where Brave forced the other one, which
   re-enables the feature (`IsReplaceSyncPromosWithSignInPromosEnabled` stopped
@@ -304,9 +306,17 @@ Brave turns upstream things off in many places, and upstream keeps moving them:
   (`mixer[kNew] = {kOld}`) with Brave's `postprocessing_mixer[kOld]`: references
   resolve through `GetLastNonPostprocessingMixer()`, so the new ID misses
   Brave's value (M158: hovered inactive tab foreground).
+- **Downloads moved to the component updater.** A flag flip can route a fetch
+  Brave stubs out (e.g. `PredictionManager`) through a new component installer
+  instead. For each new or newly enabled installer, compute its CRX id from the
+  public key hash and check it against `kDisallowedComponents` in
+  `chromium_src/components/component_updater/component_installer.cc` (M158,
+  8111.0: `kPredictionModelComponentDelivery`, found by two sweeps).
 - Other lists to check: the origin-trial blocklist
-  (`chromium_src/third_party/blink/common/origin_trials/origin_trials.cc`), the
-  component ID blocklist, and the Android `GlicEnabling.java` list.
+  (`chromium_src/third_party/blink/common/origin_trials/origin_trials.cc`) and
+  the Android `GlicEnabling.java` list. `base/compile_overridden_features.inc`
+  isn't a pin; check that its names are upstream features (M158:
+  `ReadIsSubjectToUniversalOptOutCapability` isn't).
 
 New upstream features that phone home or add Google-service UI aren't
 code-health items. List them at the end of the tracker for the privacy team, one
@@ -571,7 +581,9 @@ unless Brave touches the code.
 - **Hide lists keyed by name.** Brave subclasses that remove upstream
   preferences or menu items by key miss new ones. Diff the XML and menu keys
   across the range (the new "Search AI Mode and connected apps" sync row; M157,
-  8094.1: a `bottom_bar_switch` that duplicates Brave's own toggle). Brave's
+  8094.1: a `bottom_bar_switch` that duplicates Brave's own toggle). A key that
+  moves to another screen leaves Brave's handling on the old one (M158, 8111.0:
+  `homepage` moved from Main settings to Appearance). Brave's
   `SEARCH_INDEX_DATA_PROVIDER` replacements need the same removals. Upstream
   strings that newly show up in Brave's rebranded `.grd` files, often as mangled
   Google product names, are a cheap signal.
@@ -611,10 +623,12 @@ unless Brave touches the code.
   subclasses or redirects with a bytecode adapter: compare the parameter list
   with the Brave subclass's `super(...)` call (M157, 8093.0:
   `AutocompleteMediator` gained `urlTextWrappingSupplier`; 8097.1:
-  `TopToolbarCoordinator` changed again after the rebase had fixed it). Grep all
-  of Brave's Java, not only `android/`: subclasses and backports also live under
-  `browser/` (8097.1: `BraveBottomControlsMediator`, and the backported
-  `ExportFlow` using removed histogram helpers).
+  `TopToolbarCoordinator` changed again after the rebase had fixed it). A
+  `new Brave\1` plaster passes upstream's new arguments along while the Brave
+  constructor keeps the old list (M158, 8111.0: `BraveBottomBarCoordinator`).
+  Grep all of Brave's Java, not only `android/`: subclasses and backports also
+  live under `browser/` (8097.1: `BraveBottomControlsMediator`, and the
+  backported `ExportFlow` using removed histogram helpers).
 - **Removed flag constants.** Diff the `ChromeFeatureList` constants at both
   tags and grep Brave's `@EnableFeatures`/`@DisableFeatures` for the removed
   ones (M157, 8097.1: `SETTINGS_SINGLE_ACTIVITY`, which three sweeps found).
@@ -695,13 +709,13 @@ parameter (`AutocompleteMediator`). The overlap join and the removed-token grep
 were noise. In 8093.0..8094.1 it gave none out of 445, in 8094.1..8097.1 none
 out of 727, in 8097.1..8101.1 none out of 313, in 8101.1..8103.1 none out of 292
 (one about:flags entry extended an existing item), and in M158, 8103.3..8104.1,
-none out of 226. In 8107.2..8109.1 it gave none out of 815. In 8104.1..8107.2 it
-gave one out of 972: a mechanical "Use gin's compile-time `SetMethod<&T::M>()`
-form" campaign, found by skimming subjects, not by the basename match; the
-basename match only re-found a Java signature change sweep
-[h](#h-android-and-ios) had found. Keep it short there, and drop `BUILD.gn`,
-`DEPS`, `*.xml` and `features.*` before the basename match; they make up nearly
-all of its hits.
+none out of 226. In 8107.2..8109.1 it gave none out of 815, and in
+8109.1..8111.0 none out of 840 (421 after noise). In 8104.1..8107.2 it gave one
+out of 972: a mechanical "Use gin's compile-time `SetMethod<&T::M>()` form"
+campaign, found by skimming subjects, not by the basename match; the basename
+match only re-found a Java signature change sweep [h](#h-android-and-ios) had
+found. Keep it short there, and drop `BUILD.gn`, `DEPS`, `*.xml` and
+`features.*` before the basename match; they make up nearly all of its hits.
 
 Items found here meet the same ground rules as any other. Each one is a
 mechanism no sweep describes, so record it in the method notes for step 5 (the
