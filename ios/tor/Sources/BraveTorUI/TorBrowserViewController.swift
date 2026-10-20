@@ -25,7 +25,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
   private var generation = 0
   private var browsingAllowed = false
   private var sessionRequested = false
-  private var receivedInitialPath = false
+  private var networkPolicy = TorNetworkPolicy()
   private var appActive = false
 
   public static var displayName: String { text("Tor prototype") }
@@ -77,6 +77,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     statusLabel.text = Self.text("Disconnected")
 
     configure(connectButton, title: "Connect", action: #selector(connect))
+    connectButton.isEnabled = false
     configure(disconnectButton, title: "Disconnect", action: #selector(disconnectTapped))
     configure(goButton, title: "Go", action: #selector(openAddress))
     configure(checkButton, title: "Check Tor", action: #selector(checkTor))
@@ -117,17 +118,14 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
       self, selector: #selector(didBecomeActive),
       name: UIApplication.didBecomeActiveNotification, object: nil
     )
-    pathMonitor.pathUpdateHandler = { [weak self] _ in
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        if !self.receivedInitialPath {
-          self.receivedInitialPath = true
-        } else if self.sessionRequested {
-          self.disconnect(message: Self.text("Network changed. Connect again."))
-        }
+    pathMonitor.pathUpdateHandler = { [weak self] path in
+      // The monitor delivers on the main queue, preserving update order without
+      // an asynchronous actor hop that could deliver a stale path after Connect.
+      MainActor.assumeIsolated {
+        self?.receiveNetworkPath(TorNetworkPath(path))
       }
     }
-    pathMonitor.start(queue: DispatchQueue(label: "brave.tor.path"))
+    pathMonitor.start(queue: .main)
   }
 
   public override func viewWillDisappear(_ animated: Bool) {
@@ -143,8 +141,25 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     button.addTarget(self, action: action, for: .touchUpInside)
   }
 
+  private func receiveNetworkPath(_ path: TorNetworkPath) {
+    let wasAvailable = networkPolicy.canConnect
+    let requiresDisconnect = networkPolicy.update(path)
+    if sessionRequested, requiresDisconnect {
+      disconnect(message: Self.text("Network changed. Connect again."))
+      return
+    }
+    if !sessionRequested {
+      connectButton.isEnabled = appActive && networkPolicy.canConnect
+      if !networkPolicy.canConnect {
+        statusLabel.text = Self.text("Waiting for an available network…")
+      } else if !wasAvailable {
+        statusLabel.text = Self.text("Disconnected")
+      }
+    }
+  }
+
   @objc private func connect() {
-    guard appActive else { return }
+    guard appActive, networkPolicy.canConnect else { return }
     disconnect(message: Self.text("Preparing privacy protections…"))
     sessionRequested = true
     connectButton.isEnabled = false
@@ -201,7 +216,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     previousSession?.cancel()
     sessionTask = nil
     removeBrowser()
-    connectButton.isEnabled = true
+    connectButton.isEnabled = appActive && networkPolicy.canConnect
     statusLabel.text = message
     let runtime = runtime
     let previousSuspension = suspensionTask
@@ -268,6 +283,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
 
   @objc private func didBecomeActive() {
     appActive = true
+    connectButton.isEnabled = networkPolicy.canConnect && !sessionRequested
   }
 
   public func webView(

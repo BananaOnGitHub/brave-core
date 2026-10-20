@@ -16,3 +16,4 @@
 "Browsing paused. Connect again when ready." = "Browsing paused. Connect again when ready.";
 "Page could not load through Tor." = "Page could not load through Tor.";
 "Page process stopped. Connect again." = "Page process stopped. Connect again.";
+"Waiting for an available network…" = "Waiting for an available network…";
