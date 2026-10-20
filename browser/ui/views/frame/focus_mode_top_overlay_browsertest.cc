@@ -394,6 +394,24 @@ IN_PROC_BROWSER_TEST_F(FocusModeTopOverlayBrowserTest,
   EXPECT_EQ(overlay->bounds().y(), 0);
 }
 
+IN_PROC_BROWSER_TEST_F(FocusModeTopOverlayBrowserTest,
+                       NewWindowInheritsFocusModeStateAndIncognitoDoesNot) {
+  focus_mode_controller()->SetEnabled(true);
+  ASSERT_TRUE(focus_mode_controller()->IsEnabled());
+
+  Browser* second_browser = CreateBrowser(browser()->profile());
+  ASSERT_TRUE(second_browser);
+  auto* second_controller = FocusModeController::From(second_browser);
+  ASSERT_TRUE(second_controller);
+  EXPECT_TRUE(second_controller->IsEnabled());
+
+  Browser* incognito_browser = CreateIncognitoBrowser(browser()->profile());
+  ASSERT_TRUE(incognito_browser);
+  auto* incognito_controller = FocusModeController::From(incognito_browser);
+  ASSERT_TRUE(incognito_controller);
+  EXPECT_FALSE(incognito_controller->IsEnabled());
+}
+
 #if BUILDFLAG(IS_MAC)
 IN_PROC_BROWSER_TEST_F(FocusModeTopOverlayBrowserTest,
                        ExitFullscreenWithSuppressedOverlay) {

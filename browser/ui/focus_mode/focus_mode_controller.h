@@ -6,10 +6,13 @@
 #ifndef BRAVE_BROWSER_UI_FOCUS_MODE_FOCUS_MODE_CONTROLLER_H_
 #define BRAVE_BROWSER_UI_FOCUS_MODE_FOCUS_MODE_CONTROLLER_H_
 
+#include "base/callback_list.h"
+#include "base/memory/raw_ptr.h"
 #include "base/observer_list.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 
 class BrowserWindowInterface;
+class PrefService;
 
 // Orchestrates Focus Mode for a single browser window.
 class FocusModeController {
@@ -21,9 +24,8 @@ class FocusModeController {
 
   DECLARE_USER_DATA(FocusModeController);
 
-  // `host` is the UnownedUserDataHost of the browser window this controller
-  // belongs to.
-  explicit FocusModeController(ui::UnownedUserDataHost& host);
+  FocusModeController(BrowserWindowInterface& browser, PrefService* prefs);
+
   FocusModeController(const FocusModeController&) = delete;
   FocusModeController& operator=(const FocusModeController&) = delete;
   ~FocusModeController();
@@ -41,8 +43,13 @@ class FocusModeController {
   void ToggleEnabled();
 
  private:
+  void OnDidBecomeActive(BrowserWindowInterface* browser);
+  void UpdatePref();
+
+  raw_ptr<PrefService> prefs_ = nullptr;
   base::ObserverList<Observer> observers_;
   bool enabled_ = false;
+  base::CallbackListSubscription did_become_active_subscription_;
   ui::ScopedUnownedUserData<FocusModeController> scoped_unowned_user_data_;
 };
 
