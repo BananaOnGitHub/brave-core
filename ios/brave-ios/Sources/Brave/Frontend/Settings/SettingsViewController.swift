@@ -7,6 +7,7 @@ import BraveCore
 import BraveNews
 import BraveShared
 import BraveStore
+import BraveTorUI
 import BraveUI
 import BraveVPN
 import BraveWallet
@@ -1388,6 +1389,15 @@ class SettingsViewController: TableViewController, BraveAccountDialogOpenerBridg
       header: "Developer Options",
       rows: [
         Row(text: "Region: \(Locale.current.region?.identifier ?? "--")"),
+        Row(
+          text: TorBrowserViewController.displayName,
+          selection: { [weak self] in
+            self?.navigationController?.pushViewController(
+              TorBrowserViewController(), animated: true
+            )
+          },
+          accessory: .disclosureIndicator
+        ),
         Row(
           text: "Sandbox Inspector",
           selection: { [unowned self] in
