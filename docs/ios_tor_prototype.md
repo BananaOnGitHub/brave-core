@@ -75,7 +75,9 @@ requires signing before installation. The workflow does not build all of Brave.
 Downloads are individual files: `BraveTorPrototype-unsigned.ipa` and
 `package-report.json`. The workflow uses pinned `actions/upload-artifact` v7 with
 `archive: false` and one file per upload, so downloading the IPA does not add an
-outer ZIP. Direct links appear in the workflow summary.
+outer ZIP. Direct links appear in the workflow summary. CI uses the Xcode 27
+runner and selects the simulator matching the active iOS SDK. Simulator boot is
+explicit and native test-result bundles are retained for diagnosis.
 
 The IPA is packaged from an unsigned Release archive, with explicit version/build
 metadata. The packager validates device architecture, Mach-O platform, executable
