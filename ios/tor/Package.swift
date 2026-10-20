@@ -30,7 +30,7 @@ let package = Package(
       resources: [.process("Resources")]
     ),
     .testTarget(name: "BraveTorTests", dependencies: ["BraveTor"]),
-    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI"]),
+    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI", "BraveTor"]),
   ],
   swiftLanguageVersions: [.v5]
 )

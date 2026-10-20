@@ -33,7 +33,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let webView = WKWebView(frame: .zero, configuration: configuration)
     // .invalid is reserved. The local stub rejects the SOCKS connection:
     // this test never contacts the public Tor network or an origin server.
-    webView.load(URLRequest(url: URL(string: "http://brave-tor-probe.invalid/")!))
+    webView.load(URLRequest(url: URL(string: "https://brave-tor-probe.invalid/")!))
     await fulfillment(of: [request], timeout: 15)
     webView.stopLoading()
   }
@@ -50,7 +50,9 @@ private final class SOCKSProbeServer: @unchecked Sendable {
   var port: UInt16? { listener.port?.rawValue }
 
   init(ready: @escaping () -> Void, destination: @escaping (String?) -> Void) throws {
-    listener = try NWListener(using: .tcp, on: .any)
+    let parameters = NWParameters.tcp
+    parameters.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback), port: .any)
+    listener = try NWListener(using: parameters)
     self.ready = ready
     self.destination = destination
   }

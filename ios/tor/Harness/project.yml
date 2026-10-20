@@ -28,8 +28,27 @@ targets:
         NSAppTransportSecurity:
           NSAllowsArbitraryLoadsInWebContent: true
         UILaunchScreen: {}
+  BraveTorPrototypeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - ../Tests/BraveTorUITests
+    dependencies:
+      - target: BraveTorPrototype
+      - package: BraveTor
+        product: BraveTorUI
+      - package: BraveTor
+        product: BraveTor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
 schemes:
   BraveTorPrototype:
     build:
       targets:
         BraveTorPrototype: all
+    test:
+      targets:
+        - BraveTorPrototypeTests
