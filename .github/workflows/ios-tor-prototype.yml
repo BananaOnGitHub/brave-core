@@ -30,13 +30,38 @@ jobs:
         run: |
           brew install xcodegen
           xcodegen generate
+      - name: Boot iOS simulator
+        timeout-minutes: 4
+        run: |
+          simulator_id=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if v.get("isAvailable") and v["name"].startswith("iPhone")))')
+          echo "TOR_SIMULATOR_ID=$simulator_id" >> "$GITHUB_ENV"
+          simulator_state=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["state"] for vs in d["devices"].values() for v in vs if v["udid"] == sys.argv[1]))' "$simulator_id")
+          if [ "$simulator_state" = "Shutdown" ]; then
+            xcrun simctl boot "$simulator_id"
+          fi
+          xcrun simctl bootstatus "$simulator_id" -b
       - name: Test native WebKit protections
         timeout-minutes: 10
         working-directory: ios/tor/Harness
         run: |
           # Work around WebKit bug 293831 in Xcode 16.4/iOS 18.5 simulator only.
-          simulator_id=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if v.get("isAvailable") and v["name"].startswith("iPhone")))')
-          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=18.4 -parallel-testing-enabled NO test
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$TOR_SIMULATOR_ID" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=18.4 -parallel-testing-enabled NO -resultBundlePath ../.build/TorPrototypeTests.xcresult test
+      - name: Summarize native test results
+        if: always()
+        continue-on-error: true
+        working-directory: ios/tor/Harness
+        run: |
+          if [ -d ../.build/TorPrototypeTests.xcresult ]; then
+            xcrun xcresulttool get test-results summary --path ../.build/TorPrototypeTests.xcresult
+          fi
+      - name: Save native test diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Native-test-results
+          path: ios/tor/.build/TorPrototypeTests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Archive and validate unsigned Release device app
         working-directory: ios/tor/Harness
         run: |
