@@ -26,6 +26,9 @@ resources outside this repository, go to:
 
 ### Security and Privacy
 
+- [Embedded Tor prototype for iOS](ios_tor_prototype.md) - Prototype design,
+  build instructions, limitations, and device DNS validation.
+
 - [Premium Account Privacy](premium_account_privacy.md) - How blind tokens
   decouple payment identity from service usage.
 - [Cryptographic Features](cryptography.md) - Cryptographic features in Brave

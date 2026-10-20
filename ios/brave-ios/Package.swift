@@ -67,6 +67,7 @@ var package = Package(
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.0.0"),
     .package(url: "https://github.com/devxoul/Then", from: "2.7.0"),
     .package(name: "Swift-BigInt", path: "../third_party/swift-bigint"),
+    .package(name: "BraveTor", path: "../tor"),
     .package(url: "https://github.com/GuardianFirewall/GuardianConnect", exact: "2.1.1"),
     .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "0.6.0"),
     .package(
@@ -116,6 +117,7 @@ var package = Package(
         "BraveShields",
         "BraveTalk",
         "Origin",
+        .product(name: "BraveTorUI", package: "BraveTor"),
       ],
       exclude: [
         "Frontend/UserContent/UserScripts/AllFrames",

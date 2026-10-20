@@ -1,0 +1,4 @@
+.build/
+.swiftpm/
+Harness/*.xcodeproj/
+Harness/GeneratedInfo.plist

@@ -1,0 +1,35 @@
+name: BraveTorPrototype
+options:
+  deploymentTarget:
+    iOS: "18.0"
+packages:
+  BraveTor:
+    path: ..
+targets:
+  BraveTorPrototype:
+    type: application
+    platform: iOS
+    sources:
+      - App.swift
+    dependencies:
+      - package: BraveTor
+        product: BraveTorUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+    info:
+      path: GeneratedInfo.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: true
+        UILaunchScreen: {}
+schemes:
+  BraveTorPrototype:
+    build:
+      targets:
+        BraveTorPrototype: all

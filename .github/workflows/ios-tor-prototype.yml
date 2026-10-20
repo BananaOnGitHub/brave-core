@@ -1,0 +1,49 @@
+name: iOS Tor prototype
+on:
+  push:
+    branches: ["prototype/ios-embedded-tor"]
+    paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
+  pull_request:
+    paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.repository == 'BananaOnGitHub/brave-core'
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          sparse-checkout: ios/tor
+          persist-credentials: false
+      - name: Test embedded runtime and protocol without the Tor network
+        working-directory: ios/tor
+        run: swift test
+      - name: Test native WebKit protections
+        working-directory: ios/tor
+        run: |
+          simulator_id=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if v.get("isAvailable") and v["name"].startswith("iPhone")))')
+          xcodebuild -scheme BraveTorUI -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath .build/ios CODE_SIGNING_ALLOWED=NO test
+      - name: Generate lightweight device harness
+        working-directory: ios/tor/Harness
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Build unsigned device app
+        working-directory: ios/tor/Harness
+        run: |
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination 'generic/platform=iOS' -derivedDataPath ../.build/harness CODE_SIGNING_ALLOWED=NO build
+          mkdir -p ../.build/package/Payload
+          cp -R ../.build/harness/Build/Products/Debug-iphoneos/BraveTorPrototype.app ../.build/package/Payload/
+          cd ../.build/package
+          zip -qry ../BraveTorPrototype-unsigned.ipa Payload
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: BraveTorPrototype-unsigned
+          path: ios/tor/.build/BraveTorPrototype-unsigned.ipa
+          retention-days: 14
