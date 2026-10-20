@@ -37,16 +37,15 @@ jobs:
           # Work around WebKit bug 293831 in Xcode 16.4/iOS 18.5 simulator only.
           simulator_id=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if v.get("isAvailable") and v["name"].startswith("iPhone")))')
           xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO IPHONEOS_DEPLOYMENT_TARGET=18.4 -parallel-testing-enabled NO test
-      - name: Build unsigned device app
+      - name: Archive and validate unsigned Release device app
         working-directory: ios/tor/Harness
         run: |
-          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination 'generic/platform=iOS' -derivedDataPath ../.build/harness CODE_SIGNING_ALLOWED=NO build
-          mkdir -p ../.build/package/Payload
-          cp -R ../.build/harness/Build/Products/Debug-iphoneos/BraveTorPrototype.app ../.build/package/Payload/
-          cd ../.build/package
-          zip -qry ../BraveTorPrototype-unsigned.ipa Payload
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ../.build/harness -archivePath ../.build/BraveTorPrototype.xcarchive CODE_SIGNING_ALLOWED=NO archive
+          python3 package_ipa.py ../.build/BraveTorPrototype.xcarchive/Products/Applications/BraveTorPrototype.app ../.build/package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: BraveTorPrototype-unsigned
-          path: ios/tor/.build/BraveTorPrototype-unsigned.ipa
+          path: |
+            ios/tor/.build/package/BraveTorPrototype-unsigned.ipa
+            ios/tor/.build/package/package-report.json
           retention-days: 14
