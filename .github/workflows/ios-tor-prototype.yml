@@ -31,10 +31,11 @@ jobs:
           brew install xcodegen
           xcodegen generate
       - name: Test native WebKit protections
+        timeout-minutes: 10
         working-directory: ios/tor/Harness
         run: |
           simulator_id=$(xcrun simctl list devices available --json | python3 -c 'import json,sys; d=json.load(sys.stdin); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if v.get("isAvailable") and v["name"].startswith("iPhone")))')
-          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO test
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$simulator_id" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test
       - name: Build unsigned device app
         working-directory: ios/tor/Harness
         run: |

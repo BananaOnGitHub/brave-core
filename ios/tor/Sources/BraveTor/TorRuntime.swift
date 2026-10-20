@@ -55,6 +55,7 @@ public actor TorRuntime {
         "--ClientOnly", "1", "--DataDirectory", directory.path,
         "--SocksPort", "127.0.0.1:auto IsolateSOCKSAuth",
         "--ControlPort", "0", "--DisableNetwork", "1",
+        "--__DisableSignalHandlers", "1",
         "--AvoidDiskWrites", "1", "--SafeLogging", "1",
         "--SafeSocks", "1", "--ClientRejectInternalAddresses", "1",
         "--Log", "err file /dev/null",

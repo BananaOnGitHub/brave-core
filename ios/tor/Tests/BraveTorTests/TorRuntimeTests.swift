@@ -19,6 +19,17 @@ final class TorRuntimeTests: XCTestCase {
     let snapshot = try await runtime.snapshot()
     XCTAssertFalse(snapshot.circuitEstablished)
     XCTAssertNil(snapshot.endpoint)
+    let concurrent = TorRuntime(
+      dataDirectory: directory.appendingPathComponent("concurrent", isDirectory: true)
+    )
+    do {
+      try await concurrent.prepare()
+      XCTFail("A second in-process Tor instance must be refused")
+    } catch {
+      XCTAssertEqual(error as? TorError, .unavailable)
+    }
+    let stillRunningVersion = try await runtime.version()
+    XCTAssertEqual(stillRunningVersion, version)
     await runtime.suspend()
   }
 }
