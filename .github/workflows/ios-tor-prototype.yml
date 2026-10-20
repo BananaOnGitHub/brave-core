@@ -1,11 +1,12 @@
 name: iOS Tor prototype
 on:
-  push:
-    branches: ["prototype/ios-embedded-tor"]
-    paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
   pull_request:
     paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
   workflow_dispatch:
+
+concurrency:
+  group: ios-tor-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

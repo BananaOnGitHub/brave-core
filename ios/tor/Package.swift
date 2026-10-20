@@ -7,7 +7,7 @@ import PackageDescription
 let package = Package(
   name: "BraveTor",
   defaultLocalization: "en",
-  platforms: [.iOS(.v18), .macOS(.v13)],
+  platforms: [.iOS("18.0"), .macOS(.v13)],
   products: [
     .library(name: "BraveTor", targets: ["BraveTor"]),
     .library(name: "BraveTorUI", targets: ["BraveTorUI"]),

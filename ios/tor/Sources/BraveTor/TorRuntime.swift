@@ -106,7 +106,12 @@ public actor TorRuntime {
       $0.hasPrefix("PROGRESS=")
     }).flatMap { Int($0.dropFirst("PROGRESS=".count)) } ?? 0
     let listener = reply.value(for: "net/listeners/socks") ?? ""
-    let endpoint = listener.isEmpty ? nil : try TorEndpoint(listener: listener)
+    let endpoint: TorEndpoint?
+    if listener.isEmpty {
+      endpoint = nil
+    } else {
+      endpoint = try TorEndpoint(listener: listener)
+    }
     return TorSnapshot(
       progress: min(100, max(0, progress)),
       endpoint: endpoint,
