@@ -35,8 +35,6 @@ int BraveLayoutProvider::GetCornerRadiusMetric(views::Emphasis emphasis,
 int BraveLayoutProvider::GetCornerRadiusMetric(views::ShapeContextToken token,
                                                const gfx::Size& size) const {
   switch (token) {
-    case kBraveOmniboxExpandedRadius:
-      return 4;
     case kRoundedCornersBorderRadius:
     case kSidePanelContentRadius:
       // Matches Brave Mac window / content inner rounding.

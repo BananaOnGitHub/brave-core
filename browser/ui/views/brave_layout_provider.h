@@ -12,7 +12,6 @@
 // resolved by `BraveLayoutProvider`.
 enum ExtendedShapeContextTokens : views::ShapeContextToken {
   kExtendedShapeContextTokenStart = kChromeShapeContextTokenEnd,
-  kBraveOmniboxExpandedRadius,
   kRoundedCornersBorderRadius,
   kRoundedCornersBorderRadiusAtWindowCorner,
   kExtendedShapeContextTokenEnd
