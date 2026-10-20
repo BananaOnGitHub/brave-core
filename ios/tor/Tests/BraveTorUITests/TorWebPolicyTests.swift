@@ -23,6 +23,7 @@ final class TorWebPolicyTests: XCTestCase {
     XCTAssertFalse(first.allowsAirPlayForMediaPlayback)
     XCTAssertFalse(first.allowsPictureInPictureMediaPlayback)
     XCTAssertFalse(first.preferences.javaScriptCanOpenWindowsAutomatically)
+    XCTAssertFalse(first.preferences.isTextInteractionEnabled)
   }
 }
 #endif

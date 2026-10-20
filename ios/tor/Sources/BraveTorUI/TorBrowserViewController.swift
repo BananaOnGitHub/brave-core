@@ -89,7 +89,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     let address = UIStackView(arrangedSubviews: [addressField, goButton])
     address.spacing = 8
     let explanation = UILabel()
-    explanation.text = Self.text("Experimental. JavaScript, media, and downloads are disabled.")
+    explanation.text = Self.text("Experimental. JavaScript, media, downloads, and text selection are disabled.")
     explanation.font = .preferredFont(forTextStyle: .footnote)
     explanation.adjustsFontForContentSizeCategory = true
     explanation.textColor = .secondaryLabel

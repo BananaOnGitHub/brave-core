@@ -52,6 +52,8 @@ enum TorWebPolicy {
     configuration.defaultWebpagePreferences.allowsContentJavaScript = false
     configuration.defaultWebpagePreferences.isLockdownModeEnabled = true
     configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+    // Selection menus can hand text/URLs to system lookup and share services.
+    configuration.preferences.isTextInteractionEnabled = false
     configuration.allowsAirPlayForMediaPlayback = false
     configuration.allowsPictureInPictureMediaPlayback = false
     configuration.mediaTypesRequiringUserActionForPlayback = .all

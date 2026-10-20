@@ -81,7 +81,8 @@ requires signing before installation. The workflow does not build all of Brave.
   WebAuthn/WebTransport/WebRTC paths pending explicit testing.
 - Media is blocked by content rules; AirPlay/PiP are disabled. Downloads,
   external schemes, local addresses, popout web views, and media permissions
-  are rejected. Target-blank links reuse the protected view.
+  are rejected. Native link menus and text selection are disabled to avoid
+  system sharing/lookup services. Target-blank links reuse the protected view.
 - The prototype never makes an app-side destination DNS query. A DNS packet
   capture is still required to verify the platform does not bypass this design.
 - This is an application proxy, not an OS firewall. It does not cover ordinary
@@ -114,7 +115,7 @@ configuration tests alone do not prove no leaks.
 ## Scope and remaining work
 
 - **Prototype only; containment has not been certified on a physical device.**
-- JavaScript, media, downloads and link previews remain disabled.
+- JavaScript, media, downloads, link previews and text selection remain disabled.
 - No bridge/pluggable-transport UI, circuit display, or per-site new-circuit
   controls. This version uses one isolated browsing surface.
 - Full Brave tab integration needs an explicit browsing mode and Tor-aware
@@ -126,6 +127,8 @@ configuration tests alone do not prove no leaks.
 - The attached 1.96 IPA was not inspected or modified: this session did not
   provide a usable shell/Xcode environment. It is not used as a build input.
 - The fork's full Brave application has not been built by this lightweight CI.
+  Full linking must also check compatibility between the embedded Tor/OpenSSL
+  symbols and BraveCore's crypto dependencies.
 
 ## Dependency provenance
 
