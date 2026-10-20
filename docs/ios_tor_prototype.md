@@ -6,6 +6,10 @@ Run Tor inside Brave without Network Extension entitlements or an iOS VPN
 profile. Prevent destination DNS from escaping Tor. A different public IP on a
 test page is insufficient evidence of containment.
 
+The finished browsing mode should support ordinary websites and JavaScript,
+like desktop Brave's Tor mode. Default-off JavaScript is a temporary setting of
+this developer test prototype, not the intended production default.
+
 Base: `279f12a02cbfd9d2b340ce1a3c248e63c808e87b`.
 
 ## Plan and implementation
@@ -87,6 +91,30 @@ signed copy. The unsigned IPA itself cannot be installed. A generic installation
 error may also require device installation logs to distinguish packaging,
 provisioning, certificate revocation and installation-service failures.
 
+### JavaScript and checker testing
+
+Build 4 adds **JavaScript (test)** and **Mullvad check** controls. JavaScript starts
+off for each newly created prototype screen and is not persisted in preferences.
+Changing it immediately tears down the current web view and requires Connect
+again, creating a fresh ephemeral browsing session with the selected setting.
+The same choice is applied to the initial configuration and navigation policy.
+
+To test on a device:
+
+1. Enable **JavaScript (test)**, then select **Connect**.
+2. Wait for **Connected through Tor**, then select **Mullvad check**.
+3. Record the visible exit IP, DNS resolver addresses, and WebRTC results.
+   Mullvad's VPN status is not the pass criterion for a Tor connection.
+4. Repeat after Disconnect/Connect and on Wi-Fi and cellular. Changing networks
+   must stop browsing and require explicit reconnection.
+5. Disable JavaScript and reconnect to compare against the script-disabled mode.
+
+The simulator serves synthetic HTML through a loopback SOCKS server, executes
+inline page JavaScript, follows a cross-origin fetch and redirect, and verifies
+that all three unresolved hostnames reach SOCKS. A separate test verifies that
+page scripts do not run when disabled. These are functional routing tests, not
+packet-capture proof against simultaneous DNS or other system bypasses.
+
 ## DNS and network containment
 
 - A native content rule blocks WebKit's `ping` resource type, following Onion
@@ -101,9 +129,11 @@ provisioning, certificate revocation and installation-service failures.
   The only allowed proxy endpoint is one numeric `127.0.0.1` listener.
 - `allowFailover` is explicitly false. The proxy is never cleared to recover
   connectivity. No URLSession or custom direct-fetch fallback is used.
-- Page JavaScript is disabled in both initial and per-navigation preferences.
-  WebKit Lockdown Mode is enabled. These restrictions contain additional
-  WebAuthn/WebTransport/WebRTC paths pending explicit testing.
+- JavaScript is selectable for testing in both initial and per-navigation
+  preferences. The prototype starts with it off; the eventual production mode
+  is intended to support JavaScript normally. WebKit Lockdown Mode remains
+  enabled in either setting. WebAuthn, WebTransport, WebRTC, workers, and other
+  script-triggered networking require explicit platform/device verification.
 - Media is blocked by content rules; AirPlay/PiP are disabled. Downloads,
   external schemes, local addresses, popout web views, and media permissions
   are rejected. Native link menus and text selection are disabled to avoid
@@ -126,7 +156,9 @@ the intended iOS releases.
 | Top-level page and redirect | Origin observes a Tor exit; destination DNS does not use the device resolver |
 | Static HTML `dns-prefetch`, including subframes and HTTP Link headers | No device-resolver query for unique probe labels |
 | Images, CSS, fonts, embeds, redirects, target-blank links | Proxied or blocked; no destination DNS outside Tor |
-| Script, WebRTC, WebTransport and WebAuthn probes | Disabled; no direct connection or OS credential fetch |
+| JavaScript disabled | Inline and external page scripts do not execute |
+| JavaScript enabled: script loads, fetch/XHR and redirects | Proxied; no destination DNS outside Tor |
+| WebRTC, WebTransport, WebAuthn and worker probes | Blocked or contained; no direct connection or OS credential fetch |
 | Media, download, share and external-app navigation attempts | Blocked without handing the destination to another networking service |
 | Before bootstrap, Tor/control failure, Disconnect | No page requests or direct fallback |
 | Background, lock/unlock, foreground | Browser is torn down; explicit Connect is required |
@@ -140,7 +172,8 @@ configuration tests alone do not prove no leaks.
 ## Scope and remaining work
 
 - **Prototype only; containment has not been certified on a physical device.**
-- JavaScript, media, downloads, link previews and text selection remain disabled.
+- JavaScript is available through the prototype testing toggle. Media,
+  downloads, link previews and text selection remain disabled.
 - No bridge/pluggable-transport UI, circuit display, or per-site new-circuit
   controls. This version uses one isolated browsing surface.
 - Full Brave tab integration needs an explicit browsing mode and Tor-aware

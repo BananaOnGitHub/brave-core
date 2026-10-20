@@ -6,7 +6,10 @@
 "Disconnect" = "Disconnect";
 "Go" = "Go";
 "Check Tor" = "Check Tor";
-"Experimental. JavaScript, media, downloads, and text selection are disabled." = "Experimental. JavaScript, media, downloads, and text selection are disabled.";
+"Changing JavaScript disconnects. Media, downloads, and text selection are disabled." = "Changing JavaScript disconnects. Media, downloads, and text selection are disabled.";
+"JavaScript (test)" = "JavaScript (test)";
+"JavaScript changed. Connect again." = "JavaScript changed. Connect again.";
+"Mullvad check" = "Mullvad check";
 "Preparing privacy protections…" = "Preparing privacy protections…";
 "Connected through Tor" = "Connected through Tor";
 "Connecting to Tor: %ld%%" = "Connecting to Tor: %ld%%";

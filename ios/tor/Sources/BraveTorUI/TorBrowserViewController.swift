@@ -19,6 +19,10 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
   private let disconnectButton = UIButton(type: .system)
   private let goButton = UIButton(type: .system)
   private let checkButton = UIButton(type: .system)
+  private let leakCheckButton = UIButton(type: .system)
+  private let javaScriptSwitch = UISwitch()
+  // Default off only for this developer prototype, not the eventual browser mode.
+  private var javaScriptEnabled = false
   private var webView: WKWebView?
   private var sessionTask: Task<Void, Never>?
   private var suspensionTask: Task<Void, Never>?
@@ -81,23 +85,43 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     configure(disconnectButton, title: "Disconnect", action: #selector(disconnectTapped))
     configure(goButton, title: "Go", action: #selector(openAddress))
     configure(checkButton, title: "Check Tor", action: #selector(checkTor))
+    configure(leakCheckButton, title: "Mullvad check", action: #selector(checkLeaks))
     goButton.isEnabled = false
     checkButton.isEnabled = false
+    leakCheckButton.isEnabled = false
 
-    let controls = UIStackView(arrangedSubviews: [connectButton, disconnectButton, checkButton])
+    javaScriptSwitch.isOn = javaScriptEnabled
+    javaScriptSwitch.accessibilityLabel = Self.text("JavaScript (test)")
+    javaScriptSwitch.accessibilityIdentifier = "TorPrototype.javaScript"
+    javaScriptSwitch.addTarget(
+      self, action: #selector(javaScriptSettingChanged), for: .valueChanged
+    )
+    let javaScriptLabel = UILabel()
+    javaScriptLabel.text = Self.text("JavaScript (test)")
+    javaScriptLabel.font = .preferredFont(forTextStyle: .body)
+    javaScriptLabel.adjustsFontForContentSizeCategory = true
+    javaScriptLabel.numberOfLines = 0
+    let javaScript = UIStackView(arrangedSubviews: [javaScriptLabel, javaScriptSwitch])
+    javaScript.alignment = .center
+    javaScript.spacing = 8
+
+    let controls = UIStackView(arrangedSubviews: [connectButton, disconnectButton])
     controls.spacing = 12
     controls.distribution = .fillEqually
+    let checks = UIStackView(arrangedSubviews: [checkButton, leakCheckButton])
+    checks.spacing = 12
+    checks.distribution = .fillEqually
     let address = UIStackView(arrangedSubviews: [addressField, goButton])
     address.spacing = 8
     let explanation = UILabel()
-    explanation.text = Self.text("Experimental. JavaScript, media, downloads, and text selection are disabled.")
+    explanation.text = Self.text("Changing JavaScript disconnects. Media, downloads, and text selection are disabled.")
     explanation.font = .preferredFont(forTextStyle: .footnote)
     explanation.adjustsFontForContentSizeCategory = true
     explanation.textColor = .secondaryLabel
     explanation.numberOfLines = 0
 
     let stack = UIStackView(arrangedSubviews: [
-      controls, statusLabel, address, explanation, browserContainer,
+      controls, statusLabel, javaScript, checks, address, explanation, browserContainer,
     ])
     stack.axis = .vertical
     stack.spacing = 10
@@ -185,6 +209,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
             self.browsingAllowed = true
             self.goButton.isEnabled = true
             self.checkButton.isEnabled = true
+            self.leakCheckButton.isEnabled = self.javaScriptEnabled
             self.statusLabel.text = Self.text("Connected through Tor")
           } else {
             self.removeBrowser()
@@ -209,6 +234,13 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     disconnect(message: Self.text("Disconnected"))
   }
 
+  @objc private func javaScriptSettingChanged() {
+    guard javaScriptEnabled != javaScriptSwitch.isOn else { return }
+    // Stop the old page before changing either initial or navigation preferences.
+    disconnect(message: Self.text("JavaScript changed. Connect again."))
+    javaScriptEnabled = javaScriptSwitch.isOn
+  }
+
   private func disconnect(message: String) {
     generation += 1
     sessionRequested = false
@@ -231,6 +263,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     browsingAllowed = false
     goButton.isEnabled = false
     checkButton.isEnabled = false
+    leakCheckButton.isEnabled = false
     // Never remove the proxy to recover connectivity. Destroy this web view
     // while its data store still has its non-failing-over Tor configuration.
     webView?.stopLoading()
@@ -242,7 +275,8 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
 
   private func installBrowser(endpoint: TorEndpoint, rules: WKContentRuleList) {
     let configuration = TorWebPolicy.configuration(
-      endpoint: endpoint, rules: rules, isolationID: UUID().uuidString
+      endpoint: endpoint, rules: rules, isolationID: UUID().uuidString,
+      javaScriptEnabled: javaScriptEnabled
     )
     let browser = WKWebView(frame: .zero, configuration: configuration)
     browser.allowsLinkPreview = false
@@ -276,6 +310,12 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     openAddress()
   }
 
+  @objc private func checkLeaks() {
+    guard browsingAllowed, javaScriptEnabled else { return }
+    addressField.text = "https://mullvad.net/en/check"
+    openAddress()
+  }
+
   @objc private func willResignActive() {
     appActive = false
     disconnect(message: Self.text("Browsing paused. Connect again when ready."))
@@ -291,8 +331,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     preferences: WKWebpagePreferences,
     decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void
   ) {
-    preferences.allowsContentJavaScript = false
-    preferences.isLockdownModeEnabled = true
+    TorWebPolicy.applyPagePreferences(preferences, javaScriptEnabled: javaScriptEnabled)
     guard browsingAllowed, !navigationAction.shouldPerformDownload,
       let url = navigationAction.request.url, TorDestination.isAllowed(url)
     else {

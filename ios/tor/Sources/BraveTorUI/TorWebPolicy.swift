@@ -37,7 +37,8 @@ enum TorWebPolicy {
   }
 
   static func configuration(
-    endpoint: TorEndpoint, rules: WKContentRuleList, isolationID: String
+    endpoint: TorEndpoint, rules: WKContentRuleList, isolationID: String,
+    javaScriptEnabled: Bool
   ) -> WKWebViewConfiguration {
     let configuration = WKWebViewConfiguration()
     let store = WKWebsiteDataStore.nonPersistent()
@@ -49,8 +50,9 @@ enum TorWebPolicy {
     store.proxyConfigurations = [proxy]
     configuration.websiteDataStore = store
     configuration.userContentController.add(rules)
-    configuration.defaultWebpagePreferences.allowsContentJavaScript = false
-    configuration.defaultWebpagePreferences.isLockdownModeEnabled = true
+    applyPagePreferences(
+      configuration.defaultWebpagePreferences, javaScriptEnabled: javaScriptEnabled
+    )
     configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
     // Selection menus can hand text/URLs to system lookup and share services.
     configuration.preferences.isTextInteractionEnabled = false
@@ -58,6 +60,13 @@ enum TorWebPolicy {
     configuration.allowsPictureInPictureMediaPlayback = false
     configuration.mediaTypesRequiringUserActionForPlayback = .all
     return configuration
+  }
+
+  static func applyPagePreferences(
+    _ preferences: WKWebpagePreferences, javaScriptEnabled: Bool
+  ) {
+    preferences.allowsContentJavaScript = javaScriptEnabled
+    preferences.isLockdownModeEnabled = true
   }
 }
 #endif
