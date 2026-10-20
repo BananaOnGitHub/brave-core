@@ -309,6 +309,14 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
   }
 
   public func webView(
+    _ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo,
+    completionHandler: @escaping (UIContextMenuConfiguration?) -> Void
+  ) {
+    // Native previews/share actions can initiate their own unproxied fetches.
+    completionHandler(nil)
+  }
+
+  public func webView(
     _ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin,
     initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType,
     decisionHandler: @escaping (WKPermissionDecision) -> Void
