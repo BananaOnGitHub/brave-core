@@ -83,7 +83,9 @@ The IPA is packaged from an unsigned Release archive, with explicit version/buil
 metadata. The packager validates device architecture, Mach-O platform, executable
 permissions and ZIP layout. It removes Xcode's copied codeless static Tor framework
 only after checking that the executable has no dynamic Tor framework dependency;
-the pinned Tor code is already statically linked. Unexpected framework resources
+the pinned Tor code is already statically linked. Build 5 performs the same guarded
+cleanup in the app and test bundle build phases, before Xcode 27 validates them.
+Unexpected framework resources
 or remaining versioned bundles fail packaging. A JSON package report accompanies
 the IPA. This checks packaging, not certificate validity or physical installation.
 

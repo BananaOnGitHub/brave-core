@@ -18,13 +18,21 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "4"
+        CURRENT_PROJECT_VERSION: "5"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         SWIFT_VERSION: "5.0"
         ENABLE_DEBUG_DYLIB: NO
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
         TARGETED_DEVICE_FAMILY: "1,2"
+    postBuildScripts:
+      - name: Remove redundant static Tor bundle
+        script: python3 "$SRCROOT/strip_static_tor_bundle.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        inputFiles:
+          - "$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)"
+          - "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)"
+        basedOnDependencyAnalysis: false
     info:
       path: GeneratedInfo.plist
       properties:
@@ -47,6 +55,14 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype.tests
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "5.0"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    postBuildScripts:
+      - name: Remove redundant static Tor bundle
+        script: python3 "$SRCROOT/strip_static_tor_bundle.py" "$TARGET_BUILD_DIR/$WRAPPER_NAME"
+        inputFiles:
+          - "$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)"
+          - "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)"
+        basedOnDependencyAnalysis: false
 schemes:
   BraveTorPrototype:
     build:

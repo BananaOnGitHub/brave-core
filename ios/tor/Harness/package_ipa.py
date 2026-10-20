@@ -12,6 +12,8 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+from strip_static_tor_bundle import remove_static_tor_bundle
+
 
 def command(*args):
     return subprocess.check_output(args, text=True).strip()
@@ -53,25 +55,7 @@ def package(source, output):
     require("tor.framework/" not in loads,
             "Tor must be statically linked before removing its copied bundle")
 
-    # Xcode copies the pinned static Tor framework as a codeless versioned
-    # framework and injects a stub. Its code is already linked into the app.
-    # Versioned bundles are unsuitable for this iOS sideloading package.
-    tor = app / "Frameworks" / "tor.framework"
-    removed = []
-    if tor.exists():
-        removed = sorted(str(p.relative_to(tor)) for p in tor.rglob("*"))
-        # Do not silently discard resources if a future dependency adds them.
-        for path in tor.rglob("*"):
-            if path.is_symlink() or not path.is_file():
-                continue
-            relative = path.relative_to(tor)
-            allowed = (
-                path.name in {"tor", "Info.plist"}
-                or any(part in {"Headers", "PrivateHeaders", "Modules",
-                                "_CodeSignature"} for part in relative.parts)
-            )
-            require(allowed, f"Unexpected Tor resource: {relative}")
-        shutil.rmtree(tor)
+    removed = remove_static_tor_bundle(app)
 
     for path in app.rglob("*"):
         require(not path.is_symlink(), f"Unexpected bundle symlink: {path}")

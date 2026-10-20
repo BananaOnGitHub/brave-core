@@ -30,6 +30,7 @@ jobs:
       - name: Generate lightweight device harness
         working-directory: ios/tor/Harness
         run: |
+          python3 -m unittest -v test_strip_static_tor_bundle.py
           brew install xcodegen
           xcodegen generate
       - name: Boot iOS simulator
