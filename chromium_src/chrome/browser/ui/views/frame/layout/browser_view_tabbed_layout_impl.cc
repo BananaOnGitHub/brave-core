@@ -15,13 +15,6 @@
 namespace brave_vtab_layout {
 
 bool IsStripLeading(const VerticalTabStripRegionView* region_view);
-int GetStripTopOffset(bool leading,
-                      int top_offset,
-                      float trailing_exclusion_height);
-gfx::Rect GetStripBounds(const gfx::Rect& client_area,
-                         int width,
-                         int top_offset,
-                         bool leading);
 void MirrorVerticalTabsCorners(
     CustomCornersBackground& background,
     CustomCornersBackground::Corners& corners,
@@ -115,24 +108,6 @@ bool IsStripLeading(const VerticalTabStripRegionView* region_view) {
   return !region_view || region_view->IsVerticalTabStripLeading();
 }
 
-// When the strip is on the trailing side, it doesn't share the top row with the
-// leading caption buttons but with the trailing ones instead, so offset it by
-// their height.
-int GetStripTopOffset(bool leading,
-                      int top_offset,
-                      float trailing_exclusion_height) {
-  return leading ? top_offset : base::ClampCeil(trailing_exclusion_height);
-}
-
-gfx::Rect GetStripBounds(const gfx::Rect& client_area,
-                         int width,
-                         int top_offset,
-                         bool leading) {
-  return gfx::Rect(leading ? client_area.x() : client_area.right() - width,
-                   client_area.y() + top_offset, width,
-                   client_area.height() - top_offset);
-}
-
 // Mirrors the window and concave corners of the vertical tab strip's own
 // background when it is on the trailing side.
 void MirrorVerticalTabsCorners(
@@ -159,3 +134,57 @@ void MirrorVerticalTabsCorners(
 }
 
 }  // namespace brave_vtab_layout
+
+// Upstream always lays out the vertical tab strip, and everything that is
+// inset for it, as if the strip was on the leading side (the content insets are
+// handled by a small rewrite of the upstream layout). This moves the strip
+// itself to the trailing side.
+void BraveBrowserViewTabbedLayoutImpl::
+    MoveUpstreamVerticalTabStripToTrailingSide(ProposedLayout& layout) const {
+  VerticalTabStripRegionView* const region_view =
+      views().vertical_tab_strip_region_view;
+  if (!region_view || layout_data_->tab_strip_type != TabStripType::kVertical ||
+      region_view->IsVerticalTabStripLeading()) {
+    return;
+  }
+
+  auto* const strip_layout = layout.GetLayoutFor(region_view);
+  if (!strip_layout) {
+    return;
+  }
+
+  // The strip doesn't share the top row with the leading caption buttons but
+  // with the trailing ones instead, so offset it by their height instead.
+  const int top_offset_delta =
+      base::ClampCeil(
+          layout_data_->revised_params.trailing_exclusion.ContentWithPadding()
+              .height()) -
+      layout_data_->vertical_tab_strip_animation.top_offset;
+  gfx::Rect bounds = strip_layout->bounds;
+  bounds.set_x(layout_data_->revised_params.visual_client_area.right() -
+               bounds.width());
+  bounds.Inset(gfx::Insets::TLBR(top_offset_delta, 0, 0, 0));
+  strip_layout->bounds = bounds;
+
+  if (auto* const backdrop_layout = layout.GetLayoutFor(
+          views().vertical_tab_strip_background_blur_backdrop)) {
+    backdrop_layout->bounds = bounds;
+  }
+
+  // Upstream bumps the top container's leading margin out to cover the
+  // collapsed strip's caption buttons. That doesn't apply when the strip is on
+  // the trailing side.
+  const int bump = layout_data_->horizontal_layout.vertical_tab_strip_width;
+  if (layout_data_->horizontal_layout.force_top_container_to_top &&
+      layout_data_->vertical_tab_strip_animation.top_offset > 0 && bump > 0) {
+    if (auto* const top_container_layout =
+            layout.GetLayoutFor(views().top_container)) {
+      top_container_layout->bounds.Inset(gfx::Insets::TLBR(0, bump, 0, 0));
+      for (auto& [child, child_layout] : top_container_layout->children) {
+        if (!child_layout.bounds.IsEmpty()) {
+          child_layout.bounds.Offset(-bump, 0);
+        }
+      }
+    }
+  }
+}

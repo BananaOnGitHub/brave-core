@@ -45,12 +45,74 @@ void MaybeUpdateVisibility(
 
 #include <chrome/browser/ui/views/frame/vertical_tab_strip_region_view.cc>
 
-int VerticalTabStripRegionView::GetCollapsedWidth() const {
+VerticalTabStripRegionView::VerticalTabStripRegionView(
+    tabs::VerticalTabStripStateController* state_controller,
+    actions::ActionItem* root_action_item,
+    BrowserView* browser_view)
+    : VerticalTabStripRegionView_ChromiumImpl(state_controller,
+                                              root_action_item,
+                                              browser_view) {
+  ObserveHideCompletelyPref();
+  ObserveVerticalTabOnRightPref();
+}
+
+VerticalTabStripRegionView::~VerticalTabStripRegionView() {}
+
+int VerticalTabStripRegionView_ChromiumImpl::GetCollapsedWidth() const {
   return state_controller_->ShouldHideCompletelyWhenCollapsed()
              ? 0
              : kCollapsedWidth;
 }
 
+gfx::Size VerticalTabStripRegionView::GetMinimumSize() const {
+  if (state_controller_->ShouldHideCompletelyWhenCollapsed() &&
+      (state_controller_->IsCollapsed() || IsAnimatingSize())) {
+    return gfx::Size(0, 0);
+  }
+
+  return VerticalTabStripRegionView_ChromiumImpl::GetMinimumSize();
+}
+
+void VerticalTabStripRegionView::OnAnimationProgressed(
+    const BrowserAnimationController* controller,
+    BrowserAnimationUpdate status) {
+  VerticalTabStripRegionView_ChromiumImpl::OnAnimationProgressed(controller,
+                                                                 status);
+  MaybeUpdateVisibility(state_controller_, this);
+}
+
+void VerticalTabStripRegionView::Layout(PassKey pass_key) {
+  LayoutSuperclass<VerticalTabStripRegionView_ChromiumImpl>(this);
+
+  // Put resize area leading position when the vertical tab strip is not
+  // leading.
+  if (!IsVerticalTabStripLeading()) {
+    resize_area_->SetX(0);
+  }
+}
+
+void VerticalTabStripRegionView::OnResize(int resize_amount,
+                                          bool done_resizing) {
+  // Invert the resize amount if the vertical tab strip is not leading.
+  if (!IsVerticalTabStripLeading()) {
+    resize_amount = -resize_amount;
+  }
+  VerticalTabStripRegionView_ChromiumImpl::OnResize(resize_amount,
+                                                    done_resizing);
+}
+gfx::Point VerticalTabStripRegionView::GetLinkDropArrowPosition(
+    const BrowserRootView::DropIndex& drop_index,
+    DropArrow::Direction* direction) {
+  auto point =
+      VerticalTabStripRegionView_ChromiumImpl::GetLinkDropArrowPosition(
+          drop_index, direction);
+
+  if (!IsVerticalTabStripLeading()) {
+    *direction = DropArrow::Direction::kLeft;
+  }
+
+  return point;
+}
 void VerticalTabStripRegionView::ObserveHideCompletelyPref() {
   if (!base::FeatureList::IsEnabled(tabs::kBraveVerticalTabHideCompletely)) {
     return;
@@ -90,7 +152,7 @@ void VerticalTabStripRegionView::HandleMouseMoveEvent(
                                     state_controller_->IsVerticalTabOnRight()));
 }
 
-bool VerticalTabStripRegionView::IsMouseInHotCorner() const {
+bool VerticalTabStripRegionView_ChromiumImpl::IsMouseInHotCorner() const {
   if (!state_controller_->ShouldHideCompletelyWhenCollapsed()) {
     return false;
   }
@@ -125,3 +187,6 @@ void VerticalTabStripRegionView::OnVerticalTabOnRightPrefChanged() {
   InvalidateLayout();
   PreferredSizeChanged();
 }
+
+BEGIN_METADATA(VerticalTabStripRegionView)
+END_METADATA

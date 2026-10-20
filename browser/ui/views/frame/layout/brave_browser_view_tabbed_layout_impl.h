@@ -116,6 +116,10 @@ class BraveBrowserViewTabbedLayoutImpl : public BrowserViewTabbedLayoutImpl {
   void CalculateSideBarLayout(ProposedLayout& layout,
                               const BrowserLayoutParams& params) const;
   void InsetContentsContainerBounds(ProposedLayout& layout) const;
+  // Upstream lays out its vertical tab strip on the leading side. Moves it to
+  // the trailing side when the strip is placed there.
+  void MoveUpstreamVerticalTabStripToTrailingSide(ProposedLayout& layout) const;
+
   // Moves the floating corners of the upstream vertical tab strip to the
   // content-facing side of the strip when it's placed on the trailing side.
   void MirrorUpstreamVerticalTabStripCorners(ProposedLayout& layout) const;

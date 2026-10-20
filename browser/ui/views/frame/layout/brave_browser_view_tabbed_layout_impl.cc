@@ -197,6 +197,7 @@ BraveBrowserViewTabbedLayoutImpl::CalculateProposedLayout(
   ProposedLayout layout =
       BrowserViewTabbedLayoutImpl::CalculateProposedLayout(params);
 
+  MoveUpstreamVerticalTabStripToTrailingSide(layout);
   MirrorUpstreamVerticalTabStripCorners(layout);
 
   if (IsParentedToAndVisible(views().focus_mode_title_bar,
@@ -304,6 +305,9 @@ void BraveBrowserViewTabbedLayoutImpl::MirrorUpstreamVerticalTabStripCorners(
         corner_layout->bounds.width() - views::Separator::kThickness;
     gfx::Rect bounds = corner_layout->bounds;
     bounds.set_x(strip_layout->bounds.x() - corner_width);
+    if (top) {
+      bounds.set_y(strip_layout->bounds.y());
+    }
     corner_layout->bounds = bounds;
   };
   update_corner(views().vertical_tab_strip_top_corner, /*top=*/true);
