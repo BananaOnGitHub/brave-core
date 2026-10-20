@@ -5,20 +5,29 @@
 
 #include "chrome/browser/ui/color/native_chrome_color_mixer.h"
 
-#define AddNativeChromeColorMixer AddNativeChromeColorMixer_ChromiumImpl
+namespace {
+
+void AddBraveNativeChromeColorMixer(ui::ColorProvider* provider,
+                                    const ui::ColorProviderKey& key);
+
+}  // namespace
+
 #include <chrome/browser/ui/color/linux/native_chrome_color_mixer_linux.cc>
-#undef AddNativeChromeColorMixer
+
+namespace {
 
 // We set `kColorOmniboxIconBackground` to transparent earlier in the mixer
 // chain (see `AddBraveOmniboxColorMixer`), so the upstream
-// `KeepBackgroundIfReadable()` check above runs against that transparent value
+// `KeepBackgroundIfReadable()` check runs against that transparent value
 // instead of the real toolbar color, and always takes the tint fallback. Redo
 // the check here against `kColorToolbar` directly: a readable toolbar is kept
 // (visually equivalent to transparent, since the chip sits on the toolbar), and
 // the tint is only used when genuinely unreadable.
-void AddNativeChromeColorMixer(ui::ColorProvider* provider,
-                               const ui::ColorProviderKey& key) {
-  AddNativeChromeColorMixer_ChromiumImpl(provider, key);
+//
+// This is defined after the upstream include to reuse its
+// `KeepForegroundIfReadable()`.
+void AddBraveNativeChromeColorMixer(ui::ColorProvider* provider,
+                                    const ui::ColorProviderKey& key) {
   if (key.system_theme == ui::SystemTheme::kDefault) {
     return;
   }
@@ -39,3 +48,5 @@ void AddNativeChromeColorMixer(ui::ColorProvider* provider,
   mixer[kColorOmniboxIconForeground] =
       KeepForegroundIfReadable(kColorOmniboxIconBackground);
 }
+
+}  // namespace
