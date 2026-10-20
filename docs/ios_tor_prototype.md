@@ -92,7 +92,7 @@ provisioning, certificate revocation and installation-service failures.
 - A native content rule blocks WebKit's `ping` resource type, following Onion
   Browser's mitigation for the Mysk DNS-prefetch finding.
 - Network monitoring compares reachability, interface identities used by the
-  path, and gateways. Repeated callbacks and DNS/cost/Low Data Mode metadata
+  path (including the preferred interface), and gateways. Repeated callbacks and DNS/cost/Low Data Mode metadata
   updates do not disconnect an unchanged route. An initial satisfied path is
   required before Connect. Connectivity loss or route changes still destroy
   the browser and require explicit reconnection; events are consumed in order

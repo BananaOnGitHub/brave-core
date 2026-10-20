@@ -13,7 +13,7 @@ final class TorNetworkPolicyTests: XCTestCase {
   private let otherGateway: NWEndpoint = .hostPort(host: "192.0.2.2", port: 0)
 
   private func path(
-    satisfied: Bool, interfaces: Set<TorNetworkPath.Interface>, gateways: Set<NWEndpoint>
+    satisfied: Bool, interfaces: [TorNetworkPath.Interface], gateways: Set<NWEndpoint>
   ) -> TorNetworkPath {
     TorNetworkPath(isSatisfied: satisfied, interfaces: interfaces, gateways: gateways)
   }
@@ -37,16 +37,29 @@ final class TorNetworkPolicyTests: XCTestCase {
     }
   }
 
-  func testInterfaceAndGatewayOrderingDoesNotDisconnect() {
+  func testGatewayOrderingDoesNotDisconnect() {
     var policy = TorNetworkPolicy()
     let first = path(
-      satisfied: true, interfaces: Set([wifi, vpn]), gateways: Set([gateway, otherGateway])
+      satisfied: true, interfaces: [wifi, vpn], gateways: Set([gateway, otherGateway])
     )
     let reordered = path(
-      satisfied: true, interfaces: Set([vpn, wifi]), gateways: Set([otherGateway, gateway])
+      satisfied: true, interfaces: [wifi, vpn], gateways: Set([otherGateway, gateway])
     )
     XCTAssertFalse(policy.update(first))
     XCTAssertFalse(policy.update(reordered))
+  }
+
+  func testPreferredInterfaceChangeRequiresDisconnect() {
+    var policy = TorNetworkPolicy()
+    let wifiPreferred = path(
+      satisfied: true, interfaces: [wifi, cellular], gateways: [gateway]
+    )
+    let cellularPreferred = path(
+      satisfied: true, interfaces: [cellular, wifi], gateways: [gateway]
+    )
+    XCTAssertFalse(policy.update(wifiPreferred))
+    XCTAssertTrue(policy.update(cellularPreferred))
+    XCTAssertFalse(policy.update(cellularPreferred))
   }
 
   func testRouteTransitionsRequireDisconnect() {
