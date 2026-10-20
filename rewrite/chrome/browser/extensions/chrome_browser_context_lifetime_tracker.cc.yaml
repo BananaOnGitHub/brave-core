@@ -10,7 +10,6 @@ substitutions:
       Brave's Profile::IsPrimaryOTRProfile() is true for Tor, so the watcher
       would observe it and then DCHECK when the real primary OTR is created.
     regex:
-      pattern: 'if (!off_the_record->IsPrimaryOTRProfile()) {'
+      re_pattern: '(if \()!off_the_record->IsPrimaryOTRProfile\(\)(\) \{)'
       replace:
-        'if (!off_the_record->IsPrimaryOTRProfile() || off_the_record->IsTor())
-        {'
+        '\1!off_the_record->IsPrimaryOTRProfile() || off_the_record->IsTor()\2'
