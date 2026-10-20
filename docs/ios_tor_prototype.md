@@ -68,6 +68,11 @@ this package, runs offline/runtime and simulator tests, and builds an unsigned
 device harness IPA. Forks may need Actions enabled in GitHub. The artifact
 requires signing before installation. The workflow does not build all of Brave.
 
+Downloads are individual files: `BraveTorPrototype-unsigned.ipa` and
+`package-report.json`. The workflow uses pinned `actions/upload-artifact` v7 with
+`archive: false` and one file per upload, so downloading the IPA does not add an
+outer ZIP. Direct links appear in the workflow summary.
+
 The IPA is packaged from an unsigned Release archive, with explicit version/build
 metadata. The packager validates device architecture, Mach-O platform, executable
 permissions and ZIP layout. It removes Xcode's copied codeless static Tor framework
@@ -76,7 +81,7 @@ the pinned Tor code is already statically linked. Unexpected framework resources
 or remaining versioned bundles fail packaging. A JSON package report accompanies
 the IPA. This checks packaging, not certificate validity or physical installation.
 
-For ESign, extract the Actions artifact ZIP, import the IPA, sign with a valid
+For ESign, download the IPA directly, import it, sign with a valid
 certificate and provisioning profile for your device, then install the newly
 signed copy. The unsigned IPA itself cannot be installed. A generic installation
 error may also require device installation logs to distinguish packaging,
