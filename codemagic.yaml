@@ -9,7 +9,6 @@ workflows:
       xcode: "27.0"
       node: "24.19.0"
       vars:
-        CIPD_CACHE_DIR: ""
         CIPD_PARALLEL_DOWNLOADS: "1"
         CIPD_MAX_THREADS: "2"
     # Cache only completed, fingerprinted frameworks, not Chromium or download archives.
@@ -22,6 +21,7 @@ workflows:
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           mkdir -p "$CM_BUILD_DIR/artifacts/logs" "$CM_BUILD_DIR/ci-work/src"
           df -h "$CM_BUILD_DIR"
           xcodebuild -version
@@ -37,12 +37,14 @@ workflows:
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           swift test --package-path ios/tor 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/tor-tests.log"
           python3 -m unittest discover -s ios/tor/Harness -p 'test_*.py' 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/helper-tests.log"
       - name: Initialize Chromium and Brave dependencies
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           revision="$(git rev-parse HEAD)"
           pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/init.log"
           test "$(git rev-parse HEAD)" = "$revision"
@@ -51,6 +53,7 @@ workflows:
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           export PATH="$PWD/vendor/depot_tools:$PATH"
           core_key="$(python3 ios/tor/Harness/core_cache_key.py)"
           core_cache="$CM_BUILD_DIR/.codemagic-cache/BraveCore.tar"
@@ -81,6 +84,7 @@ workflows:
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           export PATH="$PWD/vendor/depot_tools:$PATH"
           pnpm run ios_bootstrap 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/bootstrap.log"
           python3 - <<'PY'
@@ -98,6 +102,7 @@ workflows:
         script: |
           #!/bin/bash
           set -euo pipefail
+          unset CIPD_CACHE_DIR
           export PATH="$PWD/vendor/depot_tools:$PATH"
           build_number="$((7 + ${BUILD_NUMBER:-0}))"
           xcodebuild -project ios/brave-ios/App/Client.xcodeproj -scheme TorCIRelease -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/tor/.build/full-brave-derived -archivePath ios/tor/.build/BravePrivateTor.xcarchive CODE_SIGNING_ALLOWED=NO BASE_BUNDLE_ID=com.banana.brave.tor CURRENT_PROJECT_VERSION="$build_number" archive 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/archive.log"
