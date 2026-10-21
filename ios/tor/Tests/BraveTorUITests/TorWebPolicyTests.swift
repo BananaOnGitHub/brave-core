@@ -12,10 +12,10 @@ final class TorWebPolicyTests: XCTestCase {
   func testProtectionCompilationAndSeparateEphemeralStores() async throws {
     let rules = try await TorWebPolicy.compileRules()
     let endpoint = try TorEndpoint(listener: "127.0.0.1:9050")
-    let first = TorWebPolicy.configuration(
+    let first = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "first", javaScriptEnabled: false
     )
-    let second = TorWebPolicy.configuration(
+    let second = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "second", javaScriptEnabled: false
     )
     XCTAssertFalse(first.websiteDataStore.isPersistent)
@@ -33,7 +33,7 @@ final class TorWebPolicyTests: XCTestCase {
   func testJavaScriptChoicePreservesNativeProtectionsAndNavigationPreferences() async throws {
     let rules = try await TorWebPolicy.compileRules()
     let endpoint = try TorEndpoint(listener: "127.0.0.1:9050")
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "script-test", javaScriptEnabled: true
     )
     XCTAssertTrue(configuration.defaultWebpagePreferences.allowsContentJavaScript)

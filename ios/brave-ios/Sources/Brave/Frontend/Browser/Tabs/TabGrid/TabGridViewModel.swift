@@ -15,6 +15,36 @@ import Web
 @Observable
 class TabGridViewModel {
   private var _isPrivateBrowsing: Bool = false
+  private var _isTorBrowsing = false
+  var mode: TabBrowsingMode {
+    get { _isTorBrowsing ? .tor : (isPrivateBrowsing ? .private : .regular) }
+    set {
+      guard mode != newValue else { return }
+      let oldPrivateIndex = tabManager.privateTabSelectedIndex
+      if _isTorBrowsing { tabManager.torTabSelectedIndex = tabManager.selectedIndex }
+      else if isPrivateBrowsing { tabManager.privateTabSelectedIndex = tabManager.selectedIndex }
+      let wasPrivate = isPrivateBrowsing
+      let willBePrivate = newValue != .regular
+      let willBeTor = newValue == .tor
+      _isTorBrowsing = willBeTor
+      tabManager.privateBrowsingManager.isTorBrowsing = _isTorBrowsing
+      isPrivateBrowsing = willBePrivate
+      if !willBePrivate { tabManager.privateTabSelectedIndex = oldPrivateIndex }
+      tabManager.privateBrowsingManager.isTorBrowsing = _isTorBrowsing
+      if wasPrivate == willBePrivate {
+        updateTabs()
+        let index = _isTorBrowsing ? tabManager.torTabSelectedIndex : tabManager.privateTabSelectedIndex
+        let tab = index.flatMap { tabManager.allTabs[safe: $0] }
+        tabManager.selectTab(tab.flatMap { $0.isTor == willBeTor ? $0 : nil } ?? tabs.last)
+        // Selecting nil resets the global mode; preserve the empty selected group.
+        tabManager.privateBrowsingManager.isPrivateBrowsing = willBePrivate
+        tabManager.privateBrowsingManager.isTorBrowsing = willBeTor
+      }
+      _isPrivateBrowsing = willBePrivate
+      _isTorBrowsing = willBeTor
+      updateTabs()
+    }
+  }
   private(set) var tabs: [any TabState] = []
   private(set) var isPrivateTabsLocked: Bool = false
   var onModeSwitchComplete: (() -> Void)?
@@ -86,6 +116,7 @@ class TabGridViewModel {
     self.windowProtection = windowProtection
     self.tabs = tabManager.tabsForCurrentMode
     self._isPrivateBrowsing = tabManager.privateBrowsingManager.isPrivateBrowsing
+    self._isTorBrowsing = tabManager.privateBrowsingManager.isTorBrowsing
 
     setUpObservations()
   }
@@ -231,6 +262,7 @@ class TabGridViewModel {
   // MARK -
 
   private func updateTabs() {
+    guard !isPrivateTabsLocked else { tabs = []; return }
     let query = isSearching && !searchQuery.isEmpty ? searchQuery : nil
     tabs = tabManager.tabsForCurrentMode(for: query)
   }
@@ -281,10 +313,12 @@ class TabGridViewModel {
     updateTabs()
 
     let indexToSelect: Int? =
-      isPrivateBrowsing ? tabManager.privateTabSelectedIndex : tabManager.normalTabSelectedIndex
+      _isTorBrowsing ? tabManager.torTabSelectedIndex
+        : (isPrivateBrowsing ? tabManager.privateTabSelectedIndex : tabManager.normalTabSelectedIndex)
     let tabToSelect = indexToSelect.flatMap { tabManager.allTabs[safe: $0] }
+      .flatMap { $0.isTor == _isTorBrowsing && $0.isPrivate == isPrivateBrowsing ? $0 : nil }
     if isPrivateBrowsing {
-      if Preferences.Privacy.persistentPrivateBrowsing.value, let tabToSelect {
+      if _isTorBrowsing || Preferences.Privacy.persistentPrivateBrowsing.value, let tabToSelect {
         tabManager.selectTab(tabToSelect)
       }
     } else {
@@ -315,6 +349,15 @@ class TabGridViewModel {
       .sink { [weak self] value in
         guard let self else { return }
         _isPrivateBrowsing = value
+      }.store(in: &cancellables)
+
+    tabManager.privateBrowsingManager.$isTorBrowsing
+      .removeDuplicates()
+      .receive(on: RunLoop.main)
+      .sink { [weak self] value in
+        guard let self else { return }
+        _isTorBrowsing = value
+        updateTabs()
       }.store(in: &cancellables)
 
     let observer = TabManagerObserver { [weak self] in

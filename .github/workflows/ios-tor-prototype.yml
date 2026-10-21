@@ -1,7 +1,7 @@
 name: iOS Tor prototype
 on:
   pull_request:
-    paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
+    paths: ["ios/tor/**", "ios/brave-ios/**", ".github/workflows/ios-tor-prototype.yml"]
   workflow_dispatch:
 
 concurrency:
@@ -22,11 +22,18 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 1
-          sparse-checkout: ios/tor
+          sparse-checkout: |
+            ios/tor
+            ios/brave-ios/Sources/Web
+            ios/brave-ios/Sources/BraveStrings
+            ios/brave-ios/Sources/Brave/Frontend/Browser
           persist-credentials: false
       - name: Test embedded runtime and protocol without the Tor network
         working-directory: ios/tor
         run: swift test
+      - name: Parse Brave tab integration sources
+        run: |
+          xcrun swiftc -frontend -parse ios/brave-ios/Sources/Web/WebKit/TorTabState.swift ios/brave-ios/Sources/Brave/Frontend/Browser/TabManager.swift ios/brave-ios/Sources/Brave/Frontend/Browser/Tabs/TabGrid/TabGridViewModel.swift ios/brave-ios/Sources/Brave/Frontend/Browser/Tabs/TabGrid/TabGridView.swift
       - name: Generate lightweight device harness
         working-directory: ios/tor/Harness
         run: |

@@ -590,6 +590,8 @@ var package = Package(
     .target(
       name: "Web",
       dependencies: [
+        .product(name: "BraveTor", package: "BraveTor"),
+        .product(name: "BraveTorUI", package: "BraveTor"),
         "BraveCore", "FaviconModels", "BraveShared", "Shared", "CertificateUtilities",
         "BraveStrings", "Strings",
         .product(name: "OrderedCollections", package: "swift-collections"),

@@ -28,7 +28,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let port = try XCTUnwrap(server.port)
     let endpoint = try TorEndpoint(listener: "127.0.0.1:\(port)")
     let rules = try await TorWebPolicy.compileRules()
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "test-isolation", javaScriptEnabled: false
     )
     let webView = WKWebView(frame: .zero, configuration: configuration)
@@ -63,7 +63,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let port = try XCTUnwrap(server.port)
     let endpoint = try TorEndpoint(listener: "127.0.0.1:\(port)")
     let rules = try await TorWebPolicy.compileRules()
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "script-isolation", javaScriptEnabled: true
     )
     let probe = ScriptResultProbe { value in
@@ -84,7 +84,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
   func testDisabledPageJavaScriptDoesNotExecute() async throws {
     let rules = try await TorWebPolicy.compileRules()
     let endpoint = try TorEndpoint(listener: "127.0.0.1:9050")
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "disabled-script", javaScriptEnabled: false
     )
     let finished = expectation(description: "Static page finished loading")

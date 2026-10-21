@@ -18,7 +18,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "5"
+        CURRENT_PROJECT_VERSION: "6"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
@@ -50,6 +50,8 @@ targets:
         product: BraveTorUI
       - package: BraveTor
         product: BraveTor
+      - package: BraveTor
+        product: TorWebKit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.banana.brave.tor-prototype.tests

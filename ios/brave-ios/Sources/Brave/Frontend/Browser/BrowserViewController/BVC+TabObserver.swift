@@ -20,7 +20,7 @@ extension BrowserViewController: TabObserver {
       toolbarVisibilityViewModel.beginObservingScrollView(scrollView)
     }
 
-    if !FeatureList.kUseProfileWebViewConfiguration.enabled {
+    if !tab.isTor && !FeatureList.kUseProfileWebViewConfiguration.enabled {
       installContentScriptHandlers(in: tab)
     }
   }
@@ -34,6 +34,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidStartNavigation(_ tab: some TabState) {
+    if tab.isTor { updateInContentHomePanel(tab.visibleURL); return }
     tab.contentBlocker?.clearPageStats()
 
     let visibleURL = tab.visibleURL
@@ -90,6 +91,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidCommitNavigation(_ tab: some TabState) {
+    if tab.isTor { updateInContentHomePanel(tab.visibleURL); return }
     // Odd Chromium behaviour resets the web views obscured insets when a navigation starts due to
     // a bug with their fullscreen support, so we must set this again after a commit
     if #available(iOS 26.0, *) {
@@ -132,6 +134,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidCommitSameDocumentNavigation(_ tab: some TabState) {
+    guard !tab.isTor else { return }
 
     if !Preferences.Privacy.privateBrowsingOnly.value,
       !tab.isPrivate || Preferences.Privacy.persistentPrivateBrowsing.value
@@ -142,6 +145,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidFinishNavigation(_ tab: some TabState) {
+    if tab.isTor { updateInContentHomePanel(tab.visibleURL); return }
     if !Preferences.Privacy.privateBrowsingOnly.value
       && (!tab.isPrivate || Preferences.Privacy.persistentPrivateBrowsing.value)
     {
@@ -192,6 +196,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidUpdateURL(_ tab: some TabState) {
+    if tab.isTor { updateInContentHomePanel(tab.visibleURL); return }
     if tab === tabManager.selectedTab && !tab.isRestoring {
       updateUIForReaderHomeStateForTab(tab)
     }
@@ -234,6 +239,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidChangeTitle(_ tab: some TabState) {
+    if tab.isTor { tabsBar.updateSelectedTabTitle(); return }
     // Ensure that the tab title *actually* changed to prevent repeated calls
     // to navigateInTab(tab:).
     guard

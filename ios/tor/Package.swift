@@ -9,6 +9,7 @@ let package = Package(
   defaultLocalization: "en",
   platforms: [.iOS("18.0"), .macOS(.v13)],
   products: [
+    .library(name: "TorWebKit", targets: ["TorWebKit"]),
     .library(name: "BraveTor", targets: ["BraveTor"]),
     .library(name: "BraveTorUI", targets: ["BraveTorUI"]),
   ],
@@ -24,13 +25,14 @@ let package = Package(
       linkerSettings: [.linkedLibrary("z")]
     ),
     .target(name: "BraveTor", dependencies: ["EmbeddedTor"]),
+    .target(name: "TorWebKit"),
     .target(
       name: "BraveTorUI",
-      dependencies: ["BraveTor"],
+      dependencies: ["BraveTor", .target(name: "TorWebKit", condition: .when(platforms: [.iOS]))],
       resources: [.process("Resources")]
     ),
     .testTarget(name: "BraveTorTests", dependencies: ["BraveTor"]),
-    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI", "BraveTor"]),
+    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI", "BraveTor", "TorWebKit"]),
   ],
   swiftLanguageVersions: [.v5]
 )

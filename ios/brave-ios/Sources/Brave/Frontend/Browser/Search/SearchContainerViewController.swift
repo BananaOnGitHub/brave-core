@@ -29,7 +29,8 @@ class SearchContainerViewController: UIViewController {
   weak var delegate: SearchContainerViewControllerDelegate?
 
   let inputBar: SearchURLBarInputView
-  private let topSitesController: TopSitesViewController
+  private let topSitesController: UIViewController
+  private let isTor: Bool
   private let searchController: SearchViewController
   private let searchLoader: SearchLoader
 
@@ -57,6 +58,7 @@ class SearchContainerViewController: UIViewController {
     recentSearchAction: @escaping (RecentSearch?, Bool) -> Void
   ) {
     self.delegate = delegate
+    self.isTor = privateBrowsingManager.isTorBrowsing
 
     let searchController = SearchViewController(
       with: .init(
@@ -78,7 +80,7 @@ class SearchContainerViewController: UIViewController {
     searchLoader.addListener(searchController)
     self.searchLoader = searchLoader
 
-    self.topSitesController = TopSitesViewController(
+    self.topSitesController = privateBrowsingManager.isTorBrowsing ? UIViewController() : TopSitesViewController(
       privateBrowsingManager: privateBrowsingManager,
       defaultSearchEngine: searchEngines.defaultEngine(
         forType: privateBrowsingManager.isPrivateBrowsing ? .privateMode : .standard
@@ -134,7 +136,7 @@ class SearchContainerViewController: UIViewController {
 
     searchController.isUsingBottomBar = isUsingBottomBar
     // Called after the search view is in the hierarchy so its engine row can be laid out.
-    searchController.setupSearchEngineList()
+    if !isTor { searchController.setupSearchEngineList() }
     updateInputBarLayout()
   }
 
@@ -208,6 +210,7 @@ class SearchContainerViewController: UIViewController {
 
   /// The delegate for the quick-search-engines settings screen.
   func presentQuickSearchEnginesViewController(profile: LegacyBrowserProfile) {
+    guard !isTor else { return }
     let quickSearchEnginesViewController = SearchQuickEnginesViewController(profile: profile)
     quickSearchEnginesViewController.navigationItem.leftBarButtonItem =
       UIBarButtonItem(
@@ -237,6 +240,10 @@ class SearchContainerViewController: UIViewController {
 
   /// Drives the search results/suggestions for the current field text.
   private func updateSearchResults(for text: String) {
+    guard !isTor else {
+      searchController.setSearchQuery(query: text, showSearchSuggestions: false)
+      return
+    }
     if text.isEmpty {
       searchController.setSearchQuery(query: "", showSearchSuggestions: false)
       searchLoader.query = ""
@@ -316,6 +323,7 @@ extension SearchContainerViewController: SearchURLBarInputViewDelegate {
   }
 
   func searchURLBarInputViewDidTapVoiceSearch(_ inputView: SearchURLBarInputView) {
+    guard !isTor else { return }
     delegate?.searchContainerDidTapVoiceSearch(self)
   }
 }

@@ -274,7 +274,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
   }
 
   private func installBrowser(endpoint: TorEndpoint, rules: WKContentRuleList) {
-    let configuration = TorWebPolicy.configuration(
+        let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: UUID().uuidString,
       javaScriptEnabled: javaScriptEnabled
     )
