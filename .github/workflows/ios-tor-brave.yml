@@ -64,7 +64,8 @@ jobs:
         timeout-minutes: 180
         run: |
           set -o pipefail
-          pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn symbol_level:0 --ninja j:4 2>&1 | tee ios/tor/.build/full-brave-logs/core.log
+          # Official builds require Brave's private service keys.
+          pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn is_official_build:false --gn symbol_level:0 --ninja j:4 2>&1 | tee ios/tor/.build/full-brave-logs/core.log
       - name: Cache built BraveCore before archiving the app
         if: steps.restore-core.outputs.cache-hit != 'true'
         continue-on-error: true
