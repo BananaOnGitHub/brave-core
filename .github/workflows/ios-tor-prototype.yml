@@ -1,8 +1,5 @@
 name: iOS Tor prototype
 on:
-  pull_request:
-    branches-ignore: ["prototype/ios-embedded-tor"]
-    paths: ["ios/tor/**", "ios/brave-ios/**", ".github/workflows/ios-tor-prototype.yml"]
   workflow_dispatch:
   workflow_call:
 

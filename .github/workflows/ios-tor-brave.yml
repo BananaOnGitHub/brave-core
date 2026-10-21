@@ -1,8 +1,5 @@
 name: Brave iOS with Tor
 on:
-  pull_request:
-    branches: ["prototype/ios-embedded-tor"]
-    paths: ["ios/**", "build/commands/**", ".github/workflows/ios-tor-brave.yml"]
   workflow_dispatch:
 
 permissions:
