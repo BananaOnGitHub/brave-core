@@ -40,6 +40,7 @@ jobs:
         working-directory: ios/tor/Harness
         run: |
           python3 -m unittest -v test_strip_static_tor_bundle.py
+          python3 -m unittest -v test_core_cache_key.py
           python3 generate_tab_contracts.py
           brew install xcodegen
           xcodegen generate

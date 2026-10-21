@@ -63,8 +63,8 @@ class SearchContainerViewController: UIViewController {
     let searchController = SearchViewController(
       with: .init(
         isPrivate: privateBrowsingManager.isPrivateBrowsing,
-        isAIChatAvailable: isAIChatAvailable,
-        isPlaylistAvailable: isPlaylistAvailable,
+        isAIChatAvailable: isAIChatAvailable && !privateBrowsingManager.isTorBrowsing,
+        isPlaylistAvailable: isPlaylistAvailable && !privateBrowsingManager.isTorBrowsing,
         searchEngines: searchEngines
       ),
       browserColors: privateBrowsingManager.browserColors

@@ -34,6 +34,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private var initialURL: URL?
   private var proxy: TorWebViewProxy?
   private var registered = false
+  private var protectionsUnavailable = false
   public private(set) var lastCommittedURL: URL?
   public private(set) var previousCommittedURL: URL?
   public private(set) var contentsMimeType: String?
@@ -81,6 +82,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   public func createWebView() {
     guard browser == nil, creationTask == nil else { return }
+    protectionsUnavailable = false
     if !registered {
       registered = true
       session.attach(id: id) { [weak self] state in self?.connectionChanged(state) }
@@ -109,7 +111,10 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         observers.forEach { $0.tabDidCreateWebView(self) }
         flushPendingRequest()
       } catch {
+        self?.protectionsUnavailable = true
         self?.status.text = Strings.Tor.utcUnavailable
+        self?.session.detach(id: id)
+        self?.registered = false
       }
       self?.creationTask = nil
     }
@@ -129,6 +134,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   private func connectionChanged(_ state: TorBrowsingSession.State) {
+    guard !protectionsUnavailable else { return }
     status.text = switch state {
     case .waiting: Strings.Tor.waiting
     case .connecting: Strings.Tor.connecting
@@ -186,7 +192,10 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   public func setVirtualURL(_ url: URL?) { virtualURL = url }
-  public func reload() { if let browser, browser.url != nil { browser.reload() } else { flushPendingRequest() } }
+  public func reload() {
+    if browser == nil { createWebView(); return }
+    if let browser, browser.url != nil { browser.reload() } else { flushPendingRequest() }
+  }
   public func reloadWithUserAgentType(_ userAgentType: UserAgentType) { reload() }
   public func stopLoading() { pendingRequest = nil; browser?.stopLoading() }
   public func goBack() { browser?.goBack() }

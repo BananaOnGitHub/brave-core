@@ -77,6 +77,7 @@ targets:
     settings:
       base:
         PRODUCT_MODULE_NAME: BraveCore
+        DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
   ContractFaviconModels:
     type: library.static
@@ -85,6 +86,7 @@ targets:
     settings:
       base:
         PRODUCT_MODULE_NAME: FaviconModels
+        DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
   ContractBraveStrings:
     type: library.static
@@ -95,6 +97,7 @@ targets:
     settings:
       base:
         PRODUCT_MODULE_NAME: BraveStrings
+        DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
   WebTabContracts:
     type: library.static
@@ -117,6 +120,7 @@ targets:
         product: BraveTor
     settings:
       base:
+        DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
         OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature NonisolatedNonsendingByDefault"
 schemes:

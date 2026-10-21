@@ -204,7 +204,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
           if snapshot.progress == 100, snapshot.circuitEstablished,
             let endpoint = snapshot.endpoint {
             if self.webView == nil {
-              self.installBrowser(endpoint: endpoint, rules: rules)
+              try self.installBrowser(endpoint: endpoint, rules: rules)
             }
             self.browsingAllowed = true
             self.goButton.isEnabled = true
@@ -273,8 +273,8 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     webView = nil
   }
 
-  private func installBrowser(endpoint: TorEndpoint, rules: WKContentRuleList) {
-        let configuration = try TorWebPolicy.configuration(
+  private func installBrowser(endpoint: TorEndpoint, rules: WKContentRuleList) throws {
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: UUID().uuidString,
       javaScriptEnabled: javaScriptEnabled
     )
