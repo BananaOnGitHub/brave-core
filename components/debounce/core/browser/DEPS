@@ -1,6 +1,0 @@
-include_rules = [
-  "+components/keyed_service",
-  "+components/prefs",
-  "+extensions/common",
-  "+third_party/re2",
-]

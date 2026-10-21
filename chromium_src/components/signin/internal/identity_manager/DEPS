@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/components/signin/internal/identity_manager",
-]

@@ -1,5 +1,0 @@
-include_rules = [
-  "+net",
-  "+brave/build/ios/mojom",
-  "+mojo/public/cpp/bindings",
-]

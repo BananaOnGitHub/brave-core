@@ -1,3 +1,0 @@
-include_rules = [
-  "+ios/web/navigation/synthesized_history_entry_data.h",
-]

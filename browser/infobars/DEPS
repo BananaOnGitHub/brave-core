@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/infobars/core",
-  "+brave/components/sync/service/brave_sync_service_impl.h",
-]

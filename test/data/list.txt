@@ -1,4 +1,0 @@
-! Title: Test list
-! Homepage: https://example.com/list.txt
-! Expires: 3 days
-||b.com^*logo.png^

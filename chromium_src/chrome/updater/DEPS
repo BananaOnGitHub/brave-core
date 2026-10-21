@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/components/update_client/privacy_preserving_protocol_handler.h",
-]

@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/containers/buildflags",
-  "+brave/components/tabs/public",
-]

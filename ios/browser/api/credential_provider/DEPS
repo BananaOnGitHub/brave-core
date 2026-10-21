@@ -1,4 +1,0 @@
-include_rules = [
-  "+ios/chrome/common/app_group",
-  "+ios/chrome/common/credential_provider",
-]

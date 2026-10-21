@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/components/script_injector/common",
-]

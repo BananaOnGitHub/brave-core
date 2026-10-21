@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/android/java/org/chromium/chrome/browser/brave_search/jni_headers",
-]

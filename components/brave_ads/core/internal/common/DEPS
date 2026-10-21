@@ -1,4 +1,0 @@
-include_rules = [
-  "+components/country_codes",
-  "+sql",
-]

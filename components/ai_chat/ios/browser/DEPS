@@ -1,5 +1,0 @@
-include_rules = [
-  "+components/prefs",
-  "+ios/web/public",
-  "+services/network/public",
-]

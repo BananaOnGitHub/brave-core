@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/search_engines",
-  "+components/search_engines",
-]

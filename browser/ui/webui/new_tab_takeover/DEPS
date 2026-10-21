@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/components/new_tab_takeover",
-]

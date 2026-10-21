@@ -1,6 +1,0 @@
-include_rules = [
-  "+brave/components/update_client",
-  "+chrome/updater",
-  "+components/prefs",
-  "+components/update_client",
-]

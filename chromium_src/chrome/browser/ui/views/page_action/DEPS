@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/brave_wayback_machine/buildflags",
-  "+brave/components/playlist/core/common/buildflags",
-  "+brave/components/speedreader/common/buildflags",
-]

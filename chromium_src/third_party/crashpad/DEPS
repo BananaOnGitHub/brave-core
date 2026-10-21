@@ -1,5 +1,0 @@
-specific_include_rules = {
-  "http_transport_win\.cc": [
-    "+base/logging.h",
-  ],
-}

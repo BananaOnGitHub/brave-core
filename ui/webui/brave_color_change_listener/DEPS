@@ -1,5 +1,0 @@
-include_rules = [
-    "+content/public/browser",
-    "+mojo/public/cpp",
-    "+ui/webui/resources/cr_components",
-]

@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/version_info",
-  "+ios/chrome/common/channel_info.h",
-]

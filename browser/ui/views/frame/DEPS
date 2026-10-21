@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/commands/browser",
-  "+brave/components/sidebar/common",
-]

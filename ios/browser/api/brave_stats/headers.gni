@@ -1,2 +1,0 @@
-brave_stats_public_headers =
-    [ "//brave/ios/browser/api/brave_stats/brave_stats.h" ]

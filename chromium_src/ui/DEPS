@@ -1,4 +1,0 @@
-include_rules = [
-  "+cc/paint/paint_flags.h",
-  "+brave/ui/color/nala",
-]

@@ -1,3 +1,0 @@
-group("lib") {
-  public_deps = [ "//third_party/rust/libc/v0_2:lib" ]
-}

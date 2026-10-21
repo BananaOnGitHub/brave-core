@@ -1,5 +1,0 @@
-include_rules = [
-  "+components/image_fetcher",
-  "+components/metrics",
-  "+components/sync_preferences/testing_pref_service_syncable.h",
-]

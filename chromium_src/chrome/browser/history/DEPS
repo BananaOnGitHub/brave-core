@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/request_otr/common",
-  "+brave/components/request_otr/browser",
-]

@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/oblivious_http",
-  "+brave/net",
-  "+components/content_settings/core/common",
-]

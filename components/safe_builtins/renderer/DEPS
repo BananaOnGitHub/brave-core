@@ -1,5 +1,0 @@
-include_rules = [
-  "+gin",
-  "+third_party/blink/public",
-  "+v8/include",
-]

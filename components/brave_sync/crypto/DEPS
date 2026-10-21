@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/vendor/bat-native-tweetnacl",
-  "+crypto",
-]

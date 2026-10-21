@@ -1,6 +1,0 @@
-include_rules = [
-  "+brave/components/brave_shields/core/browser",
-  "+brave/components/brave_shields/core/common",
-  "+brave/components/brave_shields/ios/browser",
-  "+brave/components/brave_shields/ios/common",
-]

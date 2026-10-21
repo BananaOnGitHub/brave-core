@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/ios/web/js_messaging/prompt_facade.h"
-]

@@ -1,4 +1,0 @@
-include_rules = [
-  "+brave/components/brave_sync",
-  "+brave/components/history/core/browser/sync",
-]

@@ -1,4 +1,0 @@
-include_rules = [
-  "+components/download",
-  "+brave/components/brave_shields/content/browser",
-]

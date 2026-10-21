@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/brave_welcome/common",
-  "+brave/components/brave_welcome/resources",
-  "+brave/components/web_discovery/buildflags",
-]

@@ -1,6 +1,0 @@
-include_rules = [
-  "+components/enterprise",
-  "+components/grit",
-  "+components/policy",
-  "+components/prefs",
-]

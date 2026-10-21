@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/constants",
-  "+components/prefs",
-  "+components/variations",
-]

@@ -1,3 +1,0 @@
-include_rules = [
-  "+brave/services/network/public/cpp/system_request_handler.h",
-]

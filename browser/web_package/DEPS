@@ -1,5 +1,0 @@
-specific_include_rules = {
-  "signed_exchange_request_browsertest\.cc": [
-    "+content/common/content_constants_internal.h",
-  ],
-}

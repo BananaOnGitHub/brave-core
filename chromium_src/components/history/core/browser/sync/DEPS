@@ -1,3 +1,0 @@
-include_rules = [
-  "+src/components/history/core/browser/sync/delete_directive_handler_unittest.cc",
-]

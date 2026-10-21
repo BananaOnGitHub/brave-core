@@ -1,6 +1,0 @@
-include_rules = [
-  "+components/captive_portal",
-  "+components/embedder_support",
-  "+components/prefs",
-  "+content/public/test",
-]

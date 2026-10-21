@@ -1,6 +1,0 @@
-include_rules = [
-  "+brave/components/constants",
-  "+brave/components/geolocation",
-  "+brave/components/safebrowsing",
-  "+extensions/common",
-]

@@ -1,5 +1,0 @@
-include_rules = [
-  "+components/embedder_support",
-  "+components/version_info",
-  "+third_party/blink/public/common",
-]

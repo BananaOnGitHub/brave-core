@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/email_aliases/buildflags/buildflags.h",
-  "+brave/components/email_aliases/email_aliases_service.h",
-  "+brave/components/email_aliases/pref_names.h"
-]

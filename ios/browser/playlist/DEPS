@@ -1,5 +1,0 @@
-include_rules = [
-  "+brave/components/playlist/core/browser",
-  "+brave/components/playlist/core/common",
-  "+net",
-]

@@ -1,6 +1,0 @@
-include_rules = [
-  "+components/prefs",
-  "+crypto",
-  "+services/data_decoder/public",
-]
-
