@@ -257,6 +257,29 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     XCTAssertFalse(privateBrowsingManager.isTorBrowsing)
   }
 
+  func testSwitchingPrivateGroupsCannotBypassPendingAuthentication() {
+    let previousLock = Preferences.Privacy.privateBrowsingLock.value
+    Preferences.Privacy.privateBrowsingLock.value = true
+    defer { Preferences.Privacy.privateBrowsingLock.value = previousLock }
+    let regular = manager.addTestTab(isPrivate: false)
+    let tor = addOfflineTorTab()
+    defer { tor.deleteWebView() }
+    manager.selectTab(regular)
+    let grid = TabGridViewModel(
+      tabManager: manager, historyModel: nil, openTabsModel: nil,
+      toolbarUrlActionsDelegate: nil, profileController: nil, windowProtection: nil
+    )
+    // No authentication presenter is installed, so the request stays pending.
+    grid.mode = .private
+    XCTAssertTrue(grid.isPrivateTabsLocked)
+    grid.mode = .tor
+    XCTAssertTrue(grid.isPrivateTabsLocked)
+    XCTAssertTrue(grid.tabs.isEmpty)
+    XCTAssertEqual(manager.selectedTab?.id, regular.id)
+    XCTAssertFalse(tor.isWebViewCreated)
+    grid.mode = .regular
+  }
+
   func testDidDeleteLastTab() {
     let delegate = MockTabManagerDelegate()
 

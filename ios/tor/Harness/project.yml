@@ -109,6 +109,7 @@ targets:
       - ../../brave-ios/Sources/Web/WebKit/SafeJavaScript.swift
       - ../../brave-ios/Sources/Web/TabObserver.swift
       - ../../brave-ios/Sources/Web/TabDelegate.swift
+      - ../../brave-ios/Sources/Web/TabDownloadDelegate.swift
       - ../../brave-ios/Sources/Web/TabPolicyDecider.swift
     dependencies:
       - target: ContractBraveCore

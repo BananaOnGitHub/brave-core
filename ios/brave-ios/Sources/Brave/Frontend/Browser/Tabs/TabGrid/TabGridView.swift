@@ -824,6 +824,7 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
     } else {
       uiView = UISegmentedControl(items: items)
     }
+    uiView.apportionsSegmentWidthsByContent = true
     uiView.addAction(
       .init(handler: { [unowned uiView] _ in
         mode = TabBrowsingMode(rawValue: uiView.selectedSegmentIndex) ?? .regular
@@ -841,7 +842,7 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
       braveSystemName: isPrivateBrowsing ? .privateWindow10 : .neutral10
     )
     let titleFont = UIFont.preferredFont(
-      for: .subheadline,
+      for: .caption1,
       weight: .medium,
       traitCollection: .init(
         preferredContentSizeCategory: uiView.traitCollection.toolbarButtonContentSizeCategory

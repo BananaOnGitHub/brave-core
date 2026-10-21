@@ -107,12 +107,12 @@ final class BrowserToolbarState {
 
   /// Whether or not the selected tab can be bookmarked
   var canBookmarkTab: Bool {
-    visibleURL?.isWebPage() == true
+    observedTab?.isTor != true && visibleURL?.isWebPage() == true
   }
 
   /// The number of open tabs in the current browsing mode that can be bookmarked
   var bookmarkableTabCount: Int {
-    tabManager.openedWebsitesCount
+    tabManager.privateBrowsingManager.isTorBrowsing ? 0 : tabManager.openedWebsitesCount
   }
 
   /// Whether or not the selected tab can be duplicated
@@ -128,7 +128,7 @@ final class BrowserToolbarState {
 
   /// Whether or not the selected tab's site data can be shredded
   var canShredSiteData: Bool {
-    FeatureList.kBraveShredFeature.enabled
+    observedTab?.isTor != true && FeatureList.kBraveShredFeature.enabled
       && visibleURL?.isShredAvailable == true
   }
 

@@ -28,7 +28,7 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
 
 The reusable `iOS Tor prototype` workflow compiles/tests the native Tor/WebKit
 package and the actual `TorTabState` against Brave's real tab protocols, with
-small Profile/string test doubles. It checks separate private stores and retained
+small Profile/string/disabled-download test doubles. It checks separate private stores and retained
 DOM/form state during reconnect. Other tab-grid sources receive syntax checks;
 the group-switch/reorder regression tests in `ClientTests` require the full app
 workspace. Its IPA is a standalone harness, not Brave, and does not establish

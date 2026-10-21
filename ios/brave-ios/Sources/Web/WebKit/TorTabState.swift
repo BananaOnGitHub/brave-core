@@ -46,7 +46,10 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     self.profile = profile
     self.session = session
     super.init()
+    container.backgroundColor = .systemBackground
     status.font = .preferredFont(forTextStyle: .caption1)
+    status.textColor = .label
+    status.backgroundColor = .secondarySystemBackground
     status.adjustsFontForContentSizeCategory = true
     status.numberOfLines = 0
     status.textAlignment = .center
