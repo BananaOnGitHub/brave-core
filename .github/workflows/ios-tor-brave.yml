@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 360
     env:
       DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+      CIPD_CACHE_DIR: ${{ github.workspace }}/src/brave/ios/tor/.build/cipd-download-cache
     defaults:
       run:
         working-directory: src/brave
@@ -49,6 +50,25 @@ jobs:
           pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee ios/tor/.build/full-brave-logs/init.log
           test "$(git rev-parse HEAD)" = "${{ github.sha }}"
           echo "$PWD/vendor/depot_tools" >> "$GITHUB_PATH"
+      - name: Reclaim job-local package downloads after dependency setup
+        run: |
+          # Installed dependencies remain in place; only cached downloads are removed.
+          python3 - <<'PY'
+          import os
+          import shutil
+          from pathlib import Path
+          root = Path.cwd().resolve()
+          expected = root / "ios/tor/.build/cipd-download-cache"
+          cache = Path(os.environ["CIPD_CACHE_DIR"])
+          if cache.is_symlink() or cache.resolve() != expected or not cache.resolve().is_relative_to(root):
+              raise RuntimeError("Refusing to clear a cache outside this checkout")
+          before = shutil.disk_usage(root).free
+          if cache.exists():
+              shutil.rmtree(cache)
+          after = shutil.disk_usage(root).free
+          print(f"Reclaimed {(after - before) / 2**30:.2f} GiB; {after / 2**30:.2f} GiB free")
+          PY
+          df -h .
       - name: Restore matching BraveCore frameworks
         id: restore-core
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
