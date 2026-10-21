@@ -122,7 +122,18 @@ targets:
       base:
         DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
-        OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature NonisolatedNonsendingByDefault"
+        # Xcode does not add transitive SwiftPM Clang module maps to static
+        # library targets. The application/test bundle receives these normally.
+        HEADER_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../Sources/TorWebKit/include $(SRCROOT)/../Sources/EmbeddedTor/include"
+        OTHER_SWIFT_FLAGS: >-
+          $(inherited)
+          -Xcc -fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/TorWebKit.modulemap
+          -Xcc -fmodule-map-file=$(OBJROOT)/GeneratedModuleMaps$(EFFECTIVE_PLATFORM_NAME)/EmbeddedTor.modulemap
+          -enable-upcoming-feature DisableOutwardActorInference
+          -enable-upcoming-feature GlobalActorIsolatedTypesUsability
+          -enable-upcoming-feature InferIsolatedConformances
+          -enable-upcoming-feature InferSendableFromCaptures
+          -enable-upcoming-feature NonisolatedNonsendingByDefault
 schemes:
   BraveTorPrototype:
     build:

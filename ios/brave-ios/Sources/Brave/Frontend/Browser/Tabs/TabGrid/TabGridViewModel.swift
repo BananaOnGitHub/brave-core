@@ -31,7 +31,7 @@ class TabGridViewModel {
       isPrivateBrowsing = willBePrivate
       if !willBePrivate { tabManager.privateTabSelectedIndex = oldPrivateIndex }
       tabManager.privateBrowsingManager.isTorBrowsing = _isTorBrowsing
-      if wasPrivate == willBePrivate {
+      if wasPrivate == willBePrivate && !isPrivateTabsLocked {
         updateTabs()
         let index = _isTorBrowsing ? tabManager.torTabSelectedIndex : tabManager.privateTabSelectedIndex
         let tab = index.flatMap { tabManager.allTabs[safe: $0] }
@@ -57,6 +57,7 @@ class TabGridViewModel {
     set {
       if _isPrivateBrowsing == newValue { return }
       let oldValue = _isPrivateBrowsing
+      if !newValue { _isTorBrowsing = false }
       browsingModeWillSwitch(to: newValue)
       _isPrivateBrowsing = newValue
       browsingModeDidSwitch(from: oldValue)
@@ -191,32 +192,37 @@ class TabGridViewModel {
   }
 
   var isShredMenuVisible: Bool {
-    isSelectedTabShredAvailable
+    guard mode != .tor else { return false }
+    return isSelectedTabShredAvailable
       || tabManager.tabsForCurrentMode.contains(where: { $0.visibleURL?.isShredAvailable == true })
   }
 
   var isSelectedTabShredAvailable: Bool {
     guard let selectedTab = tabManager.selectedTab,
+      !selectedTab.isTor,
       selectedTab.isPrivate == isPrivateBrowsing
     else { return false }
     return selectedTab.visibleURL?.isShredAvailable == true
   }
 
   func isShredAvailableForSelectedTabs(_ tabs: Set<TabState.ID>) -> Bool {
+    guard mode != .tor else { return false }
     let tabs = tabs.map({ tabManager[$0] })
     return tabs.contains(where: { $0?.visibleURL?.isShredAvailable == true })
   }
 
   func shredSelectedTab() {
-    guard let tab = tabManager.selectedTab, let url = tab.visibleURL else { return }
+    guard let tab = tabManager.selectedTab, !tab.isTor, let url = tab.visibleURL else { return }
     tabManager.shredData(for: url, in: tab)
   }
 
   func shredSelectedTabs(_ tabs: Set<TabState.ID>) -> Set<TabState.ID> {
+    guard mode != .tor else { return [] }
     return tabManager.shredDataForTabs(tabs.compactMap({ tabManager[$0] }))
   }
 
   func shredAllTabs() {
+    guard mode != .tor else { return }
     tabManager.shredAllTabsForCurrentMode()
   }
 

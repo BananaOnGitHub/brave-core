@@ -560,7 +560,7 @@ class TabManager: NSObject {
   ) -> any TabState {
     assert(Thread.isMainThread)
 
-    if isPrivate && (afterTab?.isTor == true || privateBrowsingManager.isTorBrowsing) {
+    if afterTab?.isTor == true || (isPrivate && privateBrowsingManager.isTorBrowsing) {
       return addTorTab(request, afterTab: afterTab)
     }
 
@@ -590,9 +590,8 @@ class TabManager: NSObject {
   func moveTab(_ tab: some TabState, toIndex visibleToIndex: Int) {
     assert(Thread.isMainThread)
 
-    let currentTabs = tabs(isPrivate: tab.isPrivate)
-
-    let toTab = currentTabs[visibleToIndex]
+    let currentTabs = tab.isTor ? allTabs.filter(\.isTor) : tabs(isPrivate: tab.isPrivate)
+    guard let toTab = currentTabs[safe: visibleToIndex] else { return }
 
     guard let fromIndex = allTabs.firstIndex(where: { $0 === tab }),
       let toIndex = allTabs.firstIndex(where: { $0 === toTab })
@@ -622,8 +621,11 @@ class TabManager: NSObject {
       allTabs.first(where: { $0.id == id })
     }
     let isPrivate = tabsToMove.first?.isPrivate ?? false
+    let isTor = tabsToMove.first?.isTor ?? false
 
-    guard !tabsToMove.isEmpty, tabsToMove.allSatisfy({ $0.isPrivate == isPrivate }) else { return }
+    guard !tabsToMove.isEmpty,
+      tabsToMove.allSatisfy({ $0.isPrivate == isPrivate && $0.isTor == isTor })
+    else { return }
 
     // Save the selected tab before updating the tabs list
     let previouslySelectedTab = selectedTab
@@ -638,8 +640,8 @@ class TabManager: NSObject {
     }
 
     // Calculate insertion index in the current mode tabs after removals
-    let currentTabsAfterRemovals = tabsForCurrentMode
-    let insertionIndex = min(index, currentTabsAfterRemovals.count)
+    let currentTabsAfterRemovals = isTor ? allTabs.filter(\.isTor) : self.tabs(isPrivate: isPrivate)
+    let insertionIndex = max(0, min(index, currentTabsAfterRemovals.count))
 
     // Find the corresponding index in allTabs
     let adjustedIndex: Int

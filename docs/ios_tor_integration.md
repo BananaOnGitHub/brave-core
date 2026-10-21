@@ -26,15 +26,21 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
 
 ## Validation and build paths
 
-The lightweight `iOS Tor prototype` workflow compiles/tests the native Tor/WebKit
-package and parses the tab integration sources. Its IPA is a standalone harness,
-not Brave. This must not be presented as full-app build validation.
+The reusable `iOS Tor prototype` workflow compiles/tests the native Tor/WebKit
+package and the actual `TorTabState` against Brave's real tab protocols, with
+small Profile/string test doubles. It checks separate private stores and retained
+DOM/form state during reconnect. Other tab-grid sources receive syntax checks;
+the group-switch/reorder regression tests in `ClientTests` require the full app
+workspace. Its IPA is a standalone harness, not Brave, and does not establish
+full-app build validation.
 
 `Brave iOS with Tor` initializes the pinned Chromium/Brave dependencies on its
 runner, builds ARM64 BraveCore, and archives the actual Client Xcode target. It
 uploads `BravePrivateTor-unsigned.ipa` directly, with a separate package report and
 retained build logs. Its bundle prefix is `com.banana.brave.tor`, so it does not
 replace the App Store Brave installation. The first full build can take hours.
+Matching BraveCore frameworks are cached by backend source tree, exact Xcode/SDK,
+and build recipe, so Swift-only fixes can reuse them while rebuilding the app.
 
 Both build paths remove Xcode's redundant static Tor framework bundle before
 validation, checking dynamic dependencies and unexpected resources first. Full

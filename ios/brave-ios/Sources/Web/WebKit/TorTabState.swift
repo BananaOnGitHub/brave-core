@@ -115,6 +115,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         self?.status.text = Strings.Tor.utcUnavailable
         self?.session.detach(id: id)
         self?.registered = false
+        if let self { self.observers.forEach { $0.tabDidStopLoading(self) } }
       }
       self?.creationTask = nil
     }
@@ -155,7 +156,9 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var serverTrust: SecTrust? { browser?.serverTrust }
   public var faviconStatus: FaviconStatus? { nil }
   public var title: String? { browser?.title ?? Strings.Tor.title }
-  public var isLoading: Bool { creationTask != nil || pendingRequest != nil || browser?.isLoading == true }
+  public var isLoading: Bool {
+    !protectionsUnavailable && (creationTask != nil || pendingRequest != nil || browser?.isLoading == true)
+  }
   public var estimatedProgress: Double { browser?.estimatedProgress ?? 0 }
   public var canGoBack: Bool { browser?.canGoBack == true }
   public var canGoForward: Bool { browser?.canGoForward == true }
