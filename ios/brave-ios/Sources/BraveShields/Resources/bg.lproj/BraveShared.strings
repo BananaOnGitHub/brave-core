@@ -1,0 +1,21 @@
+/* An error message telling the user that the custom scriptlet they are trying to save has no content */
+"CustomScriptletEmptyContentError" = "Скриптлетът трябва да съдържа някакъв javascript";
+
+/* An error message telling the user that the name they gave their custom scriptlet is invalid. */
+"CustomScriptletInvalidNameError" = "Невалидно име на скриптлет";
+
+/* A navigation title for the screen where a user creates a new custom scriptlet */
+"shields.addNewScriptletTitle" = "Добавяне на нов скриптлет";
+
+/* A section header above the text editor where a user enters the custom scriptlet's JavaScript */
+"shields.customScriptletContentSectionTitle" = "Съдържание";
+
+/* A warning shown in an empty custom scriptlet editor */
+"shields.customScriptletContentWarning" = "Не поставяйте тук код, който не разбирате или не сте прегледали сами. Това може да позволи на нападатели да откраднат самоличността ви или да поемат контрол над устройството ви.";
+
+/* A section header above the text field where a user enters the custom scriptlet's name */
+"shields.customScriptletNameSectionTitle" = "Име";
+
+/* A navigation title for the screen where a user edits an existing custom scriptlet */
+"shields.editScriptletTitle" = "Редактиране на скриптлет";
+

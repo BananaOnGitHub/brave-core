@@ -1,0 +1,41 @@
+// Copyright (c) 2022 The Brave Authors. All rights reserved.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this file,
+// you can obtain one at https://mozilla.org/MPL/2.0/.
+
+/* global $Object */
+
+import EventEmitter from 'events'
+;(function () {
+  if (!window.braveSolana) {
+    return
+  }
+  var SolanaEventEmitter = new EventEmitter()
+  $Object.defineProperties(window.braveSolana, {
+    on: {
+      value: SolanaEventEmitter.on,
+      writable: false,
+      configurable: true,
+    },
+    off: {
+      value: SolanaEventEmitter.off,
+      writable: false,
+      configurable: true,
+    },
+    emit: {
+      value: SolanaEventEmitter.emit,
+      writable: false,
+      configurable: true,
+    },
+    removeListener: {
+      value: SolanaEventEmitter.removeListener,
+      writable: false,
+      configurable: true,
+    },
+    removeAllListeners: {
+      value: SolanaEventEmitter.removeAllListeners,
+      writable: false,
+      configurable: true,
+    },
+  })
+})()

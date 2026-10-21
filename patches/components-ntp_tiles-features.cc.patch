@@ -1,0 +1,21 @@
+diff --git a/components/ntp_tiles/features.cc b/components/ntp_tiles/features.cc
+index 2145034565a9cf170bfa36bba21cccbf9a395aa3..c4e80887b337c53d199d65cc7707f9a043e57323 100644
+--- a/components/ntp_tiles/features.cc
++++ b/components/ntp_tiles/features.cc
+@@ -29,12 +29,12 @@ AimButtonRefactorArm GetAimButtonRefactorArm() {
+ 
+ const char kPopularSitesFieldTrialName[] = "NTPPopularSites";
+ 
+-BASE_FEATURE(kPopularSitesBakedInContentFeature,
++BASE_OVERRIDDEN_FEATURE(kPopularSitesBakedInContentFeature,
+              "NTPPopularSitesBakedInContent",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kNtpMostLikelyFaviconsFromServerFeature,
++BASE_OVERRIDDEN_FEATURE(kNtpMostLikelyFaviconsFromServerFeature,
+              "NTPMostLikelyFaviconsFromServer",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ }  // namespace ntp_tiles

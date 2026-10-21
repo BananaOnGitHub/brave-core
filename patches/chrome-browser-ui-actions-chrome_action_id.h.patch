@@ -1,0 +1,29 @@
+diff --git a/chrome/browser/ui/actions/chrome_action_id.h b/chrome/browser/ui/actions/chrome_action_id.h
+index 49f05998da99de39933607d194c6f04d450907c5..504a73174b95fb9eb54c35d2f7f13d4aac228bda 100644
+--- a/chrome/browser/ui/actions/chrome_action_id.h
++++ b/chrome/browser/ui/actions/chrome_action_id.h
+@@ -493,6 +493,10 @@
+ // Should be reinserted into CHROME_COMMON_ACTION_IDS when general solution to
+ // add action id mappings is implemented.
+ #define SIDE_PANEL_ACTION_IDS \
++  E(kActionSidePanelShowPlaylist) \
++  E(kActionSidePanelShowChatUI) \
++  E(kActionSidePanelShowBraveNews) \
++  E(kActionSidePanelShowWallet) \
+   /* Side Panel items */ \
+   E(kActionSidePanelShowAboutThisSite) \
+   E(kActionSidePanelShowAssistant) \
+@@ -522,6 +526,13 @@
+     IDC_SHOW_TABS_FROM_OTHER_DEVICES_SIDE_PANEL)
+ 
+ #define TOOLBAR_PINNABLE_ACTION_IDS \
++  E(kActionShowPartitionedStorage) \
++  E(kActionShowPsstIcon) \
++  E(kActionShowSpeedreader) \
++  E(kActionShowWaybackMachine) \
++  E(kActionShowPlaylistPageAction) \
++  E(kActionShowOnionLocation) \
++  E(kActionShowBraveNews) \
+   E(kActionHome, IDC_HOME) \
+   E(kActionForward, IDC_FORWARD) \
+   E(kActionNewIncognitoWindow, IDC_NEW_INCOGNITO_WINDOW) \

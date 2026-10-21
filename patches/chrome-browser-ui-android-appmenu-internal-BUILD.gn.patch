@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/android/appmenu/internal/BUILD.gn b/chrome/browser/ui/android/appmenu/internal/BUILD.gn
+index 3caae1037b9d094bb2b0a4d690d6dc0ec78bb0b2..a3de56b27297c6666ea10df8185f6c69fdb667a9 100644
+--- a/chrome/browser/ui/android/appmenu/internal/BUILD.gn
++++ b/chrome/browser/ui/android/appmenu/internal/BUILD.gn
+@@ -22,6 +22,7 @@ android_library("java") {
+     "java/src/org/chromium/chrome/browser/ui/appmenu/AppMenuItemViewBinder.java",
+     "java/src/org/chromium/chrome/browser/ui/appmenu/DividerLineMenuItemViewBinder.java",
+   ]
++  sources += brave_browser_ui_android_appmenu_internal_sources
+ 
+   deps = [
+     ":java_resources",

@@ -1,0 +1,25 @@
+diff --git a/content/public/browser/content_browser_client.h b/content/public/browser/content_browser_client.h
+index 6e730455c66df584a721a2b4720f25bf9844f16d..3281aae89c0deb05f91f56df773451fb0693cb8b 100644
+--- a/content/public/browser/content_browser_client.h
++++ b/content/public/browser/content_browser_client.h
+@@ -3382,6 +3382,20 @@ class CONTENT_EXPORT ContentBrowserClient {
+   virtual bool OriginSupportsConcreteCrossOriginIsolation(
+       content::BrowserContext* browser_context,
+       const url::Origin& origin);
++
++  // Same as `CreateWebSocket`, but also carries the initiator renderer's
++  // process id and origin, for handshakes that have no `RenderFrameHost`.
++  virtual void CreateWebSocketWithFrameId(
++      RenderFrameHost* frame,
++      WebSocketFactory factory,
++      const GURL& url,
++      const net::SiteForCookies& site_for_cookies,
++      const std::optional<std::string>& user_agent,
++      mojo::PendingRemote<network::mojom::WebSocketHandshakeClient>
++          handshake_client,
++      WebSocketOptions options,
++      int process_id,
++      const url::Origin& initiator_origin);
+ };
+ 
+ }  // namespace content

@@ -1,0 +1,23 @@
+diff --git a/chrome/browser/ui/omnibox/omnibox_controller.cc b/chrome/browser/ui/omnibox/omnibox_controller.cc
+index e0018a3bb6f9e57062ecf1a1112bb39eafca103e..291dd6b492afcdbffe64d8dde24b4677e22c2e21 100644
+--- a/chrome/browser/ui/omnibox/omnibox_controller.cc
++++ b/chrome/browser/ui/omnibox/omnibox_controller.cc
+@@ -72,6 +72,10 @@ OmniboxController::~OmniboxController() = default;
+ 
+ void OmniboxController::StartAutocomplete(
+     const AutocompleteInput& input) const {
++  if (!IsAutocompleteEnabled(client_->GetPrefs())) {
++    ClearPopupKeywordMode();
++    return;
++  }
+   TRACE_EVENT0("omnibox", "OmniboxController::StartAutocomplete");
+   ClearPopupKeywordMode();
+ 
+@@ -89,6 +93,7 @@ void OmniboxController::StopAutocomplete(bool clear_result) const {
+ }
+ 
+ void OmniboxController::StartZeroSuggestPrefetch() {
++  if ((true)) return;
+   TRACE_EVENT0("omnibox", "OmniboxController::StartZeroSuggestPrefetch");
+   if (base::FeatureList::IsEnabled(features::kPrewarm) &&
+       base::FeatureList::IsEnabled(features::kPrewarmZeroSuggestTrigger)) {

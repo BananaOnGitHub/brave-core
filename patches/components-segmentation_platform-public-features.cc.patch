@@ -1,0 +1,43 @@
+diff --git a/components/segmentation_platform/public/features.cc b/components/segmentation_platform/public/features.cc
+index 7bfafa9194716b85e76fb9332605c5653eb49562..2a4e1e961926cb227d6a40a12fa8deba7733a795 100644
+--- a/components/segmentation_platform/public/features.cc
++++ b/components/segmentation_platform/public/features.cc
+@@ -11,9 +11,9 @@
+ 
+ namespace segmentation_platform::features {
+ 
+-BASE_FEATURE(kSegmentationPlatformFeature,
++BASE_OVERRIDDEN_FEATURE(kSegmentationPlatformFeature,
+              "SegmentationPlatform",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ BASE_FEATURE(kSegmentationPlatformUkmEngine,
+ 
+@@ -73,7 +73,7 @@ const base::FeatureParam<bool>
+ BASE_FEATURE(kSegmentationDefaultReportingSegments,
+              base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kSegmentationPlatformDeviceTier, base::FEATURE_ENABLED_BY_DEFAULT);
++BASE_OVERRIDDEN_FEATURE(kSegmentationPlatformDeviceTier, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ BASE_FEATURE(kSegmentationPlatformTabletProductivityUser,
+              base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -99,7 +99,7 @@ BASE_FEATURE(kSegmentationPlatformAndroidHomeModuleRanker,
+ BASE_FEATURE(kSegmentationPlatformAndroidHomeModuleRankerV2,
+              base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kSegmentationPlatformTimeDelaySampling,
++BASE_OVERRIDDEN_FEATURE(kSegmentationPlatformTimeDelaySampling,
+              base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ // Enabled only on iOS to improve startup performance of the module ranker.
+@@ -185,7 +185,7 @@ constexpr base::FeatureParam<int> kMaxDefaultBrowserMagicStackIosImpressions{
+     "max_default_browser_magic_stack_ios_impressions",
+     /*default_value=*/6};
+ 
+-BASE_FEATURE(kAndroidTipsNotifications, base::FEATURE_ENABLED_BY_DEFAULT);
++BASE_OVERRIDDEN_FEATURE(kAndroidTipsNotifications, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ constexpr base::FeatureParam<bool> kTrustAndSafety{&kAndroidTipsNotifications,
+                                                    "trust_and_safety",

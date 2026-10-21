@@ -1,0 +1,34 @@
+diff --git a/components/permissions/BUILD.gn b/components/permissions/BUILD.gn
+index a2e6c6b98ed207a8fa162c9e15cdac21c44f0193..963d3d7e7a5db59be06c3c1a9cc2ea684b8da10c 100644
+--- a/components/permissions/BUILD.gn
++++ b/components/permissions/BUILD.gn
+@@ -2,11 +2,12 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/components/permissions/sources.gni")
+ import("//components/guest_view/buildflags/buildflags.gni")
+ import("//device/vr/buildflags/buildflags.gni")
+ import("//services/device/public/cpp/geolocation/buildflags.gni")
+ 
+-source_set("permissions_common") {
++component("permissions_common") {
+   sources = [
+     "constants.cc",
+     "constants.h",
+@@ -132,6 +133,7 @@ source_set("permissions") {
+     "switches.cc",
+     "switches.h",
+   ]
++  sources += brave_components_permissions_sources
+   deps = [
+     "//base",
+     "//components/back_forward_cache",
+@@ -170,6 +172,7 @@ source_set("permissions") {
+     "//ui/strings:ui_strings_grit",
+     "//url",
+   ]
++  deps += brave_components_permissions_deps
+   if (enable_vr) {
+     deps += [ "//device/vr/public/cpp" ]
+   }

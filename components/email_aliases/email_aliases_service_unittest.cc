@@ -1,0 +1,607 @@
+// Copyright (c) 2025 The Brave Authors. All rights reserved.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this file,
+// You can obtain one at https://mozilla.org/MPL/2.0/.
+
+#include "brave/components/email_aliases/email_aliases_service.h"
+
+#include <optional>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
+
+#include "base/functional/bind.h"
+#include "base/test/bind.h"
+#include "base/test/run_until.h"
+#include "base/test/scoped_feature_list.h"
+#include "base/test/task_environment.h"
+#include "base/test/test_future.h"
+#include "base/types/expected.h"
+#include "base/values.h"
+#include "brave/components/brave_account/features.h"
+#include "brave/components/brave_account/mock_brave_account_authentication.h"
+#include "brave/components/brave_account/mojom/get_service_token.mojom.h"
+#include "brave/components/brave_account/prefs.h"
+#include "brave/components/constants/brave_services_key.h"
+#include "brave/components/constants/network_constants.h"
+#include "brave/components/email_aliases/email_aliases_notes.h"
+#include "brave/components/email_aliases/features.h"
+#include "brave/components/email_aliases/pref_names.h"
+#include "brave/components/email_aliases/test_utils.h"
+#include "components/grit/brave_components_strings.h"
+#include "components/prefs/testing_pref_service.h"
+#include "mojo/public/cpp/bindings/remote.h"
+#include "net/base/net_errors.h"
+#include "net/http/http_status_code.h"
+#include "services/network/public/cpp/weak_wrapper_shared_url_loader_factory.h"
+#include "services/network/test/test_url_loader_factory.h"
+#include "testing/gmock/include/gmock/gmock.h"
+#include "testing/gtest/include/gtest/gtest.h"
+#include "third_party/abseil-cpp/absl/functional/overload.h"
+#include "ui/base/l10n/l10n_util.h"
+
+namespace email_aliases {
+
+using ::testing::_;
+
+namespace {
+
+std::string MakeRefreshBody(const std::vector<std::string>& aliases,
+                            int max_aliases_count = mojom::kDefaultMaxAliases) {
+  base::ListValue aliases_list;
+  for (const auto& alias : aliases) {
+    aliases_list.Append(base::DictValue()
+                            .Set("email", "test@login.com")
+                            .Set("alias", alias)
+                            .Set("status", "active")
+                            .Set("created_at", "2025-01-01T00:00:00Z")
+                            .Set("last_used", ""));
+  }
+
+  base::DictValue info;
+  info.Set("max_aliases_count", max_aliases_count);
+
+  return base::DictValue()
+      .Set("result", std::move(aliases_list))
+      .Set("info", std::move(info))
+      .DebugString();
+}
+
+}  // namespace
+
+class AliasObserver : public mojom::EmailAliasesServiceObserver {
+ public:
+  void OnAliasesUpdated(mojom::AliasesUpdatePtr update) override {
+    ++alias_updates;
+    last_update_ = std::move(update);
+  }
+
+  void OnAliasesAccountUpdated(mojom::AliasesAccountUpdatePtr update) override {
+    last_account_update_ = std::move(update);
+  }
+
+  bool WaitForAliasUpdateCount(size_t count) {
+    return base::test::RunUntil(
+        [this, count]() { return alias_updates >= count; });
+  }
+
+  void BindReceiver(
+      mojo::PendingReceiver<mojom::EmailAliasesServiceObserver> pending) {
+    receiver.Bind(std::move(pending));
+  }
+
+  size_t alias_update_count() const { return alias_updates; }
+
+  const mojom::AliasesUpdatePtr& last_update() const { return last_update_; }
+
+  const mojom::AliasesAccountUpdatePtr& last_account_update() const {
+    return last_account_update_;
+  }
+
+  void ResetForTesting() {
+    alias_updates = 0;
+    last_update_.reset();
+    last_account_update_.reset();
+  }
+
+ private:
+  size_t alias_updates = 0;
+  mojom::AliasesUpdatePtr last_update_;
+  mojom::AliasesAccountUpdatePtr last_account_update_;
+  mojo::Receiver<mojom::EmailAliasesServiceObserver> receiver{this};
+};
+
+class EmailAliasesAPITest : public ::testing::Test {
+ public:
+  void AddManageResponseFor(const std::optional<std::string>& body) {
+    const GURL manage_url = test::GetEmailAliasesServiceURL();
+    if (body.has_value()) {
+      url_loader_factory_.AddResponse(
+          manage_url.spec(), *body,
+          body->contains("error") ? net::HTTP_BAD_REQUEST : net::HTTP_OK);
+    } else {
+      network::URLLoaderCompletionStatus completion(net::ERR_FAILED);
+      url_loader_factory_.AddResponse(manage_url, /*head=*/nullptr,
+                                      /*content=*/"", completion);
+    }
+  }
+
+  void AddRefreshResponseFor(
+      const std::optional<std::string>& refresh_body = std::nullopt) {
+    const GURL manage_url = test::GetEmailAliasesServiceURL();
+    url_loader_factory_.AddResponse(
+        manage_url.Resolve("?status=active").spec(),
+        refresh_body.value_or(
+            R"({ "info": { "max_aliases_count": 5 }, "result": [] })"));
+  }
+
+  template <typename T, typename InvokeFn>
+  base::expected<T, std::string> InvokeAndWait(InvokeFn&& invoker) {
+    base::test::TestFuture<base::expected<T, std::string>> future;
+    std::forward<InvokeFn>(invoker)(future.GetCallback());
+    return future.Take();
+  }
+
+  base::expected<std::string, std::string> CallGenerateAliasWith(
+      const std::optional<std::string>& body) {
+    AddManageResponseFor(body);
+    return InvokeAndWait<std::string>(
+        [this](auto cb) { service_->GenerateAlias(std::move(cb)); });
+  }
+
+  base::expected<std::monostate, std::string> CallUpdateAliasWith(
+      const std::string& alias_email,
+      const std::optional<std::string>& put_body,
+      const std::optional<std::string>& refresh_body = std::nullopt,
+      const std::optional<std::string>& note = std::nullopt,
+      bool wait_for_update = true) {
+    AddManageResponseFor(put_body);
+    AddRefreshResponseFor(refresh_body);
+    auto result_out = InvokeAndWait<std::monostate>([this, &alias_email,
+                                                     &note](auto cb) {
+      auto update_data = mojom::AliasUpdateData::New();
+      update_data->active = true;
+      update_data->note = note;
+      service_->UpdateAlias(alias_email, std::move(update_data), std::move(cb));
+    });
+    if (wait_for_update && result_out.has_value()) {
+      EXPECT_TRUE(observer_.WaitForAliasUpdateCount(1));
+    }
+    return result_out;
+  }
+
+  base::expected<std::monostate, std::string> CallDeleteAliasWith(
+      const std::string& alias_email,
+      const std::optional<std::string>& delete_body) {
+    AddManageResponseFor(delete_body);
+    AddRefreshResponseFor(/*refresh_body=*/std::nullopt);
+    auto result_out =
+        InvokeAndWait<std::monostate>([this, &alias_email](auto cb) {
+          service_->DeleteAlias(alias_email, std::move(cb));
+        });
+    if (result_out.has_value()) {
+      EXPECT_TRUE(observer_.WaitForAliasUpdateCount(1));
+    }
+    return result_out;
+  }
+
+ protected:
+  void SetUp() override {
+    EmailAliasesService::RegisterProfilePrefs(prefs_.registry());
+    brave_account::prefs::RegisterPrefs(prefs_.registry());
+
+    brave_account_auth_ = std::make_unique<
+        testing::NiceMock<brave_account::MockBraveAccountAuthentication>>();
+    ON_CALL(*brave_account_auth_,
+            GetServiceToken(brave_account::mojom::Service::kEmailAliases, _))
+        .WillByDefault([](auto service, auto callback) {
+          auto token = brave_account::mojom::GetServiceTokenResult::New();
+          token->serviceToken = "email-aliases-token";
+          std::move(callback).Run(base::ok(std::move(token)));
+        });
+
+    EXPECT_CALL(*brave_account_auth_, AddObserver(testing::_))
+        .Times(1)
+        .WillOnce(
+            [this](mojo::PendingRemote<
+                   brave_account::mojom::AuthenticationObserver> observer) {
+              email_aliases_auth_observer_remote_.Bind(std::move(observer));
+            });
+
+    service_ = std::make_unique<EmailAliasesService>(
+        brave_account_auth_->BindAndGetRemote(),
+        url_loader_factory_.GetSafeWeakWrapper(), prefs_);
+
+    ASSERT_TRUE(base::test::RunUntil(
+        [this]() { return email_aliases_auth_observer_remote_.is_bound(); }));
+
+    // Default list response so login-triggered refresh does not notify an
+    // error.
+    AddRefreshResponseFor();
+
+    email_aliases_auth_observer_remote_->OnAccountStateChanged(
+        brave_account::mojom::AccountState::NewLoggedIn(
+            brave_account::mojom::LoggedInState::New("test@login.com",
+                                                     nullptr)));
+    email_aliases_auth_observer_remote_.FlushForTesting();
+
+    ASSERT_TRUE(
+        base::test::RunUntil([this]() { return service_->IsAuthenticated(); }));
+
+    mojo::PendingRemote<mojom::EmailAliasesServiceObserver> remote;
+    observer_.BindReceiver(remote.InitWithNewPipeAndPassReceiver());
+    service_->AddObserver(std::move(remote));
+    ASSERT_TRUE(observer_.WaitForAliasUpdateCount(1));
+    observer_.ResetForTesting();
+  }
+
+  base::test::ScopedFeatureList brave_account_feature_list_{
+      brave_account::features::BraveAccountFeatureForTesting()};
+  base::test::ScopedFeatureList feature_list_{features::kEmailAliases};
+  base::test::TaskEnvironment task_environment_;
+  network::TestURLLoaderFactory url_loader_factory_;
+  TestingPrefServiceSimple prefs_;
+  std::unique_ptr<
+      testing::NiceMock<brave_account::MockBraveAccountAuthentication>>
+      brave_account_auth_;
+  mojo::Remote<brave_account::mojom::AuthenticationObserver>
+      email_aliases_auth_observer_remote_;
+  std::unique_ptr<EmailAliasesService> service_;
+  AliasObserver observer_;
+};
+
+MATCHER_P(MatchesExpected, expected_result, "") {
+  if (expected_result.has_value()) {
+    return arg.has_value() && arg.value() == expected_result.value();
+  }
+
+  const std::string expected_error =
+      std::visit(absl::Overload{
+                     [](int id) { return l10n_util::GetStringUTF8(id); },
+                     [](std::string string) { return string; },
+                 },
+                 expected_result.error());
+
+  return !arg.has_value() && arg.error().contains(expected_error);
+}
+
+template <typename T>
+struct EmailAliasesAPIParamTestCase {
+  static constexpr auto kNameGenerator = [](const auto& info) {
+    return info.param.name;
+  };
+
+  const char* name;
+  std::optional<std::string> body;
+  base::expected<T, std::variant<int, std::string>> expected_result;
+};
+
+template <typename TestCase>
+class EmailAliasesAPIParamTest : public EmailAliasesAPITest,
+                                 public testing::WithParamInterface<TestCase> {
+ protected:
+  void RunTestCase() {
+    const auto& test_case = this->GetParam();
+    EXPECT_THAT(TestCase::Run(*this, test_case),
+                MatchesExpected(test_case.expected_result));
+  }
+};
+
+// ================ GenerateAlias (parameterized) ================
+
+struct GenerateAliasTestCase : EmailAliasesAPIParamTestCase<std::string> {
+  static auto Run(EmailAliasesAPITest& test,
+                  const GenerateAliasTestCase& test_case) {
+    return test.CallGenerateAliasWith(test_case.body);
+  }
+};
+
+using GenerateAliasParamTest = EmailAliasesAPIParamTest<GenerateAliasTestCase>;
+
+TEST_P(GenerateAliasParamTest, HandlesResponses) {
+  RunTestCase();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    EmailAliasesGenerateAlias,
+    GenerateAliasParamTest,
+    testing::Values(
+        GenerateAliasTestCase{
+            {.name = "Success",
+             .body =
+                 R"({ "message": "created",
+                      "alias": "mock-1234@bravealias.com" })",
+             .expected_result = base::ok("mock-1234@bravealias.com")}},
+        GenerateAliasTestCase{
+            {.name = "BackendError",
+             .body = R"({ "message": "alias_unavailable_error" })",
+             .expected_result = base::unexpected("alias_unavailable_error")}},
+        GenerateAliasTestCase{
+            {.name = "NoBody",
+             .body = std::nullopt,
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}},
+        GenerateAliasTestCase{
+            {.name = "InvalidJSON",
+             .body = "not a json",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}},
+        GenerateAliasTestCase{
+            {.name = "UnexpectedPayload",
+             .body = R"({ "message": "ok_but_no_alias" })",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}}),
+    GenerateAliasTestCase::kNameGenerator);
+
+// ================= UpdateAlias (parameterized) =================
+
+struct UpdateAliasTestCase : EmailAliasesAPIParamTestCase<std::monostate> {
+  static auto Run(EmailAliasesAPITest& test,
+                  const UpdateAliasTestCase& test_case) {
+    return test.CallUpdateAliasWith("alias@example.com", test_case.body);
+  }
+};
+
+using UpdateAliasParamTest = EmailAliasesAPIParamTest<UpdateAliasTestCase>;
+
+TEST_P(UpdateAliasParamTest, HandlesResponses) {
+  RunTestCase();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    EmailAliasesUpdateAlias,
+    UpdateAliasParamTest,
+    testing::Values(
+        UpdateAliasTestCase{{.name = "Success",
+                             .body = R"({"message": "updated"})",
+                             .expected_result = std::monostate()}},
+        UpdateAliasTestCase{
+            {.name = "BackendError",
+             .body = "{\"message\":\"backend_error\"}",
+             .expected_result = base::unexpected("backend_error")}},
+        UpdateAliasTestCase{
+            {.name = "NonUpdatedMessage",
+             .body = "{\"message\":\"not_updated\"}",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_INVALID_RESPONSE_BODY)}},
+        UpdateAliasTestCase{
+            {.name = "NoBody",
+             .body = std::nullopt,
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}},
+        UpdateAliasTestCase{
+            {.name = "InvalidJSON",
+             .body = "not a json",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}}),
+    UpdateAliasTestCase::kNameGenerator);
+
+// ================= DeleteAlias (parameterized) =================
+
+struct DeleteAliasTestCase : EmailAliasesAPIParamTestCase<std::monostate> {
+  static auto Run(EmailAliasesAPITest& test,
+                  const DeleteAliasTestCase& test_case) {
+    return test.CallDeleteAliasWith("alias@example.com", test_case.body);
+  }
+};
+
+using DeleteAliasParamTest = EmailAliasesAPIParamTest<DeleteAliasTestCase>;
+
+TEST_P(DeleteAliasParamTest, HandlesResponses) {
+  RunTestCase();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    EmailAliasesDeleteAlias,
+    DeleteAliasParamTest,
+    testing::Values(
+        DeleteAliasTestCase{{.name = "Success",
+                             .body = "{\"message\":\"deleted\"}",
+                             .expected_result = std::monostate()}},
+        DeleteAliasTestCase{
+            {.name = "BackendError",
+             .body = "{\"message\":\"backend_error\"}",
+             .expected_result = base::unexpected("backend_error")}},
+        DeleteAliasTestCase{
+            {.name = "NoBody",
+             .body = std::nullopt,
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}},
+        DeleteAliasTestCase{
+            {.name = "InvalidJSON",
+             .body = "not a json",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_NO_RESPONSE_BODY)}},
+        DeleteAliasTestCase{
+            {.name = "InvalidAnswer",
+             .body = "{\"message\":\"updated\"}",
+             .expected_result = base::unexpected(
+                 IDS_EMAIL_ALIASES_SERVICE_ERROR_INVALID_RESPONSE_BODY)}}),
+    DeleteAliasTestCase::kNameGenerator);
+
+TEST_F(EmailAliasesAPITest, RefreshAliases_Notifies_OnValidResponse) {
+  const std::string alias_email = "alias@example.com";
+  auto result_out = CallUpdateAliasWith(
+      alias_email,
+      /*put_body=*/R"({"message":"updated"})",
+      /*refresh_body=*/
+      std::string("{ \"info\":{\"max_aliases_count\":17}, "
+                  "\"result\":[{\"email\":\"dest@example.com\",\"alias\":\"") +
+          alias_email +
+          "\",\"created_at\":\"2025-01-01T00:00:00Z\",\"last_used\":\"\","
+          "\"status\":\"active\"}] }",
+      "note");
+  ASSERT_TRUE(result_out.has_value());
+  ASSERT_TRUE(observer_.last_account_update());
+  EXPECT_EQ(observer_.last_account_update()->max_aliases_count, 17u);
+  ASSERT_TRUE(observer_.last_update());
+  ASSERT_EQ(observer_.last_update()->which(),
+            mojom::AliasesUpdate::Tag::kAliases);
+  const auto& aliases = observer_.last_update()->get_aliases();
+  ASSERT_FALSE(aliases.empty());
+  EXPECT_EQ(aliases[0]->email, alias_email);
+  EXPECT_EQ(aliases[0]->note, "note");
+}
+
+TEST_F(EmailAliasesAPITest, RefreshAliases_Notifies_OnNegativeMaxResponse) {
+  const std::string alias_email = "alias@example.com";
+  auto result_out = CallUpdateAliasWith(
+      alias_email,
+      /*put_body=*/R"({"message":"updated"})",
+      /*refresh_body=*/
+      MakeRefreshBody(
+          /*aliases=*/{{"dest@example.com", alias_email, "2025-01-01T00:00:00Z",
+                        "", "active"}},
+          /*max_aliases_count=*/-10),
+      "note");
+  ASSERT_TRUE(result_out.has_value());
+  ASSERT_TRUE(observer_.last_account_update());
+  EXPECT_EQ(observer_.last_account_update()->max_aliases_count,
+            mojom::kDefaultMaxAliases);
+}
+
+TEST_F(EmailAliasesAPITest,
+       RefreshAliases_NotifiesWithError_OnErrorOrInvalidJson) {
+  auto result_out =
+      CallUpdateAliasWith("alias@example.com",
+                          /*put_body=*/R"({"message":"updated"})",
+                          /*refresh_body=*/R"({"message":"backend_error"})",
+                          /*note=*/std::nullopt,
+                          /*wait_for_update=*/false);
+  ASSERT_TRUE(result_out.has_value());
+  EXPECT_TRUE(observer_.WaitForAliasUpdateCount(1));
+  ASSERT_TRUE(observer_.last_update());
+  ASSERT_EQ(observer_.last_update()->which(),
+            mojom::AliasesUpdate::Tag::kError);
+  EXPECT_FALSE(observer_.last_update()->get_error().empty());
+}
+
+TEST_F(EmailAliasesAPITest, ApiFetch_AttachesAuthTokenAndAPIKeyHeaders) {
+  // Intercept the next manage request to capture headers.
+  const GURL manage_url = test::GetEmailAliasesServiceURL();
+  std::string seen_authorization;
+  std::string seen_api_key;
+  url_loader_factory_.SetInterceptor(
+      base::BindLambdaForTesting([&](const network::ResourceRequest& request) {
+        if (request.url == manage_url) {
+          if (auto v = request.headers.GetHeader("Authorization")) {
+            seen_authorization = *v;
+          }
+          if (auto v = request.headers.GetHeader(kBraveServicesKeyHeader)) {
+            seen_api_key = *v;
+          }
+        }
+      }));
+
+  // Provide a successful GenerateAlias response to trigger ApiFetch.
+  const std::string alias_email = "mock-1234@bravealias.com";
+  url_loader_factory_.AddResponse(
+      manage_url.spec(),
+      std::string(R"({"message":"created","alias":"")") + alias_email + "\"}");
+
+  auto gen_result = CallGenerateAliasWith(std::nullopt);
+  // The helper enqueues the request body separately; here we just ensure it
+  // ran. Validate headers captured by the interceptor.
+  EXPECT_EQ(seen_authorization, "Bearer email-aliases-token");
+  EXPECT_EQ(seen_api_key, BUILDFLAG(BRAVE_SERVICES_KEY));
+}
+
+TEST_F(EmailAliasesAPITest, Notes) {
+  EmailAliasesNotes notes(prefs_, "test@login.com");
+
+  auto ignore = CallUpdateAliasWith("alias1", R"({"message":"updated"})",
+                                    MakeRefreshBody({"alias1"}), "note1");
+  EXPECT_EQ("note1", *notes.GetNote("alias1"));
+
+  ignore = CallUpdateAliasWith("alias1", R"({"message":"updated"})",
+                               MakeRefreshBody({"alias1"}), "note1_update");
+  EXPECT_EQ("note1_update", *notes.GetNote("alias1"));
+
+  // alias1 no longer active - remove note
+  ignore = CallUpdateAliasWith("alias1", R"({"message":"updated"})",
+                               MakeRefreshBody({}));
+  EXPECT_EQ(std::nullopt, notes.GetNote("alias1"));
+
+  ignore = CallUpdateAliasWith("alias1", R"({"message":"updated"})",
+                               MakeRefreshBody({"alias1"}), "note1");
+  EXPECT_EQ("note1", *notes.GetNote("alias1"));
+
+  ignore = CallDeleteAliasWith("alias1", R"({"message":"deleted"})");
+  EXPECT_EQ(std::nullopt, notes.GetNote("alias1"));
+}
+
+TEST_F(EmailAliasesAPITest, CachedAliases_SetOnRefresh) {
+  EXPECT_TRUE(service_->GetCachedAliases().empty());
+
+  auto result = CallUpdateAliasWith(
+      "alias1@example.com", R"({"message":"updated"})",
+      MakeRefreshBody({"alias1@example.com", "alias2@example.com"}), "note1");
+  ASSERT_TRUE(result.has_value());
+
+  EXPECT_EQ(prefs_.GetList(prefs::kCachedAliases),
+            base::ListValue()
+                .Append("alias1@example.com")
+                .Append("alias2@example.com"));
+
+  const auto cached = service_->GetCachedAliases();
+  ASSERT_EQ(cached.size(), 2u);
+  EXPECT_EQ(cached[0]->email, "alias1@example.com");
+  EXPECT_EQ(cached[0]->note, "note1");
+  EXPECT_EQ(cached[1]->email, "alias2@example.com");
+  EXPECT_EQ(cached[1]->note, std::nullopt);
+}
+
+TEST_F(EmailAliasesAPITest, CachedAliases_PreservedOnRefreshError) {
+  auto result = CallUpdateAliasWith(
+      "alias1@example.com", R"({"message":"updated"})",
+      MakeRefreshBody({"alias1@example.com", "alias2@example.com"}));
+  ASSERT_TRUE(result.has_value());
+  ASSERT_EQ(service_->GetCachedAliases().size(), 2u);
+
+  observer_.ResetForTesting();
+  result =
+      CallUpdateAliasWith("alias1@example.com", R"({"message":"updated"})",
+                          /*refresh_body=*/R"({"message":"backend_error"})",
+                          /*note=*/std::nullopt,
+                          /*wait_for_update=*/false);
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(observer_.WaitForAliasUpdateCount(1));
+  ASSERT_EQ(observer_.last_update()->which(),
+            mojom::AliasesUpdate::Tag::kError);
+
+  EXPECT_EQ(service_->GetCachedAliases().size(), 2u);
+}
+
+TEST_F(EmailAliasesAPITest, CachedAliases_ClearedOnSignOut) {
+  auto result =
+      CallUpdateAliasWith("alias1@example.com", R"({"message":"updated"})",
+                          MakeRefreshBody({"alias1@example.com"}));
+  ASSERT_TRUE(result.has_value());
+  ASSERT_EQ(service_->GetCachedAliases().size(), 1u);
+
+  ON_CALL(*brave_account_auth_,
+          GetServiceToken(brave_account::mojom::Service::kEmailAliases, _))
+      .WillByDefault([](auto service, auto callback) {
+        std::move(callback).Run(base::unexpected(
+            brave_account::mojom::GetServiceTokenError::NewClientError(
+                brave_account::mojom::GetServiceTokenClientError::New(
+                    brave_account::mojom::GetServiceTokenClientErrorCode::
+                        kUnexpected))));
+      });
+
+  observer_.ResetForTesting();
+  email_aliases_auth_observer_remote_->OnAccountStateChanged(
+      brave_account::mojom::AccountState::NewLoggedOut(
+          brave_account::mojom::LoggedOutState::New(nullptr)));
+  email_aliases_auth_observer_remote_.FlushForTesting();
+
+  ASSERT_TRUE(
+      base::test::RunUntil([this]() { return !service_->IsAuthenticated(); }));
+  ASSERT_TRUE(observer_.WaitForAliasUpdateCount(1));
+
+  EXPECT_TRUE(prefs_.GetList(prefs::kCachedAliases).empty());
+  EXPECT_TRUE(service_->GetCachedAliases().empty());
+}
+
+}  // namespace email_aliases

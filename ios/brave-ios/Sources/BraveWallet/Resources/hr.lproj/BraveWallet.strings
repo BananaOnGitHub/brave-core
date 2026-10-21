@@ -1,0 +1,1521 @@
+/* A button title that shows a screen that allows the user to backup their recovery phrase */
+"wallet.accountBackup" = "Sigurnosna kopija";
+
+/* The placeholder of the text field which allows the user to edit the account's name */
+"wallet.accountDetailsNamePlaceholder" = "Upišite naziv računa";
+
+/* The title displayed above a text field that contains the account's name */
+"wallet.accountDetailsNameTitle" = "Naziv računa";
+
+/* The error shown below the account name field when adding or renaming a wallet account if the length is longer than max characters. '%lld' refers to a number (for example "Account name must be at 30 characters or less") */
+"wallet.accountNameLengthError" = "Naziv računa može imati %lld zn. ili manje";
+
+/* The title of the accounts page in the Crypto tab */
+"wallet.accountsPageTitle" = "Računi";
+
+/* The title of the button which when tapped will add a new account to the users list of crypto accounts. It will be used as the title of the navigation bar item button on the top right of the add custom token scree. */
+"wallet.addAccountAddButton" = "Dodaj";
+
+/* The title of the add account screen. */
+"wallet.addAccountTitle" = "Dodaj račun";
+
+/* The title of the add account screen. '%@' will be placed with a coin type title. For example, 'Add Ethereum Account'. */
+"wallet.addAccountWithCoinTypeTitle" = "Dodavanje računa za %@";
+
+/* The title of bar item for users to add custom network screen */
+"wallet.addCustomNetworkBarItemTitle" = "Dodaj mrežu";
+
+/* The description of the view shown over a dapps website that describes what adding a new network will do. */
+"wallet.addNetworkDescription" = "Time se omogućuje upotreba mreže unutar novčanika preglednika Brave.";
+
+/* The subtitle of the view shown over a dapps website that requests permission from the user to add a new network. */
+"wallet.addNetworkSubtitle" = "Dopustiti ovom mrežnom mjestu dodavanje mreže?";
+
+/* The title of the view shown over a dapps website that requests the user add a new network. */
+"wallet.addNetworkTitle" = "Dodaj mrežu";
+
+/* The label displayed in details for Bitcoin Transaction Confirmation details panel beside/above the address. */
+"wallet.addressLabel" = "Adresa";
+
+/* The subtitle of the view shown over a dapps website that requests the user add / approve a new token, explaining to the user what this request does. */
+"wallet.addSuggestedTokenSubtitle" = "Želite li uvesti ovaj token?";
+
+/* The title of the view shown over a dapps website that requests the user add / approve a new token. */
+"wallet.addSuggestedTokenTitle" = "Dodavanje predloženog tokena";
+
+/* The title of the button that is displayed under the total gas fee in the confirmation transaction screen. Users can click it to go to advanced settings screen. */
+"wallet.advancedSettingsTransaction" = "Napredne postavke";
+
+/* A title displayed above two numbers (the amount and transaction fee) showing the user the breakdown of the amount transferred and transaction fee for any Solana transaction. The "+" is a literal plus as the label below will show such as "0.004 SOL + 0.00064 SOL" */
+"wallet.amountAndFee" = "Iznos + naknada";
+
+/* A title displayed above two numbers (the amount and gas) showing the user the breakdown of the amount transferred and gas fee. The "+" is a literal plus as the label below will show such as "0.004 ETH + 0.00064 ETH" */
+"wallet.amountAndGas" = "Iznos i gorivo";
+
+/* The title of the button to approve adding a new network on a add new network request from a dapps website. */
+"wallet.approveNetworkButtonTitle" = "Odobri";
+
+/* The footer beneath the auto-lock title and interval duration */
+"wallet.autoLockFooter" = "Broj minuta čekanja dok se novčanik preglednika Brave automatski ne zaključa";
+
+/* The title that appears before an auto-lock interval. Example: Automatically lock after 5 minutes */
+"wallet.autoLockTitle" = "Automatsko zaključavanje nakon";
+
+/* The title that will be displayed when long-pressing the back button in the navigation bar. As in the a list of words to recovery your account on another device/wallet */
+"wallet.backupRecoveryPhraseBackButtonTitle" = "Rečenica za oporavak";
+
+/* The subtitle of the backup recovery phrase screen */
+"wallet.backupRecoveryPhraseSubtitle" = "Vaša rečenica za oporavak ključ je za pristupanje novčaniku ako zaboravite lozinku ili izgubite uređaj.\n\nČuvajte je na sigurnu mjestu koje nije dostupno drugima i izbjegavajte je dijeliti s bilo kim.";
+
+/* The title of the backup recovery phrase screen */
+"wallet.backupRecoveryPhraseTitle" = "Spremanje rečenice za oporavak";
+
+/* The title of the button that user will tap to skip the verifying recovery phrases step. */
+"wallet.backupSkipButtonTitle" = "Izradit ću sigurnosnu kopiju poslije";
+
+/* The sub-title on the pop up when user decides to skip backup recovery phrases. */
+"wallet.backupSkipPromptSubTitle" = "Kako biste zaštitili svoj račun, svakako napravite sigurnosnu kopiju rečenice za oporavak.";
+
+/* The title on the pop up when user decides to skip backup recovery phrases. */
+"wallet.backupSkipPromptTitle" = "Sada možete preskočiti ovaj korak, ali svejedno morate izraditi sigurnosnu kopiju rečenice za oporavak kako biste zajamčili sigurnost računa.";
+
+/* The title that will be displayed when long-pressing the back button in the navigation bar */
+"wallet.backupWalletBackButtonTitle" = "Sigurnosno kopiraj novčanik";
+
+/* The label next to a toggle which the user must acknowledge */
+"wallet.backupWalletDisclaimer" = "Razumijem da neću moći pristupiti svom novčaniku za kriptovalute ako izgubim svoju rečenicu za oporavak.";
+
+/* The placeholder for the password entry field when a user tries to backup their wallet. */
+"wallet.backupWalletPasswordPlaceholder" = "Upišite lozinku za sigurnosnu kopiju novčanika";
+
+/* The subtitle of the backup wallet screen */
+"wallet.backupWalletSubtitle" = "U sljedećem koraku navodi se rečenica za oporavak od 12 riječi koju možete upotrijebiti za oporavak primarnih računa za kriptovalute. Spremite je na sigurno mjesto. Vaša rečenica za oporavak jedini je način za povraćanje pristupa računu ako zaboravite lozinku, ako se izgubi ili ukrade uređaj ili ako želite promijeniti novčanike.";
+
+/* The title of the backup wallet screen */
+"wallet.backupWalletTitle" = "Izradi sigurnosnu kopiju kriptonovčanika";
+
+/* The button title that enables the biometric unlock feature. %@` will be replaced with the biometric type name of the current device. */
+"wallet.biometricsSetupEnableButtonTitle" = "Upotrijebi %@";
+
+/* The message of an alert when the user has an error setting up biometric unlock */
+"wallet.biometricsSetupErrorMessage" = "Nastala je pogreška pri pokušaju omogućavanja biometrijskog otključavanja. Pokušajte ponovno poslije.";
+
+/* The title of an alert when the user has an error setting up biometric unlock */
+"wallet.biometricsSetupErrorTitle" = "Omogućivanje biometrijskog otključavanja nije uspjelo.";
+
+/* Type of biometrics. This will be used in Biometric setup screen. */
+"wallet.biometricsSetupFaceId" = "Identifikacija licem";
+
+/* The sub-title shown when a user is asked if they would like to setup biometric unlock. `%@` will be replaced with the biometric type name of the current device. */
+"wallet.biometricsSetupSubTitle" = "Želite li upotrijebiti %@ za otključavanje Novčanika Brave?";
+
+/* The title shown when a user is asked if they would like to setup biometric unlock. `%@` will be replaced with the biometric type name of the current device. */
+"wallet.biometricsSetupTitle" = "Otključavanje Novčanika Brave načinom %@";
+
+/* Type of biometrics. This will be used in Biometric setup screen. */
+"wallet.biometricsSetupTouchId" = "Identifikacija dodirom";
+
+/* The label displayed in Add Account above the private key box when adding or importing a Bitcoin account. The '%@' is the standard supported for the selected network (for example "Only zprv extended keys are supported.") */
+"wallet.bitcoinImportExtendedKeyWarning" = "Podržani su samo produženi ključevi %@.";
+
+/* The text beside the striked-through percentage Brave would normally charge for a swap. */
+"wallet.braveSwapFree" = "Besplatno";
+
+/* A description of an Bitcoin account, displayed in Accounts tab. */
+"wallet.btcAccountDescription" = "Bitcoin";
+
+/* As in buying cryptocurrency */
+"wallet.buy" = "Kupi";
+
+/* The description of a buy button on the buy/send/swap/deposit modal */
+"wallet.buyDescription" = "Kupujte kriptovalute aplikacijom Apply Pay, kreditnom ili debitnom karticom.";
+
+/* A part of the message in a transaction status screen. It will follow the amount of tokens that users were attempt to approve but cancelled after. For exapmple: 10 ETH allowance has not been approve under account 0x345...436 */
+"wallet.cancelERC20ApprovalTxRevertMsg" = "dodatak nije odobren pod";
+
+/* A description of transaction status view indicating this transaction is submitted to chain which is cancelling another transaction. */
+"wallet.cancellingTransactionDescription" = "Poslan zahtjev za otkazivanje";
+
+/* A title of transaction status view indicating this transaction is submitted to chain which is cancelling another transaction. */
+"wallet.cancellingTransactionTitle" = "Otkazivanje transakcije";
+
+/* The title for the button to cancel a submitted transaction. */
+"wallet.cancelTransactionButtonTitle" = "Otkaži transakciju";
+
+/* The button title that for user to cancel a submitted transaction inside transaction status view. */
+"wallet.cancelTransactionStatusButtonTitle" = "Otkaži transakciju";
+
+/* The description inside the view when asking user to confirm they want to cancel a transaction. */
+"wallet.cancelTransactionStatusConfirmationDescription" = "Stvorit će se nova transakcija kako bi se poništila vaša postojeća transakcija";
+
+/* A part of the message in a transaction status screen. It will follow the amount of tokens that users were attempt to send but cancelled after. For exapmple: 10 ETH has been reverted to account 0x345...436 */
+"wallet.cancelTxRevertMsg" = "vraćeno je na";
+
+/* One of the coin types for users to create an account to store ADA assets */
+"wallet.coinTypeAda" = "Cardano";
+
+/* One of the coin types for users to create an account to store BTC assets */
+"wallet.coinTypeBitcoin" = "Bitcoin";
+
+/* A description for Bitcoin coin type. */
+"wallet.coinTypeBitcoinDescription" = "Pohranite imovinu BTC";
+
+/* One of the coin types for users to create an account in Ethereum mainnet or any EVM networks. */
+"wallet.coinTypeEthereum" = "Ethereum";
+
+/* A description for Ethereum coin type. */
+"wallet.coinTypeEthereumDescription" = "Podržava imovinu kompatibilnu s EVM-om na lancu podatkovnih blokova platforme Ethereum (ERC-20, ERC-721, ERC-1551, ERC-1155)";
+
+/* One of the coin types for users to create an account to store FIL assets */
+"wallet.coinTypeFilecoin" = "Filecoin";
+
+/* A description for Filecoin coin type. */
+"wallet.coinTypeFilecoinDescription" = "Pohrani imovinu FIL";
+
+/* A header displayed above coin types selection. */
+"wallet.coinTypeSelectionHeader" = "Odaberi jednu od sljedećih vrsta računa";
+
+/* One of the coin types for users to create an account with in Solana network */
+"wallet.coinTypeSolana" = "Solana";
+
+/* A description for Solana coin type. */
+"wallet.coinTypeSolanaDescription" = "Podržava imovinu kompatibilnu s SLP-om na lancu podatkovnih blokova platforme Solana";
+
+/* A placeholder for unknown coin type. */
+"wallet.coinTypeUnknown" = "Nepoznato";
+
+/* One of the coin types for users to create an account to store ZEC assets */
+"wallet.coinTypeZCash" = "ZCash";
+
+/* A description for ZCash coin type. */
+"wallet.coinTypeZCashDescription" = "Pohrana imovine ZEC";
+
+/* 1. A button title to confirm a transaction. It is shown below details about a given transaction. 2. A button title to confirm to grant permission of a dapp connect request. It is displayed at the bottom of last step to grant permission in new site connection screen. */
+"wallet.confirm" = "Potvrdi";
+
+/* The subtitle shown on transaction confirmation for an ERC 20 Approve transaction where the '%@' will be the name of the symbol being approved. For example: "By granting this permission, you are allowing this app to withdraw your DAI and automate transactions for you." */
+"wallet.confirmationViewAllowSpendSubtitle" = "Dodjeljivanjem ovog dopuštenja dopuštate aplikaciji povlačenje vaših %@ i automatiziranje transakcija umjesto vas.";
+
+/* The title shown on transaction confirmation for an ERC 20 Approve transaction where the '%@' will be the name of the symbol being approved. For example: "Allow this app to spend your DAI?" */
+"wallet.confirmationViewAllowSpendTitle" = "Dopustiti ovoj aplikaciji da troši vaš %@?";
+
+/* The label shown beside the current allowance for a ERC20 approve transaction where the current allowance is a number followed by the symbol name. For example, "Current Allowance  100 DAI". */
+"wallet.confirmationViewCurrentAllowance" = "Trenutačni doplatak";
+
+/* The title shown on the button to edit permissions / the allowance for an ERC 20 Approve transaction while confirming a transaction. */
+"wallet.confirmationViewEditPermissions" = "Uredi dopuštenja";
+
+/* One of the picker options while confirming a transaction. When selected it displays a transactions function details such as underlying data */
+"wallet.confirmationViewModeDetails" = "Detalji";
+
+/* One of the picker options while confirming a transaction. When selected it displays a summary of the transaction such as value, gas fee, and totals */
+"wallet.confirmationViewModeTransaction" = "Transakcija";
+
+/* The warning shown on transaction confirmation for an Solana Dapp request that will reassign ownership of the account to a new program. */
+"wallet.confirmationViewSolAccountOwnershipChangeWarning" = "Ova će transakcija prenijeti vlasništvo nad računom na novi program. Ova radnja je nepovratna i može dovesti do gubitka sredstava.";
+
+/* The warning title shown on transaction confirmation for an Solana Dapp request that will reassign ownership of the account to a new program. */
+"wallet.confirmationViewSolAccountOwnershipChangeWarningTitle" = "Zatražena je promjena vlasništva računa";
+
+/* The warning shown on transaction confirmation for an Solana SPL token transaction that has not yet created an associated token account. */
+"wallet.confirmationViewSolSplTokenAccountCreationWarning" = "Povezani račun tokena još ne postoji. Troši se manja količina SOL-a za njegovo stvaranje i financiranje.";
+
+/* The warning shown on transaction confirmation for an ERC 20 Approve transaction when the proposed allowance is unlimited. */
+"wallet.confirmationViewUnlimitedWarning" = "Zatraženo neograničeno odobravanje";
+
+/* When a cancellation transaction has been confirmed, we will display which account the amount of value has been reverted to. For example: 10 ETH has been reverted to account 0x123...456 */
+"wallet.confirmedTransactionCancellationAccount" = "račun";
+
+/* A title of transaction status view indicating this transaction is confirmed on the chain which has cancelled another transaction. */
+"wallet.confirmedTransactionCancellationTitle" = "Transakcija otkazana!";
+
+/* A title of a button which will close this transaction status view. */
+"wallet.confirmedTransactionCloseButtonTitle" = "Zatvori";
+
+/* The title displayed in the navigation of the confirmation view where a user tries to remove a secondary account. */
+"wallet.confirmPasswordTitle" = "Potvrdi lozinku";
+
+/* The title of the transaction confirmation panel UI when there are multiple transactions to confirm */
+"wallet.confirmTransactionsTitle" = "Potvrda transakcija";
+
+/* The title of the transaction confirmation panel UI. */
+"wallet.confirmTransactionTitle" = "Potvrdi transakciju";
+
+/* A button title when a user will continue to the next step of something */
+"wallet.continueButtonTitle" = "Nastavite";
+
+/* The accessibility label for the contract address of a token / asset. */
+"wallet.contractAddressAccessibilityLabel" = "Ugovorna adresa";
+
+/* A button title that user has clicked to copy some data to the users clipboard */
+"wallet.copiedToPasteboard" = "Kopirano";
+
+/* The button title that appears when long-pressing a wallet address that will copy said address to the users clipboard */
+"wallet.copyAddressButtonTitle" = "Kopiraj adresu";
+
+/* A button title that when tapped will copy some data to the users clipboard */
+"wallet.copyToPasteboard" = "Dodirni za kopiranje";
+
+/* The message of the alert shown when a user switches to a network they do not have an account for yet. */
+"wallet.createAccountAlertMessage" = "Izraditi sada?";
+
+/* The title of the alert shown when a user switches to a network they do not have an account for yet. '%@' will be replaced with a network name such as 'Solana' or 'Filecoin'. */
+"wallet.createAccountAlertTitle" = "Nemate račun %@";
+
+/* The title that will be displayed when long-pressing the back button in the navigation bar. As to make up a new password to create a wallet */
+"wallet.createWalletBackButtonTitle" = "Stvori lozinku";
+
+/* The sub-title of the create wallet screen */
+"wallet.createWalletSubTitle" = "Tu ćete lozinku upotrebljavati za pristup svojem novčaniku.";
+
+/* The title of the create wallet screen */
+"wallet.createWalletTitle" = "Stvaranje lozinke";
+
+/* The title of the creating wallet screen, shown after user enters their password while the wallet is being set up. */
+"wallet.creatingWallet" = "Izrada novčanika Wallet...";
+
+/* The title of the crypto tab */
+"wallet.cryptoTitle" = "Novčanik Brave";
+
+/* The title above the input fields for users to input network block explorer urls in Custom Network Details Screen. */
+"wallet.customNetworkBlockExplorerUrlsTitle" = "URL-ovi tražilice Block Explorer";
+
+/* The error message for the input field when users input an invalid value for a custom network in Custom Network Details Screen. */
+"wallet.customNetworkChainIdErrMsg" = "Nevaljan format – ID lanca mora biti pozitivan broj.";
+
+/* The placeholder for the input field for users to input network chain ID in Custom Network Details Screen. */
+"wallet.customNetworkChainIdPlaceholder" = "Upišite ID lanca";
+
+/* The title above the input field for users to input network chain ID in Custom Network Details Screen. */
+"wallet.customNetworkChainIdTitle" = "ID lanca";
+
+/* The placeholder for the input field for users to input network chain name in Custom Network Details Screen. */
+"wallet.customNetworkChainNamePlaceholder" = "Upiši naziv lanca";
+
+/* The title above the input field for users to input network chain name in Custom Network Details Screen. */
+"wallet.customNetworkChainNameTitle" = "Naziv lanca";
+
+/* The error message for the input field when users input an invalid value for a custom network in Custom Network Details Screen. */
+"wallet.customNetworkCurrencyDecimalErrMsg" = "Nevaljan format – decimale valute moraju biti pozitivan broj.";
+
+/* The placeholder for the input field for users to input network currency decimal in Custom Network Details Screen. */
+"wallet.customNetworkCurrencyDecimalPlaceholder" = "Upiši decimale valute";
+
+/* The title above the input field for users to input network currency decimal in Custom Network Details Screen. */
+"wallet.customNetworkCurrencyDecimalTitle" = "Decimale valute lanca";
+
+/* The title for Custom Network Details Screen for user to add or edit custom network. */
+"wallet.customNetworkDetailsTitle" = "Dodavanje nove mreže";
+
+/* The error message for the input fields cannot be empty in Custom Network Details Screen. */
+"wallet.customNetworkEmptyErrMsg" = "Polje ne smije biti prazno.";
+
+/* The title above the input fields for users to input network icon urls in Custom Network Details Screen. */
+"wallet.customNetworkIconUrlsTitle" = "URL-ovi ikone";
+
+/* The error message for the input field when users input an invalid address for a custom network in Custom Network Details Screen. */
+"wallet.customNetworkInvalidAddressErrMsg" = "Nevaljana adresa.";
+
+/* The error message for the input field when users input an unsecure address for a custom network in Custom Network Details Screen. */
+"wallet.customNetworkNotSecureErrMsg" = "Nije sigurno.";
+
+/* The title above the input fields for users to input network rpc urls in Custom Network Details Screen. */
+"wallet.customNetworkRpcUrlsTitle" = "URL-ovi RPC-a";
+
+/* The placeholder for the input field for users to input network currency symbol name in Custom Network Details Screen. */
+"wallet.customNetworkSymbolNamePlaceholder" = "Upiši naziv valute";
+
+/* The title above the input field for users to input network currency symbol name in Custom Network Details Screen. */
+"wallet.customNetworkSymbolNameTitle" = "Naziv valute lanca";
+
+/* The placeholder for the input field for users to input network currency symbol in Custom Network Details Screen. */
+"wallet.customNetworkSymbolPlaceholder" = "Upiši simbol valute";
+
+/* The title above the input field for users to input network currency symbol in Custom Network Details Screen. */
+"wallet.customNetworkSymbolTitle" = "Simbol valute lanca";
+
+/* The placeholder for the input field for users to input network rpc url in Custom Network Details Screen. */
+"wallet.customNetworkUrlsPlaceholder" = "Upišite URL/URL-ove";
+
+/* The title of the notification which will prompt at the top of the browser when users are visiting web3 site that is not yet connected with Brave Wallet. The '%@' will be the site attempting to connect. For example: "app.uniswap.org wants to interact with Brave Wallet" */
+"wallet.dappsConnectionNotificationOriginTitle" = "Mrežno mjesto %@ želi se povezati s Novčanikom Brave";
+
+/* The title of the notification which will prompt at the top of the browser when users are visiting web3 site that is not yet connected with Brave Wallet. */
+"wallet.dappsConnectionNotificationTitle" = "Ova se stranica želi povezati s novčanikom Brave";
+
+/* A message that will be displayed under the section header when there is no dapps have been granted wallet connection. */
+"wallet.dappsSettingsConnectedSitesSectionEmpty" = "Decentralizirane aplikacije koje povežete s Novčanikom Brave pojavljuju se ovdje";
+
+/* The title of the section that will list all the permitted dapp connections */
+"wallet.dappsSettingsConnectedSitesSectionTitle" = "Povezane decentralizirane aplikacije";
+
+/* The title of the section that will display settings for default wallet and dapp provider api access permission */
+"wallet.dappsSettingsGeneralSectionTitle" = "Općenito";
+
+/* The navigation title of the settings screen for each Dapp. '%@' will be relpaced by the name of the coin type. For example, the title could 'Ethereum Settings', 'Solana Settings' etc. */
+"wallet.dappsSettingsNavTitle" = "Postavke za %@";
+
+/* The warning message in a confirmation dialog when attempting to remove all wallet connection to a dapp. */
+"wallet.dappsSettingsRemoveAllWarning" = "Ovim se uklanjaju sva dopuštenja za povezivanje novčanika za %1$d %2$@";
+
+/* The plural word that will be used in `manageSiteConnectionsAccount`. */
+"wallet.dappsSettingsWebsitePlural" = "mrežna mjesta";
+
+/* The singular word that will be used in `manageSiteConnectionsAccount`. */
+"wallet.dappsSettingsWebsiteSingular" = "mrežno mjesto";
+
+/* The message displayed when the user takes a screenshot of their dapp decrypt request. */
+"wallet.decryptMessageScreenshotDetectedMessage" = "Upozorenje: snimka zaslona vaše poruke može se sigurnosno kopirati na uslugu datoteka u oblaku i može se čitati svakom aplikacijom s pristupom fotografijama. Društvo Brave preporučuje vam da ne spremate ovu snimku zaslona i da je izbrišete što je prije moguće.";
+
+/* The title of the button to approve a decrypt request from a dapps website. */
+"wallet.decryptRequestApprove" = "Dopusti";
+
+/* The title of the button to show the message of a decrypt request from a dapps website. */
+"wallet.decryptRequestReveal" = "Otkrij";
+
+/* A subtitle of the view shown over a dapps website that requests the user decrypt a message. */
+"wallet.decryptRequestSubtitle" = "Decentralizirana aplikacija želi pročitati ovu poruku za ispunjavanje vašeg zahtjeva";
+
+/* A title of the view shown over a dapps website that requests the user decrypt a message. */
+"wallet.decryptRequestTitle" = "Zahtjev za dešifriranjem";
+
+/* The default account name when adding an account and not entering a custom name. '%@' refers to a coin type and '%lld' refers to a number (for example "Ethereum Account 2") */
+"wallet.defaultAccountName" = "Račun %1$@ %2$lld";
+
+/* The default account name when adding an account and not entering a custom name. '%@' refers to a coin type and '%lld' refers to a number (for example "Filecoin Testnet Account 2") */
+"wallet.defaultTestnetAccountName" = "Račun %1$@ Testnet %2$lld";
+
+/* The title of the option inside the context menu for custom asset row in edit user asset screen. Or the title of the option inside the context menu for custom network row which is not being currently selected in networks list screen. */
+"wallet.delete" = "Izbriši";
+
+/* As in depsit some crypto coins to a specific wallet address. */
+"wallet.deposit" = "Depozit";
+
+/* The description of a swap button on the buy/send/swap/deposit modal */
+"wallet.depositDescription" = "Imovina pologa";
+
+/* The title of a button that Deselects all visible options. */
+"wallet.deselectAllButtonTitle" = "Poništi odabir za sve";
+
+/* A button title displayed under a Gas Fee title that allows the user to adjust the gas fee/transactions priority, on accounts tab for editing an account name, etc. */
+"wallet.editButtonTitle" = "Uredi";
+
+/* A pop up message that will prompt to user before user confirms to edit the existing network. */
+"wallet.editExistingNetworkAlertMsg" = "Želite li ažurirati postojeću mrežu?";
+
+/* The title of form for users to edit an existed custom network. */
+"wallet.editfCustomNetworkTitle" = "Uredi mrežu";
+
+/* A title of the edit gas screen for standard transactions */
+"wallet.editGasTitle" = "Uredi naknadu";
+
+/* The footer title for edit nonce section in advanced settings screen. */
+"wallet.editNonceFooter" = "Transakcija se ne smije širiti mrežom ako prilagođena vrijednost broja nonce nije uzastopna ili ako ima druge pogreške";
+
+/* The header title for edit nonce section in advanced settings screen. */
+"wallet.editNonceHeader" = "Broj transakcija s iste adrese";
+
+/* The placeholder for custom nonce textfield. */
+"wallet.editNoncePlaceholder" = "Upiši prilagođenu vrijednost broja nonce";
+
+/* The header text shown above the rows to selected the allowance for an ERC 20 Approve transaction. The '%@' becomes the name of the account approving the transaction. For example: "Spend limit permission allows Account 1 to withdraw and spend up to the following amount:" */
+"wallet.editPermissionsAllowanceHeader" = "Dopuštenjem ograničenja potrošnje omogućava se računu %@ povlačenje i trošenje do sljedećeg iznosa:";
+
+/* The value to show when the permissions / allowance of an ERC 20 Approve transaction are the maximum allowance or unlimited spending ammount. */
+"wallet.editPermissionsApproveUnlimited" = "Neograničen";
+
+/* The header text above the field to input a custom allowance value. */
+"wallet.editPermissionsCustomAllowanceHeader" = "Postavljanje prilagođenog doplatka";
+
+/* The header text shown in the row that displays the proposed allowance value. */
+"wallet.editPermissionsProposedAllowanceHeader" = "Predloženi doplatak";
+
+/* The title of the button shown beside the custom allowance input field to make the custom allowance value "Unlimited". */
+"wallet.editPermissionsSetUnlimited" = "Postavi kao neograničeno";
+
+/* The title of the detail view to edit the permissions / allowance of an ERC 20 Approve transaction. */
+"wallet.editPermissionsTitle" = "Uređivanje dopuštenja";
+
+/* The title of the button for users to click so that they connect wallet account to the dapp site(also permission given). It will be displayed at the right hand side of each account option in edit site connection screen. */
+"wallet.editSiteConnectionAccountActionConnect" = "Poveži se";
+
+/* The title of the button for users to click so that they disconnect wallet account to the dapp site(also permission removed). It will be displayed at the right hand side of each account option in edit site connection screen. */
+"wallet.editSiteConnectionAccountActionDisconnect" = "Prekini vezu";
+
+/* The title of the button for users to click so that they remove wallet account permission from the Solana Dapp. It will be displayed at the right hand side of each account option in edit site connection screen */
+"wallet.editSiteConnectionAccountActionRevoke" = "Opozovi";
+
+/* The title of the button for users to click so that they disconnect wallet account to the dapp site(also permission removed). It will be displayed at the right hand side of each account option in edit site connection screen. */
+"wallet.editSiteConnectionAccountActionSwitch" = "Promijeni";
+
+/* The title of the button for users to click so that they grant wallet account permission for the Solana Dapp. It will be displayed at the right hand side of each account option in edit site connection screen. */
+"wallet.editSiteConnectionAccountActionTrust" = "Povjerenje";
+
+/* The plural word that will beused in `editSiteConnectionConnectedAccount`. */
+"wallet.editSiteConnectionAccountPlural" = "računi";
+
+/* The singular word that will be used in `editSiteConnectionConnectedAccount`. */
+"wallet.editSiteConnectionAccountSingular" = "račun";
+
+/* The amount of current permitted wallet accounts to the dapp site. It is displayed below the origin url of the dapp site in edit site connection screen. '%lld' refers to a number, %@ is `account` for singular and `accounts` for plural (for example "1 account connected" or "2 accounts connected") */
+"wallet.editSiteConnectionConnectedAccount" = "Povezano: %1$lld %2$@";
+
+/* The navigation title of the screen for users to edit dapps site connection with users' Brave Wallet accounts. */
+"wallet.editSiteConnectionScreenTitle" = "Poveznice";
+
+/* The error alert body when something is wrong when users try to edit transaction gas fee, priority fee, nonce value or allowance value. */
+"wallet.editTransactionError" = "Provjerite svoje upise i pokušajte ponovno.";
+
+/* The transaction edit error alert button which will dismiss the alert. */
+"wallet.editTransactionErrorCTA" = "Natrag";
+
+/* Title on the button that users can click to enable Brave to resolve the ENS domain they entered. */
+"wallet.ensDomainInterstitialPageButtonProceed" = "Nastavite uporabom poslužitelja Chainstack";
+
+/* Description displayed when users chose Brave to ask them if they want the ENS to be resolved every time they enter one. The first '%@' will be replaced with a link to Chainstack's terms of use page. The second '%@' will be replaced with the value of 'Web3DomainInterstitialPageTAndU'. The third '%@' will be replaced with a link to Chainstack's privacy policy page. The last '%@' will be replaced with the value of 'Web3DomainInterstitialPagePrivacyPolicy'. */
+"wallet.ensDomainInterstitialPageDescription" = "U pregledniku Brave upotrebljavat će se konfigurirana RPC usluga za Ethereum Mainnet, koja je po zadanome Chainstack, za rješavanje naziva domena .eth koje se nalaze u sustavu imenovanja tehnologije Ethereum (ENS). Preglednikom Brave skriva se vaša adresa IP. Ako to omogućite, putem platforme Chainstack moguće je vidjeti da netko pokušava posjetiti te domene .eth, ali ništa više. Pogledajte <a href=%1$@>%2$@</a> i <a href=%3$@>%4$@</a> platforme Chainstack.";
+
+/* Title displayed when users chose Brave to ask them if they want the ENS domain to be resolved every time they enter one. */
+"wallet.ensDomainInterstitialPageTitle" = "Omogućiti podršku za sustav Ethereum Name Service (ENS) u pregledniku Brave?";
+
+/* Title on the button that users can click to enable Brave to resolve the ENS offchain lookup for the domain they entered. */
+"wallet.ensOffchainDomainInterstitialPageButtonProceed" = "Nastavi s traženjem van tehnologije blokova";
+
+/* Description displayed when users chose Brave to ask them if they want the ENS to be resolved every time they enter one. The first '%@' will be replaced with a link to Brave Wallet's offchain lookup privacy considerations. The second '%@' will be replaced with the value of 'ensOffchainDomainInterstitialLearnMore'. */
+"wallet.ensOffchainDomainInterstitialPageDescription" = "Ovaj naziv domene .eth pohranjen je izvan lanca i rješava se pristupnikom treće strane. Ako omogućite pretraživanje ENS-a izvan lanca, putem pristupnika treće strane može se vidjeti da pokušavate posjetiti domenu .eth. <a href=%1$@>%2$@</a>.";
+
+/* Title displayed when users chose Brave to ask them if they want the ENS Offchain domain to be resolved every time they enter one. */
+"wallet.ensOffchainDomainInterstitialPageTitle" = "Omogućiti podršku za traženje sustava za imenovanje tehnologije Ethereum (ENS) van tehnologije blokova u pregledniku Brave?";
+
+/* The description for the options to allow Ethereum Name service domain names offchain. '%@' will be replaced with a url to explain more about ENS offchain lookup. */
+"wallet.ensOffchainResolveMethodDescription" = "[Doznajte više](%@) o razmatranjima privatnosti traženja ENS-a izvan lanca.";
+
+/* The title for the options to allow Ethereum Name service domain names offchain. */
+"wallet.ensOffchainResolveMethodTitle" = "Dopuštanje traženja ENS-a izvan lanca";
+
+/* The title for the options to resolve Ethereum Name service domain names. */
+"wallet.ensResolveMethodTitle" = "Rješavanje naziva domena sustava za imenovanje tehnologije Ethereum (ENS)";
+
+/* The navigation bar title displayed on the screen to enter wallet password to enable biometrics unlock from wallet settings. */
+"wallet.enterPasswordForBiometricsNavTitle" = "Omogućivanje biometrije";
+
+/* The title displayed on the screen to enter password to enable biometrics unlock from wallet settings. */
+"wallet.enterPasswordForBiometricsTitle" = "Upišite lozinku novčanika kako biste omogućili biometriju za novčanik (to se od vas traži samo jedanput)";
+
+/* A title displayed in an alert above the error message or description. */
+"wallet.errorAlertTitle" = "Pogreška";
+
+/* A description of an Ethereum account, displayed in Accounts tab. */
+"wallet.ethAccountDescription" = "Ethereum + EVM Chains";
+
+/* A button title displayed in a menu to export an account's private key. */
+"wallet.exportButtonTitle" = "Izvezi";
+
+/* The title of an alert when the custom network the user attempted to add fails for some reason */
+"wallet.failedToAddCustomNetworkErrorTitle" = "Dodavanje ove mreže nije uspjelo.";
+
+/* The message of an alert when the account the user attempted to import fails for some reason */
+"wallet.failedToImportAccountErrorMessage" = "Pokušajte ponovno.";
+
+/* The title of an alert when the account the user attempted to import fails for some reason */
+"wallet.failedToImportAccountErrorTitle" = "Uvoz računa nije uspio.";
+
+/* The title above the featured networks in onboarding network selection screen. */
+"wallet.featured" = "Istaknuto";
+
+/* A description of an Filecoin account, displayed in Accounts tab. */
+"wallet.filAccountDescription" = "Filecoin";
+
+/* A title above a text field for inputting the gas amount limit */
+"wallet.gasAmountLimit" = "Ograničenje iznosa naknade";
+
+/* The base cost of the gas fee before adjustments by the user. It will be shown next to a Gwei amount */
+"wallet.gasCurrentBaseFee" = "Trenutačna osnovna naknada";
+
+/* A title displayed beside a number describing the cost of the transaction in ETH which is called Gas */
+"wallet.gasFee" = "Naknada za gorivo";
+
+/* An option for the user to pick when selecting some predefined gas fee limits. The options are Low, Optimal, High and Custom. This option allows the user to specify gas fee details themselves */
+"wallet.gasFeeCustomOption" = "Prilagođeno";
+
+/* A disclaimer shown above the UI to select a gas fee */
+"wallet.gasFeeDisclaimer" = "Iako to nije jamstvo, rudari vrlo vjerojatno daju prioritet vašoj transakciji ako platite veću naknadu.";
+
+/* An option for the user to pick when selecting some predefined gas fee limits. The options are Low, Optimal, High and Custom */
+"wallet.gasFeePredefinedLimitHigh" = "Visoko";
+
+/* An option for the user to pick when selecting some predefined gas fee limits. The options are Low, Optimal, High and Custom */
+"wallet.gasFeePredefinedLimitLow" = "Nisko";
+
+/* An option for the user to pick when selecting some predefined gas fee limits. The options are Low, Optimal, High and Custom */
+"wallet.gasFeePredefinedLimitOptimal" = "Optimalno";
+
+/* The title of the button to approve a encryption public key request from a dapps website. */
+"wallet.getEncryptionPublicKeyRequestApprove" = "Pružiti";
+
+/* The text shown beside the URL origin of a get public encryption key request from a dapp site. Ex 'https://brave.com is requesting your wallets public encryption key. If you consent to providing this key, the site will be able to compose encrypted messages to you.' */
+"wallet.getEncryptionPublicKeyRequestMessage" = "traži javni ključ za šifriranje vašeg novčanika. Ako pristanete na davanje ključa, mrežnim mjestom mogu vam se slati šifrirane poruke.";
+
+/* A subtitle of the view shown over a dapps website that requests the users public encryption key. */
+"wallet.getEncryptionPublicKeyRequestSubtitle" = "Decentralizirana aplikacija traži vaš javni ključ za šifriranje";
+
+/* A title of the view shown over a dapps website that requests the users public encryption key. */
+"wallet.getEncryptionPublicKeyRequestTitle" = "Zahtjev za javnim ključem za šifriranje";
+
+/* The title of the Help Center option inside the menu when user clicks the three dots button beside assets search button or on wallet panel. */
+"wallet.helpCenter" = "Centar za pomoć";
+
+/* A button title which when pressed hides the details screen. */
+"wallet.hideDetailsButtonTitle" = "Sakrij pojedinosti";
+
+/* A title above a text field that is used to enter a password */
+"wallet.importAccountOriginPasswordTitle" = "Lozinka za Origin";
+
+/* A placeholder on a text box for entering the users private key/json data to import accounts */
+"wallet.importAccountPlaceholder" = "Upišite, zalijepite ili uvezite datoteku niza ili datoteku JSON svog privatnog ključa.";
+
+/* A title above a text field that will be used to import a users secondary accounts */
+"wallet.importAccountSectionTitle" = "Možete napraviti sekundarni račun uvoženjem svog privatnog ključa.";
+
+/* A button title that when tapped will display a file import dialog */
+"wallet.importButtonTitle" = "Uvezi…";
+
+/* A title above a list of crypto accounts that are imported */
+"wallet.importedCryptoAccountsTitle" = "Uvezeni računi";
+
+/* A placeholder on a text box for entering the users private key to import accounts */
+"wallet.importNonEthAccountPlaceholder" = "Upišite ili zalijepite svoj privatni ključ.";
+
+/* The error message displayed when the user enters the wrong password while unlocking the wallet */
+"wallet.incorrectPasswordErrorMessage" = "Pogrešna zaporka";
+
+/* A label shown inside of a box when there is no input data for a given transaction */
+"wallet.inputDataPlaceholder" = "Nema podataka.";
+
+/* A label shown inside of a box when there is no input data for a given transaction */
+"wallet.inputDataPlaceholderTx" = "Vrsta funkcije:\n%@";
+
+/* The label displayed in details for Bitcoin Transaction Confirmation details panel beside/above the Input index. */
+"wallet.inputLabel" = "Ulaz";
+
+/* An error message when there is no insufficient balance for swapping. It will be displayed as the title of the disabled swap button at the bottom in the Swap Screen. */
+"wallet.insufficientBalance" = "Nedovoljno raspoloživo stanje";
+
+/* The title of a button that Deselects all visible options. */
+"wallet.internalErrorMessage" = "Došlo je do pogreške";
+
+/* Button to learn more about incomplete/pending wallet transactions. Or learn more about adding/switching networks in a dapp request view */
+"wallet.learnMoreButton" = "Saznaj više";
+
+/* The description of the screen for user to understand the responsibility and the terms of use before setting up a wallet. */
+"wallet.legalDescription" = "Morate potvrditi stavke u nastavku";
+
+/* For users to check indicates they have read and agree to the Terms of Use before setting up a wallet. */
+"wallet.legalTermOfUse" = "Pročitao/la sam [Odredbe upotrebe](%@) i slažem se s njima";
+
+/* The title of the screen for user to understand the responsibility and the terms of use before setting up a wallet. */
+"wallet.legalTitle" = "Prije nego što započnemo";
+
+/* The responsibility explained in screen for users to check indicates they understand before setting up a wallet. */
+"wallet.legalUserResponsibility" = "Razumijem da je ovo neskrbnički novčanik i da snosim potpunu odgovornost za sva povezana sredstva, imovinu ili račune te za poduzimanje odgovarajućih radnji za jamčenje sigurnosti, zaštitu i sigurnosno kopiranje svog novčanika. Razumijem da društvo Brave NE može pristupiti mom novčaniku niti poništiti transakcije u moje ime i da je moja rečenica za oporavak JEDINI način da ponovno dobijem pristup ako izgubim lozinku, ako mi tko ukrade uređaj ili ako nastanu slične okolnosti.";
+
+/* The title of the lock option inside the menu when user clicks the three dots button beside assets search button. */
+"wallet.lock" = "Zaključaj";
+
+/* The amount of current permitted wallet accounts to the dapp site. It is displayed below the origin url of the dapp site in manage site connections screen. '%lld' refers to a number, %@ is `account` for singular and `accounts` for plural (for example "1 account" or "2 accounts") */
+"wallet.manageSiteConnectionsAccount" = "%1$lld %2$@";
+
+/* The plural word that will beused in `manageSiteConnectionsAccount`. */
+"wallet.manageSiteConnectionsAccountPlural" = "računi";
+
+/* The singular word that will be used in `manageSiteConnectionsAccount`. */
+"wallet.manageSiteConnectionsAccountSingular" = "račun";
+
+/* The title of the confirmation button in the alert to confirm the users wants to remove all site connections, shown on the screen to manage web3 sites account connections. */
+"wallet.manageSiteConnectionsConfirmAlertRemove" = "Uklonite";
+
+/* The title of the alert to confirm the users wants to remove all site connections, shown on the screen to manage web3 sites account connections. */
+"wallet.manageSiteConnectionsConfirmAlertTitle" = "Ukloniti sva dopuštenja?";
+
+/* The message of the alert to confirm the users wants to remove all site connections from this specific website, shown after selecting/opening a website on the screen to manage web3 sites account connections. */
+"wallet.manageSiteConnectionsDetailConfirmAlertMessage" = "Ovim se uklanjaju sva dopuštenja za povezivanje novčanika za ovo mrežno mjesto.";
+
+/* The header shown above the list of connected accounts for a single website, shown after selecting/opening a website on the screen to manage web3 sites account connections. '%@' will be replaced by a coin type title. For example, it could be 'Connected Ethereum Accounts' or 'Connected Solana Accounts' etc. */
+"wallet.manageSiteConnectionsDetailHeader" = "Povezani računi %@";
+
+/* The filter in the search bar for the screen to manage web3 sites account connections. */
+"wallet.manageSiteConnectionsFilterPlaceholder" = "Filtrirajte povezane decentralizirane aplikacije";
+
+/* The title of the button on the screen to manage web3 sites account connections that will show an alert to remove all connected website permissions. */
+"wallet.manageSiteConnectionsRemoveAll" = "Ukloni sve";
+
+/* The highest the user will pay in a gas fee based on the entered gas fee details or predefined option. It is displayed above the amount */
+"wallet.maximumGasFee" = "Najveća naknada";
+
+/* The title of the edit gas fee screen for EIP-1559 transactions */
+"wallet.maxPriorityFeeTitle" = "Naknada za najv. prioritet";
+
+/* The title shown on the wallet settings page, and the value shown when selecting the default wallet as Brave Wallet in wallet settings. */
+"wallet.module" = "Novčanik Brave";
+
+/* The footer beneath the networks title in settings screen. */
+"wallet.networkFooter" = "Prilagođavanje mreža novčanika";
+
+/* An error message will pop up when the user tries to add a custom network that its id already exists. */
+"wallet.networkIdDuplicationErrMsg" = "ID lanca već postoji";
+
+/* The title for the label that is shown above the name of the network on a request to switch networks or add a new network from a dapps website. */
+"wallet.networkNameTitle" = "Naziv mreže";
+
+/* The title of the section for primary networks in the network selection view. */
+"wallet.networkSelectionPrimaryNetworks" = "Primarne mreže";
+
+/* The title of the section for secondary networks in the network selection view. */
+"wallet.networkSelectionSecondaryNetworks" = "Sekundarne mreže";
+
+/* The title of the section for test networks in the network selection view. */
+"wallet.networkSelectionTestNetworks" = "Probne mreže";
+
+/* The title of the to select a network from the available networks */
+"wallet.networkSelectionTitle" = "Odaberi mrežu";
+
+/* The label that is shown above the URL for the network on a request to switch networks or add a new network from a dapps website. */
+"wallet.networkURLTitle" = "URL mreže";
+
+/* A placeholder string that will be used on password text fields to create a new wallet */
+"wallet.newPasswordPlaceholder" = "Upišite novu lozinku";
+
+/* A text displayed below the account address in new site connection confirmation step, in order to make sure users double check the account address they are going to allow the dapp to connect with. */
+"wallet.newSiteConnectConfirmationMessage" = "Pregledajte adrese svojih dopuštenih računa (obavezno)";
+
+/* The footer message displayed above the Next button in new site connection screen. */
+"wallet.newSiteConnectFooter" = "Povežite se samo s web lokacijama u koje imate povjerenja.";
+
+/* The message displayed below the dapp's origin url in new site connection screen. */
+"wallet.newSiteConnectMessage" = "Povežite se s Novčanikom Brave";
+
+/* The transaction edit error alert button which will dismiss the alert. */
+"wallet.newSiteConnectScreenTitle" = "Poveži se";
+
+/* 1. A button title next indicating the user to go to the next transaction. Will sit next to a label such as "1 of 4" where tapping next would move them to the second transaction. 2. Title of the button for users to click to the next step during the process of dapp permission requests. */
+"wallet.next" = "Sljedeće";
+
+/* The title of the button in the last step for user to create a new wallet. This will direct users to the wallet portfolio screen. */
+"wallet.onboardingCompletedButtonTitle" = "Idi na moj portfelj";
+
+/* The title of the continue button in onboarding network selection screen. '%lld' refers to a number (for example "Continue with 8 Networks") */
+"wallet.onboardingNetworkSelectionContinue" = "Nastavi sa sljedećim brojem mreža: %lld";
+
+/* The description of the view during wallet onboarding that allows user to select which networks they want to see. */
+"wallet.onboardingNetworkSelectionDescription" = "Odaberite lance podatkovnih blokova koje želite upotrijebiti u novčaniku.";
+
+/* The title of the view during wallet onboarding that allows user to select which networks they want to see. */
+"wallet.onboardingNetworkSelectionTitle" = "Podržane mreže";
+
+/* The subtitle of the last step of creating a new wallet. */
+"wallet.onbordingCompletedSubTitle" = "Vaš je Novčanik Brave spreman za upotrebu.";
+
+/* The title of the last step of creating a new wallet. */
+"wallet.onbordingCompletedTitle" = "Spremni ste!";
+
+/* The message will be displayed when a cancel/speed-up tx has been dropped or replaced on chain. */
+"wallet.originalTransactionIsConfirmed" = "Originalna transakcija je potvrđena.";
+
+/* The label read out when a user is using VoiceOver and highlights the ellipsis button on the portfolio page */
+"wallet.otherWalletActionsAccessibilityTitle" = "Druge radnje novčanika";
+
+/* The label displayed in details for Bitcoin Transaction Confirmation details panel beside/above the Output index. */
+"wallet.outputLabel" = "Izlaz";
+
+/* The error message displayed when a user enters a password that does not meet the requirements */
+"wallet.passwordDoesNotMeetRequirementsError" = "Zaporka mora imati najmanje osam znakova.";
+
+/* A placeholder string that will be used on password text fields */
+"wallet.passwordPlaceholder" = "Upiši lozinku";
+
+/* The error displayed when entering two passwords that do not match that are expected to match */
+"wallet.passwordsDontMatchError" = "Potvrđena lozinka ne podudara se";
+
+/* A label will be displayed beside input password when it is considered as a medium password */
+"wallet.passwordStatusMedium" = "Srednja";
+
+/* A label will be displayed beside input password when it is considered as a strong password */
+"wallet.passwordStatusStrong" = "Jak";
+
+/* A label will be displayed beside input password when it is considered as a weak password */
+"wallet.passwordStatusWeak" = "Slab";
+
+/* A title above a text field for inputting the per-gas price limit in Gwei */
+"wallet.perGasPriceLimit" = "Ograničenje cijene po gorivu (Gwei)";
+
+/* A title above a text field for inputting the per-gas price limit in Gwei */
+"wallet.perGasPriceTitle" = "Cijena po gorivu (Gwei)";
+
+/* A title above a text field for inputting the per-gas tip limit in Gwei */
+"wallet.perGasTipLimit" = "Ograničenje napojnice po gorivu (Gwei)";
+
+/* The title above the popular networks in onboarding network selection screen. */
+"wallet.popular" = "Popularno";
+
+/* The message displayed when the user takes a screenshot of their recovery phrase */
+"wallet.recoveryPhraseScreenshotDetectedMessage" = "Upozorenje: snimka zaslona vaše rečenice za oporavak može se sigurnosno kopirati na uslugu datoteka u oblaku i može se čitati svakom aplikacijom s pristupom fotografijama. Društvo Brave preporučuje vam da ne spremate ovu snimku zaslona i da je izbrišete što je prije moguće.";
+
+/* A button title that allows the user to reject all unapproved transactions at once. %d will be replaced with a number, example: Reject 4 Transactions */
+"wallet.rejectAllTransactions" = "Odbij transakcije (%d)";
+
+/* A button title to reject a transaction. It is shown below details about a given transaction */
+"wallet.rejectTransactionButtonTitle" = "Odbaci";
+
+/* A message that will be displayed above the password entry field when the user tries to remove a secondary account. '%@' will be replaced with the account's name */
+"wallet.removeAccountConfirmationMessage" = "Jeste li sigurni da želite ukloniti „%@”?";
+
+/* A label will be displayed when the repeat password field input is matched with the password field. */
+"wallet.repeatedPasswordMatch" = "Podudaranje!";
+
+/* A placeholder string that will be used on repeat password text fields */
+"wallet.repeatedPasswordPlaceholder" = "Ponovno upiši lozinku";
+
+/* A label for toggle for user to use to indicate importing a legacy brave wallet or not */
+"wallet.restoreLegacyBraveWalletToggleTitle" = "Uvoziti iz starijih kriptonovčanika Brave?";
+
+/* The button title for showing the restore wallet screen. As in to use your recovery phrase to bring a wallet into Brave */
+"wallet.restoreWalletButtonTitle" = "Vrati";
+
+/* A button title when 12 recovery-word grids are displayed for users to restore regular wallet. Users can click this button to display the 24 recovery-word grids to restore legacy wallet. */
+"wallet.restoreWalletImportFromLegacyBraveWallet" = "Imam rečenicu za oporavak od 24 riječi";
+
+/* A button title when 24 recovery-word grids are displayed for users to restore legacy wallet. Users can click this button to display the 12 recovery-word grids to restore regular wallet. */
+"wallet.restoreWalletImportFromRegularBraveWallet" = "Imam rečenicu za oporavak od 12 riječi";
+
+/* The error message displayed when a user enters an invalid phrase to restore from. By phrase we mean 'recovery phrase' or 'recovery mnemonic' */
+"wallet.restoreWalletPhraseInvalidError" = "Nevaljana rečenica za oporavak";
+
+/* The placeholder on the mneomic/recovery phrase text field of each grid. */
+"wallet.restoreWalletPhrasePlaceholder" = "Riječ #%d";
+
+/* The subtitle on the restore wallet screen. */
+"wallet.restoreWalletSubtitle" = "Cijelu rečenicu za oporavak možete zalijepiti u bilo koje polje.";
+
+/* The title on the restore wallet screen. */
+"wallet.restoreWalletTitle" = "Uvoz postojećeg novčanika";
+
+/* The title for the button to retry a failed transaction. */
+"wallet.retryTransactionButtonTitle" = "Ponovni pokušaj transakcije";
+
+/* A button title for saving the users selected gas fee options. Or to save a custom nonce value. Or to save a custom network */
+"wallet.saveButtonTitle" = "Spremi";
+
+/* A title of an alert when the user takes a screenshot of their device */
+"wallet.screenshotDetectedTitle" = "Otkrivena snimka zaslona";
+
+/* The title of the view shown when a security issue is detected with a Sign In With Ethereum request. */
+"wallet.securityRiskDetectedTitle" = "Otkriven sigurnosni rizik";
+
+/* The title of the button to show details. */
+"wallet.seeDetailsButtonTitle" = "Pogledaj pojedinosti";
+
+/* The title of the account selection screen. Will show above a list of accounts the user may pick from */
+"wallet.selectAccountTitle" = "Odabir računa";
+
+/* The title of a button that Selects all visible options. */
+"wallet.selectAllButtonTitle" = "Odaberi sve";
+
+/* The accessibility label for the selected account picker */
+"wallet.selectedAccount" = "Odabrani račun";
+
+/* The label of the filter option that allows users to select which networks to filter assets by. Used in Portfolio/NFT filters and display settings. */
+"wallet.selectNetworksTitle" = "Odaberi mreže";
+
+/* As in sending cryptocurrency to another account */
+"wallet.send" = "Pošalji";
+
+/* The description of a send button on the buy/send/swap/deposit modal */
+"wallet.sendDescription" = "Šaljite ili prenosite kriptovalute s jednog računa na drugi.";
+
+/* An error that appears below the send crypto address text field, when the input `To` address is an invalid recipient zcash unified address error - network mismatch. */
+"wallet.sendErrorZecAddressNetworkMissmatch" = "Mreže se ne podudaraju";
+
+/* An error that appears below the send crypto address text field, when the input `To` address is an invalid recipient zcash unified address error - orchard part missing. */
+"wallet.sendErrorZecAddressOrchardPartMissing" = "Nedostaje dio Orchard";
+
+/* An error that appears below the send crypto address text field, when the input `To` address is an invalid recipient zcash unified address error - transparent part missing. */
+"wallet.sendErrorZecAddressTransparentPartMissing" = "Nedostaje transparentni dio";
+
+/* An error that appears below the send crypto address text field, when the input `To` address is an invalid recipient zcash address error - wrong transparent address. */
+"wallet.sendErrorZecAddressWrongTransparentAddress" = "Pogrešna transparentna adresa";
+
+/* An error that appears below the send crypto address text field, when the input `To` address is an invalid recipient zcash unified address. */
+"wallet.sendErrorZecAddressWrongUnifiedAddress" = "Pogrešan format jedinstvene adrese";
+
+/* As in sent cryptocurrency from one asset to another */
+"wallet.sent" = "Poslano";
+
+/* One of the context menu option for user to tap to set a default network in wallet settings. */
+"wallet.setDefaultNetwork" = "Postavi kao zadano";
+
+/* The title of the settings option inside the menu when user clicks the three dots button beside assets search button. */
+"wallet.settings" = "Postavke";
+
+/* The title that appears before the current default base currency code. Example: "Default base currency: USD" */
+"wallet.settingsDefaultBaseCurrencyTitle" = "Zadana osnovna valuta";
+
+/* The footer beneath the toggle for allowing biometrics to unlock the wallet in wallet settings. */
+"wallet.settingsEnableBiometricsFooter" = "Uključite/isključite ako se želite koristiti biometrijom (identifikacija licem / identifikacija dodirom) za otključavanje novčanika";
+
+/* A label beside the toggle for allowing biometrics to unlock the wallet in wallet settings. */
+"wallet.settingsEnableBiometricsTitle" = "Dopusti biometrijsko otključavanje";
+
+/* The title of a button that will go the list of networks. */
+"wallet.settingsNetworkButtonTitle" = "Mreže";
+
+/* The title of a button that will reset the wallet. As in to erase the users wallet from the device */
+"wallet.settingsResetButtonTitle" = "Ponovno postavi i obriši podatke novčanika";
+
+/* The title of a button that will reset transaction and nonce information. As in to erase the users transaction history and reset nonce value starting from 0x0 */
+"wallet.settingsResetTransactionAlertButtonTitle" = "Ponovo postavite";
+
+/* The message the confirmation dialog when resetting transaction and nonce information. As in to erase the users transaction history and reset nonce value starting from 0x0 */
+"wallet.settingsResetTransactionAlertMessage" = "Ovu mogućnost uglavnom upotrebljavaju razvojni inženjeri koji pokreću lokalni testni poslužitelj";
+
+/* The title the confirmation dialog when resetting transaction and nonce information. As in to erase the users transaction history and reset nonce value starting from 0x0 */
+"wallet.settingsResetTransactionAlertTitle" = "Jeste li sigurni da želite ponovno postaviti informacije o transakciji i broju nonce?";
+
+/* The footer message below the button to reset transaction */
+"wallet.settingsResetTransactionFooter" = "Uklanjanje transakcija može biti korisno za razvojne inženjere ili pri uklanjanju sadržaja na lokalnom poslužitelju";
+
+/* The title of a button that will reset transaction and nonce information. As in to erase the users transaction history and reset nonce value starting from 0x0 */
+"wallet.settingsResetTransactionTitle" = "Očisti informacije o transakcijama i broju nonce";
+
+/* The title of a button that will reset the wallet. As in to erase the users wallet from the device */
+"wallet.settingsResetWalletAlertButtonTitle" = "Ponovno postavi novčanik";
+
+/* The message the confirmation dialog when resetting the wallet. */
+"wallet.settingsResetWalletAlertMessage" = "Ova se radnja ne može poništiti. Vaša rečenica za oporavak jedini je način da ponovno dobijete pristup računu za svoje kriptoimovine.";
+
+/* The title the confirmation dialog when resetting the wallet. As in to erase the users wallet from the device */
+"wallet.settingsResetWalletAlertTitle" = "Jeste li sigurni da želite ponovno postaviti Novčanik Brave?";
+
+/* The title that will be displayed when long-pressing the back button in the navigation bar. As in the first step of an onboarding process is to welcome a user. */
+"wallet.setupCryptoButtonBackButtonTitle" = "Dobro došli";
+
+/* The subtitle displayed in the section for user that need to create a brand new wallet */
+"wallet.setupCryptoCreateNewSubTitle" = "Započnite s upotrebom Novčanika Brave u roku od nekoliko minuta.";
+
+/* The title displayed in the section for user that need to create a brand new wallet */
+"wallet.setupCryptoCreateNewTitle" = "Treba li vam novi novčanik?";
+
+/* The disclaimer text at the bottom of the first step of onboarding flow. */
+"wallet.setupCryptoDisclaimer" = "©2023. Brave Software Inc. Brave i logotip Brave registrirani su žigovi društva Brave. Ostali nazivi proizvoda i logotipi mogu biti žigovi odgovarajućih društava. Sva prava pridržana.";
+
+/* The subtitle displayed in the section for user that need to restore an existed wallet */
+"wallet.setupCryptoRestoreSubTitle" = "Uvezite svoj postojeći novčanik.";
+
+/* The title displayed in the section for user that need to restore an existed wallet */
+"wallet.setupCryptoRestoreTitle" = "Već imate novčanik?";
+
+/* The subtitle displayed on the 'setup crypto' onboarding screen */
+"wallet.setupCryptoSubtitle" = "Preuzmite kontrolu nad svojim kriptovalutama i NFT-ovima. Novčanik Brave podržava platforme: Ethereum, lanci EVM, Solana i više.";
+
+/* The title displayed on the 'setup crypto' onboarding screen */
+"wallet.setupCryptoTitle" = "Izvorno u pregledniku.\nNeskrbništvo.\nViše lanaca.";
+
+/* A button title to confirm a shield ZEC transaction. It is shown below details about a given transaction. */
+"wallet.shieldZEC" = "Štit ZEC";
+
+/* The title beside the toggle in onboarding network selection screen that shows test networks. */
+"wallet.showTestnets" = "Prikaži testne mreže";
+
+/* The title of the button used to sign a message request on the signature request view. */
+"wallet.sign" = "Potpis";
+
+/* The title of the view shown over a dapps website that requests the user sign all displayed transactions. */
+"wallet.signAllTransactionsTitle" = "Potpisivanje svih transakcija";
+
+/* A title displayed inside the text view in Signature Request View above the request's domain information. */
+"wallet.signatureRequestDomainTitle" = "Domena:";
+
+/* A title displayed inside the text view in Signature Request View above the request's message. */
+"wallet.signatureRequestMessageTitle" = "Poruka:";
+
+/* A subtitle of the view shown over a dapps website that requests the user sign a message. */
+"wallet.signatureRequestSubtitle" = "Vaš se potpis zahtijeva";
+
+/* A title of the view shown over a dapps website that requests the user sign a message. */
+"wallet.signatureRequestTitle" = "Potpis se zahtijeva";
+
+/* The label displayed in details for Sign Cardano Transaction Request details panel beside/above the Address index. */
+"wallet.signCardanoTxRequestDetailsAddressLabel" = "Adresa";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes collateral inputs. */
+"wallet.signCardanoTxRequestDetailsCollateralLabel" = "Kolateral";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes a collateral return output. */
+"wallet.signCardanoTxRequestDetailsCollateralReturnLabel" = "Povrat kolaterala";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes mint tokens. */
+"wallet.signCardanoTxRequestDetailsMintLabel" = "Objava";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes a script data hash. */
+"wallet.signCardanoTxRequestDetailsScriptDataHashLabel" = "Hash podataka skripte";
+
+/* The label displayed in details for Sign Cardano Transaction Request details panel beside/above the Token index. */
+"wallet.signCardanoTxRequestDetailsTokenLabel" = "Token";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes a total collateral amount. */
+"wallet.signCardanoTxRequestDetailsTotalCollateralLabel" = "Ukupni kolateral";
+
+/* The section header displayed in details for Sign Cardano Transaction Request when the transaction includes stake reward withdrawals. */
+"wallet.signCardanoTxRequestDetailsWithdrawalsLabel" = "Povlačenja";
+
+/* A title of transaction signed status view indicating this transaction has been signed. */
+"wallet.signedTransactionTitle" = "Transakcija potpisana";
+
+/* The title of the view shown above a Sign In With Ethereum request. */
+"wallet.signInWithBraveWallet" = "Prijava Novčanikom Brave";
+
+/* The title of the view shown when a security issue is detected with a Sign In With Ethereum request. */
+"wallet.signInWithBraveWalletMessage" = "Prijavljujete se u %1$@. Novčanikom Brave dijeli se adresa vašeg novčanika s uslugom %2$@.";
+
+/* A warning message to tell users that the sign request message contains consecutive new-line characters. */
+"wallet.signMessageConsecutiveNewlineWarning" = "Otkriveni uzastopni znakovi za novi redak!";
+
+/* A warning message to tell users that the sign request message contains non-ascii characters. */
+"wallet.signMessageRequestUnknownUnicodeWarning" = "Nisu pronađeni svi znakovi koji nisu ASCII znakovi!";
+
+/* The title of the button that users can click to display the sign request message as its original content. */
+"wallet.signMessageShowOriginalMessage" = "Prikaži originalnu poruku";
+
+/* The title of the button that users can click to display the sign request message in ASCII encoding. */
+"wallet.signMessageShowUnknownUnicode" = "Pokaži šifriranu poruku";
+
+/* A title of a warning message that warns users the risk of signing a transaction. */
+"wallet.signTransactionSignRisk" = "Potpiši na vlastitu odgovornost";
+
+/* The title of the view shown over a dapps website that requests the user sign a transaction. */
+"wallet.signTransactionTitle" = "Potpisivanje transakcije";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the address. */
+"wallet.siweAddressLabel" = "Adresa";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the chain ID. */
+"wallet.siweChainIDLabel" = "Identifikacijska oznaka bloka";
+
+/* The title of the details view for Sign In With Ethereum/Brave Wallet requests. */
+"wallet.siweDetailsTitle" = "Detalji";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the expiration time. */
+"wallet.siweExpirationTimeLabel" = "Vrijeme isteka";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the issued at date. */
+"wallet.siweIssuedAtLabel" = "Izdano:";
+
+/* The label displayed above the Sign In With Ethereum message. */
+"wallet.siweMessageLabel" = "Poruka";
+
+/* The label displayed in details view for Sign In With Ethereum/Brave Wallet requests beside the nonce. */
+"wallet.siweNonceLabel" = "Broj transakcija s iste adrese";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the origin. */
+"wallet.siweOriginLabel" = "Origin";
+
+/* The label displayed above the Sign In With Ethereum resources. */
+"wallet.siweResourcesLabel" = "Resursi";
+
+/* The label displayed on the button to sign in for Sign In With Ethereum/Brave Wallet requests. */
+"wallet.siweSignInButtonTitle" = "Prijava";
+
+/* The label displayed in details view for Sign In With Ethereum/Brave Wallet requests beside the statement. */
+"wallet.siweStatementLabel" = "Izjava";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the URI. */
+"wallet.siweURILabel" = "URI";
+
+/* The label displayed in details for Sign In With Ethereum/Brave Wallet requests beside the version. */
+"wallet.siweVersionLabel" = "Inačica";
+
+/* The button title to skip recovery phrase backup */
+"wallet.skipButtonTitle" = "Preskoči";
+
+/* Title on the button that users can click to enable Brave to resolve the SNS domain they entered. */
+"wallet.snsDomainInterstitialPageButtonProceed" = "Nastavite uporabom poslužitelja SNS";
+
+/* Description displayed when users chose Brave to ask them if they want the SNS to be resolved every time they enter one. The first '%@' will be replaced with a link to Brave's wiki page which will link to the providersterms of use page and privacy policy page. The last '%@' will be replaced with the value of 'snsDomainInterstitialPagePrivacyPolicy'. */
+"wallet.snsDomainInterstitialPageDescription" = "Društvo Brave koristi se trećom stranom za rješavanje naziva domena .sol. Preglednikom Brave skriva se vaša adresa IP. Ako to omogućite, treća strana može vidjeti da netko pokušava posjetiti te domene .sol, ali ništa više. Za više informacija o trećim stranama kojima se koristimo i njihovim pravilnicima o zaštiti privatnosti posjetite našu <a href=%@>stranicu za pomoć</a>.";
+
+/* Title displayed when users chose Brave to ask them if they want the SNS to be resolved every time they enter one. */
+"wallet.snsDomainInterstitialPageTitle" = "Omogućiti podršku za Solana Name Service (SNS) u pregledniku Brave?";
+
+/* A description of an Solana account, displayed in Accounts tab. */
+"wallet.solAccountDescription" = "Solana + SVM Chains";
+
+/* The title displayed above the System Program AdvanceNonceAccount instruction type for Solana Instruction details. */
+"wallet.solanaAdvanceNonceAccountInstructionName" = "Proslijedi račun nonce";
+
+/* The title displayed above the System Program Allocate instruction type for Solana Instruction details. */
+"wallet.solanaAllocateInstructionName" = "Rasporedi";
+
+/* The title displayed above the System Program AllocateWithSeed instruction type for Solana Instruction details. */
+"wallet.solanaAllocateWithSeedInstructionName" = "Raspoređivanje sjemenskom rečenicom";
+
+/* The label displayed beside the formatted amount of an instruction type. Ex. "Amount: 0.1 SOL" */
+"wallet.solanaAmount" = "Iznos";
+
+/* The title displayed above the Token Program Approved Checked instruction type for Solana Instruction details. */
+"wallet.solanaApproveCheckedInstructionName" = "Odobravanje označenog";
+
+/* The title displayed above the Token Program Approve instruction type for Solana Instruction details. */
+"wallet.solanaApproveInstructionName" = "Odobri";
+
+/* The title displayed above the System Program Assign instruction type for Solana Instruction details. */
+"wallet.solanaAssignInstructionName" = "Dodijeli";
+
+/* The title displayed above the System Program AssignWithSeed instruction type for Solana Instruction details. */
+"wallet.solanaAssignWithSeedInstructionName" = "Dodjeljivanje sjemenskom rečenicom";
+
+/* The title displayed above the System Program AuthorizeNonceAccount instruction type for Solana Instruction details. */
+"wallet.solanaAuthorizeNonceAccountInstructionName" = "Ovlašćivanje računa nonce";
+
+/* The title displayed above the Token Program Burn Checked instruction type for Solana Instruction details. */
+"wallet.solanaBurnCheckedInstructionName" = "Paljenje provjereno";
+
+/* The title displayed above the Token Program Burn instruction type for Solana Instruction details. */
+"wallet.solanaBurnInstructionName" = "Zapali";
+
+/* The title displayed above the Token Program Close Account instruction type for Solana Instruction details. */
+"wallet.solanaCloseAccountInstructionName" = "Zatvaranje računa";
+
+/* The title displayed above the System Program CreateAccount instruction type for Solana Instruction details. */
+"wallet.solanaCreateAccountInstructionName" = "Stvori račun";
+
+/* The title displayed above the System Program CreateAccountWithSeed instruction type for Solana Instruction details. */
+"wallet.solanaCreateAccountWithSeedInstructionName" = "Stvaranje računa sa sjemenskom rečenicom";
+
+/* The title displayed above the value of a Solana dapp transaction in transaction confirmation view, transaction details view and transaction summary rows. */
+"wallet.solanaDappTransactionTitle" = "Odobravanje transakcije";
+
+/* The title displayed above the Token Program Freeze Account instruction type for Solana Instruction details. */
+"wallet.solanaFreezeAccountInstructionName" = "Zaleđivanje računa";
+
+/* The title displayed above the Token Program InitializeAccount2 instruction type for Solana Instruction details. */
+"wallet.solanaInitializeAccount2InstructionName" = "Inicijalizacija računa 2";
+
+/* The title displayed above the Token Program InitializeAccount3 instruction type for Solana Instruction details. */
+"wallet.solanaInitializeAccount3InstructionName" = "Inicijalizacija računa 3";
+
+/* The title displayed above the Token Program InitializeAccount instruction type for Solana Instruction details. */
+"wallet.solanaInitializeAccountInstructionName" = "Inicijalizacija računa";
+
+/* The title displayed above the Token Program InitializeMint2 instruction type for Solana Instruction details. */
+"wallet.solanaInitializeMint2InstructionName" = "Inicijalizacija platforme Mint 2";
+
+/* The title displayed above the Token Program InitializeMint instruction type for Solana Instruction details. */
+"wallet.solanaInitializeMintInstructionName" = "Inicijalizacija platforme Mint";
+
+/* The title displayed above the Token Program InitializeMultisig2 instruction type for Solana Instruction details. */
+"wallet.solanaInitializeMultisig2InstructionName" = "Incijalizacija značajke više potpisa (multisig) 2";
+
+/* The title displayed above the Token Program InitializeMultisig instruction type for Solana Instruction details. */
+"wallet.solanaInitializeMultisigInstructionName" = "Incijalizacija značajke više potpisa (multisig)";
+
+/* The title displayed above the System Program InitializeNonceAccount instruction type for Solana Instruction details. */
+"wallet.solanaInitializeNonceAccountInstructionName" = "Inicijalizacija računa nonce";
+
+/* The label displayed beside the Accounts for an instruction type we don't support decoding. Ex. "Accounts: <solana_public_key>" */
+"wallet.solanaInstructionAccounts" = "Računi";
+
+/* The label displayed beside the address for the Address Lookup Table Account. Ex. "Address Lookup Table Account: B1A2..." */
+"wallet.solanaInstructionAddressLookupAcc" = "Račun tablice za traženje adrese";
+
+/* The label displayed beside the address for the Address Lookup Table Account. Ex. "Address Lookup Table Index: 1" */
+"wallet.solanaInstructionAddressLookupIndex" = "Indeks tablice za traženje adrese";
+
+/* The label displayed beside the Data for an instruction type we don't support decoding. Ex. "Data: [1, 20, 3, 5, 50]]" */
+"wallet.solanaInstructionData" = "Podatci";
+
+/* The label displayed beside the Program Id for an instruction type we don't support decoding. Ex. "Program Id: 1111223344aabbccd" */
+"wallet.solanaInstructionProgramId" = "ID programa";
+
+/* The title displayed above the Token Program Mint To instruction type for Solana Instruction details. */
+"wallet.solanaMintToInstructionName" = "Mint za";
+
+/* The title displayed above the Token Program Revoke instruction type for Solana Instruction details. */
+"wallet.solanaRevokeInstructionName" = "Opozovi";
+
+/* The title displayed above the Token Program Set Authority instruction type for Solana Instruction details. */
+"wallet.solanaSetAuthorityInstructionName" = "Postavljanje ovlaštenja";
+
+/* The title on top of a separater, and the transaction details will be displayed below the separater. */
+"wallet.solanaSignTransactionDetails" = "Detalji";
+
+/* The warning message to let users understand the risk of using Brave Wallet to sign any transaction. */
+"wallet.solanaSignTransactionWarning" = "Imajte na umu da se preglednikom Brave ’ ne može potvrditi što se događa ako potpišete. Potpisom se mogu ovlastiti gotovo sve radnje na vašem računu ili u vaše ime uključujući (između ostalog) davanje potpune kontrole nad računom i kriptoimovinom mrežnom mjestu s kojeg potječe zahtjev. Potpišite samo ako ste ’ sigurni da želite poduzeti tu radnju i vjerujete tom mrežnom mjestu.";
+
+/* The title displayed above the Token Program Sync Native instruction type for Solana Instruction details. */
+"wallet.solanaSyncNativeInstructionName" = "Sinkronizacija funkcije Sync Native";
+
+/* The title displayed beside the name of any Solana System Program instruction type. '%@' will be replaced with the instruction's name, ex. "System Program - Transfer" */
+"wallet.solanaSystemProgramName" = "Program sustava – %@";
+
+/* The title displayed above the Token Program Thaw Account instruction type for Solana Instruction details. */
+"wallet.solanaThawAccountInstructionName" = "Odleđivanje računa";
+
+/* The title displayed beside the name of any Solana Token Program instruction type. '%@' will be replaced with the instruction's name, ex. "Token Program - Initialize Mint" */
+"wallet.solanaTokenProgramName" = "Program tokena – %@";
+
+/* The title displayed above the Token Program Transfer Checked instruction type for Solana Instruction details. */
+"wallet.solanaTransferCheckedInstructionName" = "Prijenos provjeren";
+
+/* The title displayed above the System Program & Token Program Transfer instruction type for Solana Instruction details. */
+"wallet.solanaTransferInstructionName" = "Prenesi";
+
+/* The title displayed above the System Program TransferWithSeed instruction type for Solana Instruction details. */
+"wallet.solanaTransferWithSeedInstructionName" = "Prijenos sjemenskom rečenicom";
+
+/* The title displayed above an unknown instruction type for Solana Instruction details. */
+"wallet.solanaUnknownInstructionName" = "Nepoznata vrsta instrukcije";
+
+/* The title displayed above the System Program UpgradeNonceAccount instruction type for Solana Instruction details. */
+"wallet.solanaUpgradeNonceAccountInstructionName" = "Nadogradnja računa nonce";
+
+/* The title displayed above the System Program WithdrawNonceAccount instruction type for Solana Instruction details. */
+"wallet.solanaWithdrawNonceAccountInstructionName" = "Povlačenje s računa nonce";
+
+/* The title of the banner which will be displayed at the top of the transaction status screen when transaction is in submitted status and user wants to speed it up. */
+"wallet.speedUpBannerTitle" = "Traje dulje od očekivanog?";
+
+/* The button title for the button inside speed up banner. */
+"wallet.speedUpButtonTitle" = "Ubrzaj";
+
+/* The title for the button to speed up a submitted transaction. */
+"wallet.speedUpTransactionButtonTitle" = "Ubrzaj";
+
+/* A title of transaction signed status view indicating this transaction has been submitted to the network. */
+"wallet.submittedTransactionTitle" = "Transakcija je poslana";
+
+/* As in swapping cryptocurrency from one asset to another */
+"wallet.swap" = "Swap";
+
+/* The description displayed below the name of the token being swapped from and to. Tthe '%@' will be the token's network name. */
+"wallet.swapConfirmationNetworkDesc" = "na mreži %@";
+
+/* A title displayed in transaction confirmation above the network / gas fee for a Swap transaction. */
+"wallet.swapConfirmationNetworkFee" = "Mrežna naknada";
+
+/* A title displayed in transaction confirmation navigation bar for a Swap transaction. */
+"wallet.swapConfirmationTitle" = "Potvrda narudžbe";
+
+/* A title displayed in transaction confirmation above the token being swapped for in a Swap transaction. */
+"wallet.swapConfirmationYoullReceive" = "Primate";
+
+/* A title displayed in transaction confirmation above the token being swapped from in a Swap transaction. */
+"wallet.swapConfirmationYouSpend" = "Trošite";
+
+/* The description of a swap button on the buy/send/swap/deposit modal */
+"wallet.swapDescription" = "Zamijenite tokene i imovinu.";
+
+/* The title of the button to approve switching the network on a switch network request from a dapps website. */
+"wallet.switchNetworkButtonTitle" = "Promijeni";
+
+/* The description of the view shown over a dapps website that describes what switching the network will do. */
+"wallet.switchNetworkDescription" = "Ovim prebacujete mrežu na prethodno dodanu mrežu";
+
+/* The subtitle of the view shown over a dapps website that requests permission from the user to change the current network. */
+"wallet.switchNetworkSubtitle" = "Dopustiti ovom mrežnom mjestu promjenu mreže?";
+
+/* The title of the view shown over a dapps website that requests the user change the current network. */
+"wallet.switchNetworkTitle" = "Promijeni mrežu";
+
+/* The title above the testnets in onboarding network selection screen. */
+"wallet.testnets" = "Testne mreže";
+
+/* A title displayed beside a number describing the total amount of gas and ETH that will be transferred */
+"wallet.total" = "Ukupno";
+
+/* Displays the number of transactions and the current transaction that you are viewing when confirming or rejecting multiple transactions. Each '%lld' will be replaced by a number, for example: '1 of 4' */
+"wallet.transactionCount" = "%1$lld od %2$lld";
+
+/* The label for the network a transaction occurred on. Appears next to 'Ethereum Mainnet', 'Rinkeby Test Network', 'Ropsten Test Network', etc. */
+"wallet.transactionDetailsNetworkTitle" = "Mreža";
+
+/* A title displayed beside a number describing the cost of the transaction in SOL for any Solana transaction */
+"wallet.transactionFee" = "Naknada za prijenos";
+
+/* A VoiceOver label that will be read out when a user focuses a transactions "from address" and "to address" labels. "%@" will be replaced with either an account name or a truncated ethereum address such as "Account 1" or "0x1234***3003" */
+"wallet.transactionFromToAccessibilityLabel" = "Od: %1$@. Za: %2$@";
+
+/* A status that explains that the transaction has been approved by the user */
+"wallet.transactionStatusApproved" = "Odboreno";
+
+/* A status that explains that the transaction has been completed/confirmed */
+"wallet.transactionStatusConfirmed" = "Potvrđeno";
+
+/* A status that explains that the transaction has been dropped due to some error */
+"wallet.transactionStatusDropped" = "Ispušteno";
+
+/* A status that explains that the transaction failed due to some error */
+"wallet.transactionStatusError" = "Pogreška";
+
+/* A status that explains that the transaction has been rejected by the user */
+"wallet.transactionStatusRejected" = "Odbačeno";
+
+/* A status that explains that the transaction has been signed. */
+"wallet.transactionStatusSigned" = "Potpisano";
+
+/* A status that explains that the transaction has been submitted to the blockchain */
+"wallet.transactionStatusSubmitted" = "Poslano";
+
+/* A status that explains that a transaction has not yet been approved */
+"wallet.transactionStatusUnapproved" = "Neodobreno";
+
+/* A transaction status that the app currently does not support displaying */
+"wallet.transactionStatusUnknown" = "Nepoznato";
+
+/* The label to describe an Solana Swap transaction. */
+"wallet.transactionSummarySolanaSwap" = "Solana Swap";
+
+/* Explains that this transaction is an ERC20 approval transaction and is displayed among other transaction info */
+"wallet.transactionTypeApprove" = "Odobri";
+
+/* The title displays in confirmation screen when there is no more pending transaction. */
+"wallet.txConfirmationNoMorePendingTitle" = "Nema transakcija na čekanju";
+
+/* Blockchain function name for Solana compressed NFT transfers. */
+"wallet.txFunctionTypeCompressedNFTTransfer" = "Komprimirani prijenos NFT";
+
+/* Blockchain function name for ERC-20 token approvals. */
+"wallet.txFunctionTypeERC20Approve" = "Odobri";
+
+/* Blockchain function name for moving FIL from an  Ethereum-based f4 address to a Filecoin address of a different type. Don't need to translate the symbol `FIL`. */
+"wallet.txFunctionTypeForwardFil" = "Premjesti FIL naprijed";
+
+/* Blockchain function name for NFT transfers */
+"wallet.txFunctionTypeNFTTransfer" = "Prijenos NFT-a";
+
+/* Blockchain function name for an unknown transaction type or an FIL transaction. */
+"wallet.txFunctionTypeOther" = "Ostalo";
+
+/* Blockchain function name for SafeTransferFrom in ERC-721 and ERC-1155 tokens. */
+"wallet.txFunctionTypeSafeTransfer" = "Siguran prijenos";
+
+/* Blockchain function name for send native token. `%@` will be replaced with native token symbol. */
+"wallet.txFunctionTypeSend" = "Poslati %@";
+
+/* Blockchain function name for signing and sending a Solana DApp transaction. */
+"wallet.txFunctionTypeSignAndSendDapp" = "Potpišite i pošaljite transakciju DApp";
+
+/* Blockchain function name for Solana Sign DApp transactions. */
+"wallet.txFunctionTypeSignDappTransaction" = "Potpišite transakciju DApp";
+
+/* Blockchain function name for Solana SPL token transfer with associated token account creation. */
+"wallet.txFunctionTypeSplWithAssociatedTokenAccountCreation" = "Prijenos tokena SPL s pridruženim stvaranjem računa tokena";
+
+/* Blockchain function name for swap. */
+"wallet.txFunctionTypeSwap" = "Swap";
+
+/* Blockchain function name for non-native token transfers. */
+"wallet.txFunctionTypeTokenTransfer" = "Prijenos tokena";
+
+/* The transaction type (verb) in the submitted transaction status screen. This copy indicates this is a ERC20 Approval transaction waitings for getting completed. */
+"wallet.txStatusApproving" = "Odobravanje";
+
+/* The status inside transaction status screen, indicates this transaction is completed/confirmed on the blockchain. */
+"wallet.txStatusCompleted" = "Završeno";
+
+/* A message explains an ERC20 Approval transaction is confirmed on the blockchain. */
+"wallet.txStatusERC20ApprovalMsg" = "je odobreno na vašem";
+
+/* The message after the title when an ERC20 Approval transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusERC20ApprovalTxErrorMsg" = "Došlo je do pogreške prilikom pokušaja odobrenja";
+
+/* The title of the message when a ERC20 Approval transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusERC20ApprovalTxErrorTitle" = "Nije bilo moguće odobriti";
+
+/* The word of preposition. Indicates some ERC20 token is approved on the following account. For example: Approving 0.1 ETH `on` Account 1. */
+"wallet.txStatusOn" = "uključeno";
+
+/* The transaction type (verb) in the submitted transaction status screen. This copy indicates this is a send transaction waitings for getting completed. */
+"wallet.txStatusSending" = "Slanje";
+
+/* The message after the title when a send transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusSendTxErrorMsg" = "Došlo je do pogreške prilikom pokušaja slanja";
+
+/* The title of the message when a send transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusSendTxErrorTitle" = "Nije moguće poslati";
+
+/* A message explains a send transaction is confirmed on the blockchain. */
+"wallet.txStatusSentMsg" = "poslano na račun";
+
+/* The message when a sign transaction is completed/confirmed on the blockchain. */
+"wallet.txStatusSignedConfirmedMsg" = "Transakcija je potpisana i šalje se mreži decentraliziranim aplikacijama te se čeka potvrda.";
+
+/* The text in the disclosure view in transaction status screen. */
+"wallet.txStatusSubmittedDisclosure" = "Možete sigurno odbaciti ovaj zaslon.";
+
+/* A message explains an ETH Swap transaction is confirmed on the blockchain. */
+"wallet.txStatusSwappedMsg" = "je dodano na vašem";
+
+/* The transaction type (verb) in the submitted transaction status screen. This copy indicates this is a swap transaction waitings for getting completed. */
+"wallet.txStatusSwapping" = "Razmjena";
+
+/* The message after the title when a swap transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusSwapTxErrorMsg" = "Došlo je do greške prilikom pokušaja razmjene";
+
+/* The title of the message when a swap transaction failed to be confirmed on the blockchain. */
+"wallet.txStatusSwapTxErrorTitle" = "Nije moguće zamijeniti";
+
+/* The word of preposition. Indicates the following account is the account receiving a certain amount of tokens. For example: Sending 0.1 ETH `to` Account 1. */
+"wallet.txStatusTo" = "primatelj";
+
+/* The title for the button. User would tap on this button to view the transaction status in the `Activity` tab. */
+"wallet.txStatusViewInActivity" = "Prikaži u aktivnosti";
+
+/* Description displayed when users chose Brave to ask them if they want the Unstoppable Domains to be resolved every time they enter one. The first '%@' will be replaced with a list of supported TLDs like '.x' or '.bitcoin'. The second '%@' be replaced with a link to Chainstack's terms of use page. The third '%@' will be replaced with the value of 'Web3DomainInterstitialPageTAndU'. The fourth '%@' will be replaced with a link to Chainstack's privacy policy page. The last '%@' will be replaced with the value of 'Web3DomainInterstitialPagePrivacyPolicy'. */
+"wallet.udDomainInterstitialPageDescription" = "nazivi domena koji se nalaze na platformi Unstoppable Domains. Preglednikom Brave skriva se vaša adresa IP. Ako to omogućite, putem platforme Chainstack moguće je vidjeti da netko pokušava posjetiti te domene, ali ništa više. Pogledajte <a href=%1$@>%2$@</a> i <a href=%3$@>%4$@</a> platforme Chainstack.";
+
+/* The intro displayed below `udDomainInterstitialPageTitle`. */
+"wallet.udDomainInterstitialPageIntro" = "Brave će biti konfigurirana usluga Ethereum RPC koja se zadano temelji na platformi Chainstack za rješavanje:";
+
+/* The title of the button that user can tap to reveal more unstoppable domain extensions we support to resolve. */
+"wallet.udDomainInterstitialPageMore" = "+ više";
+
+/* Title displayed when users chose Brave to ask them if they want the Unstoppable Domains domain to be resolved every time they enter one. */
+"wallet.udDomainInterstitialPageTitle" = "Omogući podršku za nezaustavljive domene u pregledniku Brave?";
+
+/* The description for the options to allow Unstoppable Domain domain names. '%@' will be replaced with a url to explain more about Unstoppable Domains. */
+"wallet.udResolveMethodDescription" = "[Doznajte više](%@) o razmatranjima privatnosti platforme Unstoppable Domains.";
+
+/* The title for the options to resolve Unstoppable Domains domain names. */
+"wallet.udResolveMethodTitle" = "Rješavanje naziva domena platforme Unstoppable Domains";
+
+/* The title will be displayed when a cancel tx has been dropped or replaced on chain. */
+"wallet.unableToCancel" = "Nije moguće otkazati";
+
+/* The title will be displayed when a speed-up tx has been dropped or replaced on chain. */
+"wallet.unableToSpeedUp" = "Nije moguće ubrzati";
+
+/* An error message displayed when an unspecified problem occurs. */
+"wallet.unknownError" = "Nepoznata pogreška";
+
+/* The title of the button in wallet panel when wallet is locked. Users can click it to open full screen unlock wallet screen. */
+"wallet.unlockWallet" = "Otključaj novčanik";
+
+/* The button title of the unlock wallet button. As in to enter a password and gain access to your wallet's assets. */
+"wallet.unlockWalletButtonTitle" = "Otključaj";
+
+/* The title displayed on the unlock wallet screen */
+"wallet.unlockWalletDescription" = "Upiši lozinku za otključavanje novčanika";
+
+/* A button title to confirm an unshield ZEC transaction. It is shown below details about a given transaction. */
+"wallet.unshieldZEC" = "Ukloni zaštitu ZEC";
+
+/* The label displayed in details for Bitcoin Transaction Confirmation details panel beside/above the value. */
+"wallet.valueLabel" = "Vrijednost";
+
+/* The error message when input phrase does not match the correct one. */
+"wallet.verifyRecoveryPhraseError" = "Rečenica za oporavak ne podudara se.";
+
+/* The sub-title of the screen that user will verify his/her recovery phrase. */
+"wallet.verifyRecoveryPhraseSubTitle" = "Upišite riječ na **položaju %d** rečenice za oporavak.";
+
+/* The title of the screen that user will verify his/her recovery phrase. */
+"wallet.verifyRecoveryPhraseTitle" = "Provjerimo";
+
+/* The title for the button to view details about the network the dapp site is requesting the user switch to, or the network the dapp website is requesting the user add. */
+"wallet.viewDetails" = "Pregledaj pojedinosti";
+
+/* The title for View Network Details Screen shown when a user views the details of a network they are requested to add or switch to by a dapps website. */
+"wallet.viewNetworkDetailsTitle" = "Pojedinosti o mreži";
+
+/* A button title to view a given transaction on the block explorer for the current network/chain. */
+"wallet.viewOnBlockExplorer" = "Prikaži u tražilici Block Explorer";
+
+/* A button title when a user will tap to reveal the recovery phrases. */
+"wallet.viewRecoveryPhraseButtonTitle" = "Prikaži moju rečenicu za oporavak";
+
+/* The title shown on the menu to access Brave Wallet */
+"wallet.wallet" = "Novčanik";
+
+/* The label read out when a user is using VoiceOver and highlights the two-arrow button on the wallet panel top left corner. */
+"wallet.walletFullScreenAccessibilityTitle" = "Otvori novčanik na cijelom zaslonu";
+
+/* The title of the button for users to click to go to edit site connection screen. This title indicates the user is currently blocking all the accesses to the solana provider APIs. */
+"wallet.walletPanelBlocked" = "Blokirano";
+
+/* The title of the button for users to click to go to edit site connection screen. This title indicates the user is currently not connected any his/her wallet account to the dapp. */
+"wallet.walletPanelConnect" = "Poveži se";
+
+/* The title of the button for users to click to go to edit site connection screen. This title indicates the user is currently connected his/her wallet account to the dapp. The title will be displayed to the right of a checkmark. */
+"wallet.walletPanelConnected" = "Povezano";
+
+/* The title of the button for users to click to go to edit site connection screen. This title indicates the user is currently not connected his/her current selected Solana account to the Solana Dapp. */
+"wallet.walletPanelDisconnected" = "Prekinuta veza";
+
+/* The description for wallet panel when users haven't set up a wallet yet. */
+"wallet.walletPanelSetupWalletDescription" = "Upotrijebite ovu ploču za sigurno pristupanje mreži web3 i čitavoj svojoj kriptoimovini.";
+
+/* The value shown when selecting the default wallet as none / no wallet in wallet settings, or when grouping Portfolio assets. */
+"wallet.walletTypeNone" = "Nema";
+
+/* The message of a confirmation dialog when attempting to remove an account. Or the title of a confirmation dialog when attempting to remove all wallet connection for one or more websites */
+"wallet.warningAlertConfirmation" = "Jeste li sigurni?";
+
+/* The title shown on the settings menu to Web3 settings. */
+"wallet.web3" = "Web3";
+
+/* Title on the button that users can click to disable Brave to resolve the ENS/SNS domain they entered. */
+"wallet.web3DomainInterstitialPageButtonDisable" = "Onemogući";
+
+/* Hyper link copy displayed as part of 'snsDomainInterstitialPageDescription'. It will redirect user to the privay policy webpage of the server that Brave uses to resolve SNS domain. */
+"wallet.web3DomainInterstitialPagePrivacyPolicy" = "pravilnik o zaštiti privatnosti";
+
+/* Hyper link copy displayed as part of 'snsDomainInterstitialPageDescription'. It will redirect user to the 'terms of use' webpage of the server that Brave uses to resolve SNS domain. */
+"wallet.web3DomainInterstitialPageTAndU" = "odredbe upotrebe";
+
+/* One of the options for Brave to handle Ethereum/Solana Name Service domain name and IPFS scheme url. 'Ask' means Brave will ask user first before enable or disable resolving ENS/SNS domain name and IPFS scheme url. */
+"wallet.web3DomainOptionAsk" = "Pitaj";
+
+/* One of the options for Brave to handle Ethereum/Solana Name Service domain name and IPFS scheme url. 'Disabled' means Brave will disable resolving ENS/SNS domain name and IPFS scheme url. */
+"wallet.web3DomainOptionDisabled" = "Onemogućeno";
+
+/* One of the options for Brave to handle Ethereum/Solana Name Service domain name and IPFS scheme url. 'Enabled' means Brave will enable resolving ENS/SNS domain name and IPFS scheme url. */
+"wallet.web3DomainOptionEnabled" = "Omogućeno";
+
+/* The header for the options to resolve Solana Name service domain names. */
+"wallet.web3DomainOptionsHeader" = "Domene Web3";
+
+/* The title for the options to resolve Solana Name service domain names. */
+"wallet.web3DomainOptionsTitle" = "Rješavanje naziva domena za Solana Name Service (SNS)";
+
+/* The title for the entry displaying the preferred option to allow web3 sites to access the Cardano provider API. */
+"wallet.web3PreferencesAllowCardanoProviderAccess" = "Mrežna mjesta mogu zatražiti pristupanje vašem novčaniku Cardano";
+
+/* The title for the entry displaying the preferred option to allow web3 sites to access the Ethereum provider API. */
+"wallet.web3PreferencesAllowEthProviderAccess" = "Mrežna mjesta mogu zatražiti pristupanje vašem novčaniku Ethereum";
+
+/* The title for the entry displaying the preferred option to allow web3 sites to access the Solana provider API. */
+"wallet.web3PreferencesAllowSolProviderAccess" = "Mrežna mjesta mogu zatražiti pristupanje vašem novčaniku Solana";
+
+/* The title for the entry displaying the current preferred default Cardano wallet is. */
+"wallet.web3PreferencesDefaultCardanoWallet" = "Zadani novčanik za platformu Cardano";
+
+/* The title for the entry displaying the current preferred default Ethereum wallet is. */
+"wallet.web3PreferencesDefaultEthWallet" = "Zadani novčanik za platformu Ethereum";
+
+/* The title for the entry displaying the current preferred default Solana wallet is. */
+"wallet.web3PreferencesDefaultSolWallet" = "Zadani novčanik za platformu Solana";
+
+/* The title for the entry displaying the preferred option to display web3 site notifications. */
+"wallet.web3PreferencesDisplayWeb3Notifications" = "Prikaz obavijesti za Web3";
+
+/* The section title for users to set up preferences for interation with web3 sites. */
+"wallet.web3PreferencesSectionTitle" = "Postavke za Web3";
+
+/* The title of the toggle for user to enable/disable NFT discovery inside Web3 settings. */
+"wallet.web3SettingsEnableNFTDiscovery" = "Omogućivanje otkrivanja NFT-a";
+
+/* The footer of the toggle for user to enable/disable NFT discovery inside Web3 settings. */
+"wallet.web3SettingsEnableNFTDiscoveryFooter" = "Automatski dodajte NFT-ove koje imate u Novčanik s pomoću API-ja treće strane. [Doznajte više](%@)";
+
+/* A description of an ZCash account, displayed in Accounts tab. */
+"wallet.zecAccountDescription" = "ZCash";
+

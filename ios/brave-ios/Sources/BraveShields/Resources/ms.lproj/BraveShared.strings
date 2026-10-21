@@ -1,0 +1,21 @@
+/* An error message telling the user that the custom scriptlet they are trying to save has no content */
+"CustomScriptletEmptyContentError" = "Skriplet mesti mengandungi beberapa javascript";
+
+/* An error message telling the user that the name they gave their custom scriptlet is invalid. */
+"CustomScriptletInvalidNameError" = "Nama skriplet tidak sah";
+
+/* A navigation title for the screen where a user creates a new custom scriptlet */
+"shields.addNewScriptletTitle" = "Tambah Skriplet Baharu";
+
+/* A section header above the text editor where a user enters the custom scriptlet's JavaScript */
+"shields.customScriptletContentSectionTitle" = "Kandungan";
+
+/* A warning shown in an empty custom scriptlet editor */
+"shields.customScriptletContentWarning" = "Jangan tampal kod yang anda tidak fahami atau belum semak sendiri. Ia boleh membenarkan pihak tidak bertanggungjawab mencuri identiti atau mengawal peranti anda.";
+
+/* A section header above the text field where a user enters the custom scriptlet's name */
+"shields.customScriptletNameSectionTitle" = "Nama";
+
+/* A navigation title for the screen where a user edits an existing custom scriptlet */
+"shields.editScriptletTitle" = "Edit Skriplet";
+

@@ -1,0 +1,20 @@
+diff --git a/chrome/browser/ui/startup/BUILD.gn b/chrome/browser/ui/startup/BUILD.gn
+index 716f94e0dcb3b5a6d5c86596c64d493ddbfad2c7..4c9a3ee758c844ae43a25598fafa539802b2f55e 100644
+--- a/chrome/browser/ui/startup/BUILD.gn
++++ b/chrome/browser/ui/startup/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/browser/ui/startup/sources.gni")
+ import("//build/buildflag_header.gni")
+ import("//build/config/chrome_build.gni")
+ import("//build/config/ui.gni")
+@@ -28,6 +29,7 @@ source_set("startup_tab") {
+   ]
+ 
+   public_deps = [ "//url" ]
++  public_deps += brave_browser_ui_startup_public_deps
+ }
+ 
+ source_set("startup") {

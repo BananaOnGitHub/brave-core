@@ -1,0 +1,21 @@
+/* An error message telling the user that the custom scriptlet they are trying to save has no content */
+"CustomScriptletEmptyContentError" = "Lo scriptlet deve contenere del codice JavaScript";
+
+/* An error message telling the user that the name they gave their custom scriptlet is invalid. */
+"CustomScriptletInvalidNameError" = "Nome dello scriptlet non valido";
+
+/* A navigation title for the screen where a user creates a new custom scriptlet */
+"shields.addNewScriptletTitle" = "Aggiungi nuovo scriptlet";
+
+/* A section header above the text editor where a user enters the custom scriptlet's JavaScript */
+"shields.customScriptletContentSectionTitle" = "Contenuti";
+
+/* A warning shown in an empty custom scriptlet editor */
+"shields.customScriptletContentWarning" = "Non incollare codice che non comprendi o non hai verificato personalmente. Potrebbe permettere ai malintenzionati di rubare la tua identità o prendere il controllo del tuo dispositivo.";
+
+/* A section header above the text field where a user enters the custom scriptlet's name */
+"shields.customScriptletNameSectionTitle" = "Nome";
+
+/* A navigation title for the screen where a user edits an existing custom scriptlet */
+"shields.editScriptletTitle" = "Modifica scriptlet";
+

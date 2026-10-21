@@ -1,0 +1,21 @@
+/* An error message telling the user that the custom scriptlet they are trying to save has no content */
+"CustomScriptletEmptyContentError" = "Scriptlet skal indeholde noget JavaScript";
+
+/* An error message telling the user that the name they gave their custom scriptlet is invalid. */
+"CustomScriptletInvalidNameError" = "Ugyldigt scriptlet-navn";
+
+/* A navigation title for the screen where a user creates a new custom scriptlet */
+"shields.addNewScriptletTitle" = "Tilføj ny scriptlet";
+
+/* A section header above the text editor where a user enters the custom scriptlet's JavaScript */
+"shields.customScriptletContentSectionTitle" = "Indhold";
+
+/* A warning shown in an empty custom scriptlet editor */
+"shields.customScriptletContentWarning" = "Indsæt ikke kode her, som du ikke forstår eller ikke selv har gennemgået. Det kan gøre det muligt for angribere at stjæle din identitet eller tage kontrol over din enhed.";
+
+/* A section header above the text field where a user enters the custom scriptlet's name */
+"shields.customScriptletNameSectionTitle" = "Navn";
+
+/* A navigation title for the screen where a user edits an existing custom scriptlet */
+"shields.editScriptletTitle" = "Rediger scriptlet";
+

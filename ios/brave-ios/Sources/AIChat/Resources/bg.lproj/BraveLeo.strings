@@ -1,0 +1,255 @@
+/* The title for the settings to change default model for conversations */
+"aichat.advancedSettingsDefaultModelTitle" = "Модел по подразбиране";
+
+/* The title for the header for adjusting leo ai settings */
+"aichat.advancedSettingsHeaderTitle" = "Лио е интелигентен асистент на базата на изкуствен интелект, вграден директно в браузъра.";
+
+/* The subtitle for the button which links purchase to Brave Account */
+"aichat.advancedSettingsLinkPurchaseActionSubTitle" = "Свържи покупката си от App Store със своя акаунт в Brave, за да използваш Лио на други устройства.";
+
+/* The title for the button which links purchase to Brave Account */
+"aichat.advancedSettingsLinkPurchaseActionTitle" = "Свържете покупката с вашия акаунт в Brave";
+
+/* The description for the settings to show Leo in Quick Search Engines Bar. */
+"aichat.advancedSettingsShowInQSEBarDescription" = "Позволява пряк път за стартиране на Лио от бързата лента за търсачки.";
+
+/* The title for the settings to show Leo in Quick Search Engines Bar. */
+"aichat.advancedSettingsShowInQSEBarTitle" = "Показване в лентата с бързи търсачки";
+
+/* The title for the label showing the date which subscription expires */
+"aichat.advancedSettingsSubscriptionExpiresTitle" = "Изтича на";
+
+/* The title for the header for subscription details */
+"aichat.advancedSettingsSubscriptionHeaderTitle" = "Абонамент";
+
+/* The title for the label showing status if the subscription */
+"aichat.advancedSettingsSubscriptionStatusTitle" = "Състояние";
+
+/* The title for the button that allows the user to view the App Store Receipt */
+"aichat.advancedSettingsViewReceiptTitle" = "Виж разписката от App Store";
+
+/* The subtitle for the error showing there is an error from App Store */
+"aichat.appStoreErrorSubTitle" = "Неуспешно свързване с App Store, моля, опитай отново по-късно.";
+
+/* The title for the error showing there is an error from App Store */
+"aichat.appStoreErrorTitle" = "Грешка в App Store";
+
+/* The button title for adding a new custom model */
+"aichat.byomAddNewModelButtonTitle" = "Добавяне на нов модел";
+
+/* The description shown when no custom models have been added, prompting the user to add one */
+"aichat.byomEmptyStateDescription" = "Започнете, като докоснете \"Добавяне на нов модел\"";
+
+/* The title shown when no custom models have been added yet */
+"aichat.byomEmptyStateTitle" = "Все още не сте свързали модел";
+
+/* The section header description explaining the Bring Your Own Model feature with a link to learn more. The text inside square brackets should be translated. */
+"aichat.byomSectionHeaderDescription" = "Свържете своя самостоятелно хостван или хостван от трета страна LLM към Лио и ги използвайте в браузъра. Използвайте всяка рамка, съвместима с OpenAI Chat Protocol, като Ollama. [Научете повече](https://support.brave.app/hc/en-us/articles/34070140231821-How-do-I-use-the-Bring-Your-Own-Model-BYOM-with-Brave-Leo)";
+
+/* The section header title for the Bring Your Own Model feature */
+"aichat.byomSectionHeaderTitle" = "Донесете свой собствен модел";
+
+/* The navigation bar title when adding a new custom model */
+"aichat.customModelFormAddModelNavigationTitle" = "Добавяне на модел";
+
+/* The footer text explaining when and how API keys are used */
+"aichat.customModelFormApiKeyFieldFooter" = "Някои обслужващи рамки могат да изискват удостоверителни идентификационни данни, като например ключ на API или токен за достъп. Те ще бъдат добавени към заглавката на заявката.";
+
+/* The label for the API key field */
+"aichat.customModelFormApiKeyFieldTitle" = "Ключ на API";
+
+/* The footer text explaining what context size means for AI models */
+"aichat.customModelFormContextSizeFieldFooter" = "Максималният брой токени, които моделът може да обработи в рамките на едно взаимодействие. По-големият размер на контекста позволява на модела да обработва по-дълги разговори. Различните модели поддържат различни максимални размери на контекста.";
+
+/* The label for the context size field */
+"aichat.customModelFormContextSizeFieldTitle" = "Размер на контекста";
+
+/* The placeholder text for generic detail input fields */
+"aichat.customModelFormDetailsFieldPlaceholder" = "Въведете подробности";
+
+/* The button title for dismissing the keyboard */
+"aichat.customModelFormDoneButtonTitle" = "Готово";
+
+/* The navigation bar title when editing an existing custom model */
+"aichat.customModelFormEditModelNavigationTitle" = "Редактиране на модел";
+
+/* The alert title shown when saving a custom model fails */
+"aichat.customModelFormFailedToSaveAlertTitle" = "Неуспешно запазване на модел";
+
+/* The error message shown when the context size is invalid */
+"aichat.customModelFormInvalidContextSizeErrorMessage" = "Невалиден размер на контекста";
+
+/* The error message shown when the server endpoint URL is invalid */
+"aichat.customModelFormInvalidUrlErrorMessage" = "Невалиден URL адрес";
+
+/* The footer text explaining the purpose of the label field */
+"aichat.customModelFormLabelFieldFooter" = "Име на модела за използване в селектора на модели на Лио.";
+
+/* The placeholder text for the custom model name field */
+"aichat.customModelFormLabelFieldPlaceholder" = "Въведете етикет за този модел";
+
+/* The label for the custom model name field in the custom model form */
+"aichat.customModelFormLabelFieldTitle" = "Етикет";
+
+/* The error message shown when trying to use a private network address, explaining why it's blocked and how to enable it */
+"aichat.customModelFormPrivateEndpointErrorMessage" = "Адресът, който сте въвели, изглежда да е от частна мрежа – като вашия маршрутизатор или локален сервър. Brave блокира тези автоматично, за да ви держи в безопасност, но можете да ги разрешите, ако сте уверени, че е защитено.\n\nЗа да продължите, посетете brave://flags/, потърсете \"brave-ai-chat-allow-private-ips\" и разрешете функцията. След като се активира, можете да използвате адреси на частни мрежи в настройките на Лио.";
+
+/* The footer text explaining what the model request name is used for and providing an example */
+"aichat.customModelFormRequestNameFieldFooter" = "Името на модела, както трябва да се появи в заявката към обслужващата рамка, напр. phi-3 (имайте предвид, че ако това име не съвпада точно с това, което се очаква от обслужващата рамка, интеграцията няма да работи).";
+
+/* The placeholder text for the model request name field */
+"aichat.customModelFormRequestNameFieldPlaceholder" = "Въведете име на заявка за модел";
+
+/* The label for the model request name field */
+"aichat.customModelFormRequestNameFieldTitle" = "Име на заявка за модел";
+
+/* The indicator text shown next to required fields in forms */
+"aichat.customModelFormRequiredFieldIndicator" = "Задължително";
+
+/* The button title for saving a custom model */
+"aichat.customModelFormSaveButtonTitle" = "Запазване";
+
+/* The footer text explaining what the server endpoint is and providing an example URL for Ollama */
+"aichat.customModelFormServerEndpointFieldFooter" = "URL адресът, където вашата обслужваща рамка получава заявки. Ако не сте сигурни, проверете документацията на обслужващата рамка. Например за Ollama това винаги е `http://localhost:11434/v1/chat/completions`. Brave не прави proxy на тези заявки, моля прочетете условията за поверителност на избрания доставчик.";
+
+/* The label for the server endpoint URL field */
+"aichat.customModelFormServerEndpointFieldTitle" = "Крайна точка на сървъра";
+
+/* The footer text explaining what a system prompt is and noting the %datetime% placeholder */
+"aichat.customModelFormSystemPromptFieldFooter" = "Индивидуални инструкции и/или контекст, дадени на модела, за да насочат отговорите му. Използвайте %datetime% където желаете да вмъкнете актуална дата и час.";
+
+/* The label for the system prompt field */
+"aichat.customModelFormSystemPromptFieldTitle" = "Системно съобщение";
+
+/* The description text explaining what tools supports means */
+"aichat.customModelFormToolsSupportFieldDescription" = "Дали този модел поддържа извикване на функции/използване на инструменти";
+
+/* The label for the tools support toggle */
+"aichat.customModelFormToolsSupportFieldTitle" = "Поддръжка на инструменти";
+
+/* Warning message shown when user enters an HTTP (not HTTPS) endpoint */
+"aichat.customModelFormUnsafeEndpointWarning" = "Тази крайна точка е потенциално опасна.";
+
+/* The description text explaining what vision support means with an example */
+"aichat.customModelFormVisionSupportFieldDescription" = "В случай, че този модел приема изображение за начална информация, например llama 3.2b визия";
+
+/* The label for the vision support toggle */
+"aichat.customModelFormVisionSupportFieldTitle" = "Поддръжка за визията";
+
+/* The button title for opening paywall screen */
+"aichat.goPremiumButtonTitle" = "Абонирайте се за Premium";
+
+/* The message that shows in an alert, to let the user know the 'Leo' feature is disabled, and explains how to re-enable the feature. */
+"aichat.leoDisabledMessageDescription" = "В момента Лио е деактивиран чрез флаговете за функции. За да активираш отново Лио, посети brave://flags и го активирай.";
+
+/* The title that shows in an alert when the Leo/AI-Chat feature is disabled. */
+"aichat.leoDisabledMessageTitle" = "Лио е деактивиран";
+
+/* The message that shows in an alert, to let the user know the 'Leo' feature is disabled in private browsing mode. */
+"aichat.leoDisabledPrivateBrowsingMessageDescription" = "Понастоящем Лио не е наличен в режим на поверително сърфиране. За да използваш Лио, моля, излез от режима за поверително сърфиране и опитай отново.";
+
+/* The title that shows in an alert when the Leo/AI-Chat is disabled due to the user being in private browsing mode. */
+"aichat.leoDisabledPrivateBrowsingMessageTitle" = "Лио не е на разположение";
+
+/* The title of the advanced settings view */
+"aichat.leoNavigationTitle" = "Leo AI";
+
+/* The button title for managing subscriptions */
+"aichat.manageSubscriptionsButtonTitle" = "Управление на абонаменти";
+
+/* Title showing monthly subscription */
+"aichat.monthlySubscriptionTitle" = "Месечен абонамент";
+
+/* The text which will be used to indicate period of payments like 10 / month */
+"aichat.paywallMonthlyPriceDividend" = "месец";
+
+/* Title indicating monthly subscription */
+"aichat.paywallMontlySubscriptionTitle" = "Месечен";
+
+/* The title for dismiss button when premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellDismissAction" = "Може би по-късно";
+
+/* The title for button when premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellPrimaryAction" = "Надграждане";
+
+/* The title for premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellTitle" = "Отключи пълната мощ на Лио с Premium:";
+
+/* The title of the button for action triggering purchase */
+"aichat.paywallPurchaseActionIntroOfferTitle" = "Опитайте 7 дни безплатно";
+
+/* The title of the button for action triggering purchase */
+"aichat.paywallPurchaseActionTitle" = "Надгради сега";
+
+/* The text displayed on the bottom of paywall screen which indicates subscriptions are auto renewable. */
+"aichat.paywallPurchaseDeepNote" = "Всички абонаменти се подновяват автоматично, но могат да бъдат отказани по всяко време преди подновяването.";
+
+/* The error description when in app purcahse is erroneous. */
+"aichat.paywallPurchaseErrorDescription" = "Не можеш да завършиш покупката. Моля, опитай отново или провери данните си за плащане в Apple и опитай отново.";
+
+/* The subtitle for premium upseel when rate limit is shown after sending a message */
+"aichat.paywallRateLimitSubTitle" = "Отключи по-висока честота на отговори, като се абонираш за Premium, или опитай отново по-късно.";
+
+/* The title for premium upseel when rate limit is shown after sending a message */
+"aichat.paywallRateLimitTitle" = "Достигнат е лимитът за честота на отговорите";
+
+/* The subtitle accuracy entry in paywall upsell screen */
+"aichat.paywallUpsellAccuracyTopicSubTitle" = "Получавайте по-точни отговори за по-диференцирана комуникация.";
+
+/* The title accuracy entry in paywall upsell screen */
+"aichat.paywallUpsellAccuracyTopicTitle" = "Придържайте се към темата";
+
+/* The subtitle chat length entry in paywall upsell screen */
+"aichat.paywallUpsellChatLengthTopicSubTitle" = "Получете по-високи лимити за по-дълги разговори.";
+
+/* The title chat length entry in paywall upsell screen */
+"aichat.paywallUpsellChatLengthTopicTitle" = "Чат за по-дълго време";
+
+/* The subtitle creativity entry in paywall upsell screen */
+"aichat.paywallUpsellCreativityTopicSubTitle" = "Достъп до модели, по-подходящи за творчески задачи и генериране на съдържание.";
+
+/* The title creativity entry in paywall upsell screen */
+"aichat.paywallUpsellCreativityTopicTitle" = "Отключете креативността си";
+
+/* The subtitle model type entry in paywall upsell screen */
+"aichat.paywallUpsellModelTypeTopicSubTitle" = "Приоритетен достъп до мощни модели с различни умения.";
+
+/* The title model type entry in paywall upsell screen */
+"aichat.paywallUpsellModelTypeTopicTitle" = "Изпробвайте различни модели на изкуствен интелект.";
+
+/* The title for paywall view */
+"aichat.paywallViewTitle" = "Leo Premium";
+
+/* The text which will be used to indicate period of payments like 150 / year */
+"aichat.paywallYearlyPriceDividend" = "година";
+
+/* The description indicating how valuable the yearly subscription is, compared to purchasing monthly */
+"aichat.paywallYearlySubscriptionDescription" = "НАЙ-ДОБРА СТОЙНОСТ";
+
+/* Title indicating yearly subscription */
+"aichat.paywallYearlySubscriptionTitle" = "Една година";
+
+/* The title of the badge where a model which can be used limited */
+"aichat.premiumModelStatusTitle" = "Premium";
+
+/* Title showing premium subscription - not determined monthly por yearly */
+"aichat.premiumSubscriptionTitle" = "Абонамент Premium";
+
+/* The title for the button where it triggers reset leo data */
+"aichat.resetLeoDataActionTitle" = "Нулиране и изчистване на данните на Лио";
+
+/* The title of a button that will reset data for leo */
+"aichat.resetLeoDataAlertButtonTitle" = "Нулиране";
+
+/* The description for the error whre leo data reset */
+"aichat.resetLeoDataErrorDescription" = "Наистина ли искаш да нулираш и изчистиш данните на Лио?";
+
+/* The title for the error whre leo data reset */
+"aichat.resetLeoDataErrorTitle" = "Нулиране на данните на Лио";
+
+/* The button title for restoring ai-app purchse for Leo. */
+"aichat.restorePaywallButtonTitle" = "Възстановяване";
+
+/* Title showing yearly subscription - annual */
+"aichat.yearlySubscriptionTitle" = "Годишен абонамент";
+

@@ -1,0 +1,11 @@
+diff --git a/tools/typescript/ts_library.py b/tools/typescript/ts_library.py
+index 759b5256648443d0f375aff883b4c2f85a2cc127..91bb8cf003d886244092a1f97628b53878d8c677 100644
+--- a/tools/typescript/ts_library.py
++++ b/tools/typescript/ts_library.py
+@@ -362,5 +362,6 @@ def main(argv):
+       json.dump(manifest_data, manifest_file)
+ 
+ 
++from brave_chromium_utils import inline_chromium_src_override; inline_chromium_src_override(globals(), locals())
+ if __name__ == '__main__':
+   main(sys.argv[1:])

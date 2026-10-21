@@ -1,0 +1,21 @@
+/* An error message telling the user that the custom scriptlet they are trying to save has no content */
+"CustomScriptletEmptyContentError" = "يجب أن يحتوي البرنامج النصي على بعض من JavaScript";
+
+/* An error message telling the user that the name they gave their custom scriptlet is invalid. */
+"CustomScriptletInvalidNameError" = "اسم البرنامج النصي غير صالح";
+
+/* A navigation title for the screen where a user creates a new custom scriptlet */
+"shields.addNewScriptletTitle" = "إضافة برنامج نصي جديد";
+
+/* A section header above the text editor where a user enters the custom scriptlet's JavaScript */
+"shields.customScriptletContentSectionTitle" = "المحتوى";
+
+/* A warning shown in an empty custom scriptlet editor */
+"shields.customScriptletContentWarning" = "لا تقم بلصق تعليمات برمجية لا تفهمها أو لم تقم بمراجعتها بنفسك هنا. قد يسمح هذا للمهاجمين بسرقة هويتك أو السيطرة على جهازك.";
+
+/* A section header above the text field where a user enters the custom scriptlet's name */
+"shields.customScriptletNameSectionTitle" = "الاسم";
+
+/* A navigation title for the screen where a user edits an existing custom scriptlet */
+"shields.editScriptletTitle" = "تعديل البرنامج النصي";
+

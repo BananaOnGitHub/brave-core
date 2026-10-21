@@ -1,0 +1,29 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+blank_macros_for_ast_parsing: true
+
+substitutions:
+  - description: |-
+      Let BraveBrowserWindowFeatures use GetUserDataFactory().
+
+      Brave's window features are created through the same factory as the
+      Chromium ones, so tests can override them.
+    add_friend:
+      class_name: BrowserWindowFeatures
+      friend_type: class BraveBrowserWindowFeatures
+
+  - description: |-
+      Own the controllers Brave needs before the other window features.
+
+      On macOS the immersive mode controller is created during Init(), and
+      choosing which kind depends on whether vertical tabs are in use, so the
+      vertical tab controller (and the focus mode controller it points to) has
+      to exist before the other window features.
+    add_to_protected:
+      class_name: BrowserWindowFeatures
+      code: |-
+        std::unique_ptr<FocusModeController> brave_focus_mode_controller_;
+        std::unique_ptr<VerticalTabController> brave_vertical_tab_controller_;

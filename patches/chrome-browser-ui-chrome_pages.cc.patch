@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/ui/chrome_pages.cc b/chrome/browser/ui/chrome_pages.cc
+index e70ee6412075fd190f0591b738804623939635d2..5fbe02522fa9a36b4cf1d7ef83eefd32cc21c115 100644
+--- a/chrome/browser/ui/chrome_pages.cc
++++ b/chrome/browser/ui/chrome_pages.cc
+@@ -437,7 +437,7 @@ void ShowSlow(BrowserWindowInterface* browser) {
+ #endif
+ }
+ 
+-GURL GetSettingsUrl(std::string_view sub_page) {
++BRAVE_GET_SETTINGS_URL
+   return GURL(base::StrCat({kChromeUISettingsURL, sub_page}));
+ }
+ 

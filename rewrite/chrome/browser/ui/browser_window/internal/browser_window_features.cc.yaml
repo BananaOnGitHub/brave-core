@@ -1,0 +1,50 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+substitutions:
+  - description: |-
+      Create Brave's early window features first.
+
+      See the members added in browser_window_features.h for why they have to
+      exist before the rest of Init() runs.
+    preempt_function_impl:
+      function_name: BrowserWindowFeatures::Init
+      code: |-
+        brave_focus_mode_controller_ =
+            CreateBraveFocusModeController(GetUserDataFactory(), browser);
+        brave_vertical_tab_controller_ = CreateBraveVerticalTabController(
+            GetUserDataFactory(), browser, brave_focus_mode_controller_.get());
+
+  - description: 'Construct BraveBrowserActions instead of BrowserActions.'
+    rename_class:
+      class_name: BrowserActions
+      rename: BraveBrowserActions
+
+  - description: |
+      Construct BraveBrowserCommandController instead of
+      chrome::BrowserCommandController.
+    rename_class:
+      class_name: BrowserCommandController
+      rename: BraveBrowserCommandController
+
+  - description: |
+      Construct BraveBrowserWebContentsDelegate instead of
+      BrowserWebContentsDelegate.
+    rename_class:
+      class_name: BrowserWebContentsDelegate
+      rename: BraveBrowserWebContentsDelegate
+
+  - description: |
+      Construct BraveBrowserContentSettingBubbleModelDelegate instead of
+      BrowserContentSettingBubbleModelDelegate.
+    rename_class:
+      class_name: BrowserContentSettingBubbleModelDelegate
+      rename: BraveBrowserContentSettingBubbleModelDelegate
+
+  - description:
+      'Construct BraveSidePanelCoordinator instead of SidePanelCoordinator.'
+    rename_class:
+      class_name: SidePanelCoordinator
+      rename: BraveSidePanelCoordinator

@@ -1,0 +1,20 @@
+diff --git a/components/content_settings/core/common/cookie_settings_base.cc b/components/content_settings/core/common/cookie_settings_base.cc
+index 2c67a2ff7edb5395befa2dcb39d4d8c6839aa8ab..a28ddc46a5edabf026efff1204baa1e7f297c10f 100644
+--- a/components/content_settings/core/common/cookie_settings_base.cc
++++ b/components/content_settings/core/common/cookie_settings_base.cc
+@@ -396,6 +396,7 @@ CookieSettingsBase::DecideAccess(const GURL& url,
+     return BlockAllCookies{};
+   }
+ 
++  BRAVE_COOKIE_SETTINGS_BASE_DECIDE_ACCESS
+   if (!is_third_party_request) {
+     return AllowAllCookies{ThirdPartyCookieAllowMechanism::kNone};
+   }
+@@ -521,6 +522,7 @@ CookieSettingsBase::GetCookieSettingInternal(
+   if (std::holds_alternative<AllowPartitionedCookies>(choice)) {
+     CHECK(is_third_party_request);
+     CHECK(block_third_party_cookies);
++    BRAVE_COOKIE_SETTINGS_BASE_GET_COOKIES_SETTINGS_INTERNAL_IS_EXPLICIT_SETTING
+     CHECK(!is_explicit_setting);
+ 
+     if (info) {

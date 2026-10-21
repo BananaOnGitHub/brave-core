@@ -1,0 +1,20 @@
+diff --git a/chrome/browser/ui/web_applications/BUILD.gn b/chrome/browser/ui/web_applications/BUILD.gn
+index 242ac51e12258e43c42fc4a84880d584df862750..75cd0ed1c7d5771ff3506b328c53da8248d87c9f 100644
+--- a/chrome/browser/ui/web_applications/BUILD.gn
++++ b/chrome/browser/ui/web_applications/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/browser/ui/web_applications/sources.gni")
+ import("//build/config/ui.gni")
+ import("//extensions/buildflags/buildflags.gni")
+ 
+@@ -108,6 +109,7 @@ source_set("impl") {
+     "//chrome/browser/ui:unload_controller",
+     "//chrome/browser/ui/browser_window:create_browser_window",
+   ]
++  deps += brave_chrome_browser_ui_web_applications_deps
+ 
+   if (!is_android) {
+     sources += [ "web_app_dialog_utils.cc" ]

@@ -1,0 +1,109 @@
+diff --git a/chrome/installer/linux/BUILD.gn b/chrome/installer/linux/BUILD.gn
+index 2a75b4c07d1e744209f9c48e375d14f2820d6cd7..9714f6de66fbc8de830a6b7e28b9dc56780f5246 100644
+--- a/chrome/installer/linux/BUILD.gn
++++ b/chrome/installer/linux/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/build/config.gni")
+ import("//build/config/c++/c++.gni")
+ import("//build/config/chrome_build.gni")
+ import("//build/config/sanitizers/sanitizers.gni")
+@@ -105,6 +106,9 @@ if (build_with_internal_optimization_guide) {
+   }
+ }
+ 
++packaging_files_executables -= excluded_packaging_files_executables
++packaging_files_executables += brave_packaging_files_executables
++
+ packaging_files_binaries = packaging_files_executables + packaging_files_shlibs
+ 
+ # TODO(mmoss) Any convenient way to get all the relevant build files?
+@@ -210,6 +214,10 @@ action("merge_rpm_dependencies") {
+ strip_binary("strip_chrome_binary") {
+   binary_input = "$root_out_dir/chrome"
+   deps = [ "//chrome" ]
++  deps += strip_chrome_binary_deps
++  binary_input = "$root_out_dir/brave"
++  symbol_output = "$root_out_dir/brave.debug"
++  stripped_binary_output = "$root_out_dir/brave.stripped"
+ }
+ 
+ strip_binary("strip_chrome_crashpad_handler") {
+@@ -225,6 +233,10 @@ strip_binary("strip_chrome_management_service") {
+ strip_binary("strip_chrome_sandbox") {
+   binary_input = "$root_out_dir/chrome_sandbox"
+   deps = [ "//sandbox/linux:chrome_sandbox" ]
++  deps += strip_chrome_sandbox_deps
++  binary_input = "$root_out_dir/brave_sandbox"
++  symbol_output = "$root_out_dir/brave_sandbox.debug"
++  stripped_binary_output = "$root_out_dir/brave_sandbox.stripped"
+ }
+ 
+ # On ChromeOS, system services depend on real ANGLE libraries rather than dummy
+@@ -378,6 +390,8 @@ copy("common_packaging_files") {
+   }
+ 
+   outputs = [ "$root_out_dir/installer/common/{{source_file_part}}" ]
++  sources -= common_packaging_files_excluded_sources
++  sources += common_packaging_files_sources
+ }
+ 
+ copy("deb_packaging_files") {
+@@ -484,6 +498,7 @@ group("installer_deps") {
+     ":theme_files",
+     "//chrome",
+   ]
++  public_deps += brave_installer_deps
+   public_deps += [
+     "//chrome:packed_resources",
+     "//chrome/browser/enterprise/connectors/device_trust/key_management/installer/management_service:chrome_management_service",
+@@ -561,11 +576,16 @@ group("installer_deps") {
+ template("linux_package") {
+   assert(defined(invoker.channel))
+   channel = invoker.channel
++  if (channel == "unstable") {
++    channel = "dev"
++  }
+ 
+   if (is_chrome_branded) {
+     package = "google-chrome"
+   } else {
+     package = "chromium-browser"
++    package = brave_linux_package_name
++    chrome_version_full = brave_version
+   }
+ 
+   deb_target_name = "${target_name}_deb"
+@@ -576,6 +596,12 @@ template("linux_package") {
+ 
+     inputs = packaging_files
+     outputs = [ "$root_out_dir/${package}-${channel}_${chrome_version_full}-1_${deb_arch}.deb" ]
++    outputs = []
++    if (channel == "stable") {
++      outputs = [ "$root_out_dir/${package}_${chrome_version_full}_${deb_arch}.deb" ]
++    } else {
++      outputs = [ "$root_out_dir/${package}-${channel}_${chrome_version_full}_${deb_arch}.deb" ]
++    }
+ 
+     args = [
+       "-a",
+@@ -614,6 +640,10 @@ template("linux_package") {
+ 
+       inputs = packaging_files
+       outputs = [ "$root_out_dir/${package}-${channel}-${chrome_version_full}-1.${rpm_arch}.rpm" ]
++      if (channel == "stable") {
++        outputs = []
++        outputs = [ "$root_out_dir/${package}-${chrome_version_full}-1.${rpm_arch}.rpm" ]
++      }
+ 
+       args = [
+         "-a",
+@@ -718,3 +748,6 @@ if (!is_chromeos) {
+     }
+   }
+ }
++linux_package("nightly") {
++  channel = "nightly"
++}

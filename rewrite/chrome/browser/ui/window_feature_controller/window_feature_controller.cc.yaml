@@ -1,0 +1,26 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+substitutions:
+  - description: 'Keep the UnownedUserDataHost passed to the constructor.'
+    preempt_function_impl:
+      function_name: WindowFeatureController::WindowFeatureController
+      code: 'unowned_user_data_host_ = &host;'
+
+  - description: |-
+      Give Brave control over NormalBrowserSupportsWindowFeature on Windows.
+
+      When vertical tabs are enabled, Windows needs the ability to show the title
+      bar, so short-circuit kFeatureTitleBar before the upstream logic runs.
+    preempt_function_impl:
+      function_name: WindowFeatureController::NormalBrowserSupportsWindowFeature
+      code: |-
+        #if BUILDFLAG(IS_WIN)
+        if (feature == WindowFeature::kFeatureTitleBar) {
+          // In case of vertical tab strip is allowed, we need to have ability to
+          // show title bar on Windows.
+          return BraveShouldShowTitlebar(*unowned_user_data_host_);
+        }
+        #endif

@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/browser_tab_strip_model_delegate.h b/chrome/browser/ui/browser_tab_strip_model_delegate.h
+index 832846506c0fc6781a8d7c1422c87bb221ce1969..d7f5cb95bb6a791f4d5dd6d8c71fdc7a37ae07ee 100644
+--- a/chrome/browser/ui/browser_tab_strip_model_delegate.h
++++ b/chrome/browser/ui/browser_tab_strip_model_delegate.h
+@@ -38,6 +38,7 @@ class BrowserTabStripModelDelegate : public TabStripModelDelegate {
+   ~BrowserTabStripModelDelegate() override;
+ 
+  private:
++  friend class BraveTabStripModelDelegate;
+   // Overridden from TabStripModelDelegate:
+   void AddTabAt(const GURL& url,
+                 int index,

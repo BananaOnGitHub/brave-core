@@ -1,0 +1,20 @@
+diff --git a/components/permissions/android/BUILD.gn b/components/permissions/android/BUILD.gn
+index 4d3d389f18482021721cfa944a3759727ecda45d..a02114e2d77ec7b85a68a5caf6f9cc49ae484a1f 100644
+--- a/components/permissions/android/BUILD.gn
++++ b/components/permissions/android/BUILD.gn
+@@ -197,6 +197,7 @@ android_library("java") {
+     "java/src/org/chromium/components/permissions/nfc/NfcSystemLevelPrompt.java",
+     "java/src/org/chromium/components/permissions/nfc/NfcSystemLevelSetting.java",
+   ]
++  sources += brave_components_permissions_java_sources
+   deps = [
+     ":content_settings_enums_java",
+     ":core_java",
+@@ -225,6 +226,7 @@ android_library("java") {
+     "//ui/android:ui_java",
+     "//url:gurl_java",
+   ]
++  deps += brave_components_permissions_java_deps
+   resources_package = "org.chromium.components.permissions"
+ }
+ 

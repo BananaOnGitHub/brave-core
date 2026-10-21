@@ -1,0 +1,13 @@
+diff --git a/chrome/browser/extensions/extension_management.cc b/chrome/browser/extensions/extension_management.cc
+index 70216f37ab26366807791ad17d2a02f2ec140fea..958706e8c674388092400725a016ad0e44d31873 100644
+--- a/chrome/browser/extensions/extension_management.cc
++++ b/chrome/browser/extensions/extension_management.cc
+@@ -1158,7 +1158,7 @@ ExtensionManagementFactory::BuildServiceInstanceForBrowserContext(
+     content::BrowserContext* context) const {
+   TRACE_EVENT0("browser,startup",
+                "ExtensionManagementFactory::BuildServiceInstanceFor");
+-  return std::make_unique<ExtensionManagement>(
++  return std::make_unique<BraveExtensionManagement>(
+       Profile::FromBrowserContext(context));
+ }
+ 

@@ -1,0 +1,25 @@
+diff --git a/chrome/browser/ui/unload_controller.h b/chrome/browser/ui/unload_controller.h
+index 6d0ba47ebd981b62607e65e33c257ae68d096c62..9c24f224a7a5544ceb574a5af347a575bc639a9c 100644
+--- a/chrome/browser/ui/unload_controller.h
++++ b/chrome/browser/ui/unload_controller.h
+@@ -86,6 +86,9 @@ class UnloadController : public WebContentsCollection::Observer,
+ 
+   ~UnloadController() override;
+ 
++  bool confirmed_to_close() const { return confirmed_to_close_; }
++  void set_confirmed_to_close(bool close) { confirmed_to_close_ = close; }
++
+   // Returns true if |contents| can be cleanly closed. When |browser_| is being
+   // closed, this function will return false to indicate |contents| should not
+   // be cleanly closed, since the fast shutdown path will just kill its
+@@ -448,6 +451,10 @@ class UnloadController : public WebContentsCollection::Observer,
+   // shortly (after a PostTask).
+   bool is_delete_scheduled_ = false;
+ 
++  // Set to true when the user has allowed the browser window to
++  // close before running any warning or beforeunload handlers.
++  bool confirmed_to_close_ = false;
++
+   base::WeakPtrFactory<UnloadController> weak_factory_{this};
+ };
+ 

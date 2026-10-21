@@ -1,0 +1,13 @@
+diff --git a/components/autofill/core/browser/suggestions/suggestion.h b/components/autofill/core/browser/suggestions/suggestion.h
+index 4a2668e446243d5e6d95623b36ff47d1f0df7836..bb585a438d728c75ec4c2fee144c374bd19e97a8 100644
+--- a/components/autofill/core/browser/suggestions/suggestion.h
++++ b/components/autofill/core/browser/suggestions/suggestion.h
+@@ -740,6 +740,8 @@ struct Suggestion {
+ 
+   // Returns whether the user is able to focus or select the suggestion.
+   bool IsSelectable() const;
++  bool brave_new_email_alias_suggestion = false;
++  bool brave_email_alias_suggestion = false;
+ };
+ 
+ void PrintTo(const Suggestion& suggestion, std::ostream* os);

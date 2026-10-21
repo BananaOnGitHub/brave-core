@@ -1,0 +1,30 @@
+diff --git a/chrome/browser/ui/webui/extensions/extensions_ui.cc b/chrome/browser/ui/webui/extensions/extensions_ui.cc
+index 0513e23fd14fd65f45c0949ebaecd9a456b971a8..9346e8f50aca425168e1d2736e66bf4bfdbe2301 100644
+--- a/chrome/browser/ui/webui/extensions/extensions_ui.cc
++++ b/chrome/browser/ui/webui/extensions/extensions_ui.cc
+@@ -121,7 +121,7 @@ content::WebUIDataSource* CreateAndAddExtensionsSource(Profile* profile,
+       {"appsTitle", IDS_EXTENSIONS_APPS_TITLE},
+       {"noExtensionsOrApps", IDS_EXTENSIONS_NO_INSTALLED_ITEMS},
+       {"noDescription", IDS_EXTENSIONS_NO_DESCRIPTION},
+-      {"viewInStore", IDS_EXTENSIONS_ITEM_CHROME_WEB_STORE},
++      {"viewInStore", IDS_EXTENSIONS_BRAVE_ITEM_CHROME_WEB_STORE},
+       {"extensionWebsite", IDS_EXTENSIONS_ITEM_EXTENSION_WEBSITE},
+       {"dropToInstall", IDS_EXTENSIONS_INSTALL_DROP_TARGET},
+       {"editSitePermissionsAllowAllExtensions",
+@@ -253,7 +253,7 @@ content::WebUIDataSource* CreateAndAddExtensionsSource(Profile* profile,
+       {"itemSourcePolicy", IDS_EXTENSIONS_ITEM_SOURCE_POLICY},
+       {"itemSourceSideloaded", IDS_EXTENSIONS_ITEM_SOURCE_SIDELOADED},
+       {"itemSourceUnpacked", IDS_EXTENSIONS_ITEM_SOURCE_UNPACKED},
+-      {"itemSourceWebstore", IDS_EXTENSIONS_ITEM_SOURCE_WEBSTORE},
++      {"itemSourceWebstore", IDS_EXTENSIONS_BRAVE_ITEM_SOURCE_WEBSTORE},
+       {"itemVersion", IDS_EXTENSIONS_ITEM_VERSION},
+       {"itemReloaded", IDS_EXTENSIONS_ITEM_RELOADED},
+       {"itemReloading", IDS_EXTENSIONS_ITEM_RELOADING},
+@@ -533,6 +533,7 @@ content::WebUIDataSource* CreateAndAddExtensionsSource(Profile* profile,
+                                             ? "webui-refresh-2026"
+                                             : "");
+ 
++  BraveAddExtensionsResources(source, profile);
+   return source;
+ }
+ 

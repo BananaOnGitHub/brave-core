@@ -1,0 +1,39 @@
+diff --git a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.h b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.h
+index a08a5a5b76cfea44f8a07dd1db5a70910fcdd67b..494ab475d586a0131c1fe05ae93934c20c50feaa 100644
+--- a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.h
++++ b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.h
+@@ -136,7 +136,7 @@ class TabDragController : public views::WidgetObserver,
+   // call, and Liveness::ALIVE if `this` still exists.
+   // Note: `dragging_views` must be ordered by their position in the source
+   // tabstrip (both visually and in the model).
+-  [[nodiscard]] Liveness Init(TabDragContext* source_context,
++  [[nodiscard]] virtual Liveness Init(TabDragContext* source_context,
+                               TabSlotView* source_view,
+                               const std::vector<TabSlotView*>& dragging_views,
+                               const gfx::Point& offset_from_source_view,
+@@ -236,6 +236,7 @@ class TabDragController : public views::WidgetObserver,
+   const TabDragContext* GetAttachedContext() const override;
+ 
+  private:
++  friend class BraveTabDragController;
+   friend class TabDragControllerTest;
+ 
+   class SourceTabStripEmptinessTracker;
+@@ -431,7 +432,7 @@ class TabDragController : public views::WidgetObserver,
+   // See Detach/Attach for parameter documentation. Transfers ownership of
+   // `this` from `attached_context_` (which must own `this`) to
+   // `target_context`.
+-  void DetachAndAttachToNewContext(ReleaseCapture release_capture,
++  virtual void DetachAndAttachToNewContext(ReleaseCapture release_capture,
+                                    TabDragContext* target_context);
+ 
+   // Hides browsers whose tab strips emptied mid-drag and whose close was
+@@ -567,7 +568,7 @@ class TabDragController : public views::WidgetObserver,
+ 
+   // Initializes `dragging_tabs_session_`, and performs a first MoveAttached
+   // within `attached_context_`.
+-  void StartDraggingTabsSession(bool initial_move,
++  virtual void StartDraggingTabsSession(bool initial_move,
+                                 gfx::Point start_point_in_screen);
+ 
+   // Calls `SetSelectionFromModel` in the `tab_strip_model`. This centralizes

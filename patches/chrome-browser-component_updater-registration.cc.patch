@@ -1,0 +1,21 @@
+diff --git a/chrome/browser/component_updater/registration.cc b/chrome/browser/component_updater/registration.cc
+index 9cf5a226c7f7482430f92df85b149c551f18a690..a708d2381a866f3833a36ebbd39a93eeb97231f2 100644
+--- a/chrome/browser/component_updater/registration.cc
++++ b/chrome/browser/component_updater/registration.cc
+@@ -142,6 +142,7 @@ void DeleteOldComponents(const base::FilePath& user_data_dir) {
+ }  // namespace
+ 
+ void RegisterComponentsForUpdate() {
++  [&]() -> void {
+   auto* const cus = g_browser_process->component_updater();
+ 
+ #if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC)
+@@ -253,6 +254,8 @@ void RegisterComponentsForUpdate() {
+         FROM_HERE, {base::TaskPriority::BEST_EFFORT, base::MayBlock()},
+         base::BindOnce(&DeleteOldComponents, path));
+   }
++  }();
++  RegisterBraveComponentsForUpdate();
+ }
+ 
+ }  // namespace component_updater

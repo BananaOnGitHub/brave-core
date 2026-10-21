@@ -1,0 +1,20 @@
+diff --git a/components/metrics/BUILD.gn b/components/metrics/BUILD.gn
+index c32e11c10f9ce848b897f1c7e90c7ec9879632aa..19a255855db3f70fe7fddade0704c50badff75d2 100644
+--- a/components/metrics/BUILD.gn
++++ b/components/metrics/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/components/metrics/sources.gni")
+ import("//build/config/cronet/config.gni")
+ import("//build/config/features.gni")
+ import("//testing/test.gni")
+@@ -338,6 +339,7 @@ if (!is_cronet_build || is_ios) {
+       "//ui/base",
+       "//url",
+     ]
++    deps += brave_components_metrics_deps
+ 
+     if (is_android) {
+       sources += [

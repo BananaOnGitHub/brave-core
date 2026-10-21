@@ -1,0 +1,146 @@
+/* Copyright (c) 2022 The Brave Authors. All rights reserved.
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#include "brave/components/tor/brave_tor_pluggable_transport_updater.h"
+
+#include <string>
+
+#include "base/check.h"
+#include "base/files/file_path.h"
+#include "base/files/file_util.h"
+#include "base/functional/bind.h"
+#include "base/location.h"
+#include "base/logging.h"
+#include "base/path_service.h"
+#include "build/build_config.h"
+#include "components/crx_file/id_util.h"
+
+namespace tor {
+
+#if BUILDFLAG(IS_WIN)
+constexpr const char kComponentName[] = "Brave Pluggable Transports (Windows)";
+#elif BUILDFLAG(IS_MAC)
+constexpr const char kComponentName[] = "Brave Pluggable Transports (Mac)";
+#elif BUILDFLAG(IS_LINUX)
+constexpr const char kComponentName[] = "Brave Pluggable Transports (Linux)";
+#endif
+
+constexpr const char kSnowflakeExecutableName[] = "tor-snowflake-brave";
+constexpr const char kObfs4ExecutableName[] = "tor-obfs4-brave";
+
+bool Initialize(const base::FilePath& install_dir) {
+  const auto executables = {install_dir.AppendASCII(kSnowflakeExecutableName),
+                            install_dir.AppendASCII(kObfs4ExecutableName)};
+
+  for (const auto& executable : executables) {
+    if (!base::PathExists(executable)) {
+      LOG(ERROR) << executable << " doesn't exist";
+      return false;
+    }
+#if BUILDFLAG(IS_POSIX)
+    if (!base::SetPosixFilePermissions(executable, 0755)) {
+      LOG(ERROR) << "Failed to set executable permission on " << executable;
+      return false;
+    }
+#endif
+  }
+  return true;
+}
+
+BraveTorPluggableTransportUpdater::BraveTorPluggableTransportUpdater(
+    BraveComponent::Delegate* component_delegate,
+    PrefService* local_state,
+    const base::FilePath& user_data_dir)
+    : BraveComponent(component_delegate),
+      local_state_(local_state),
+      user_data_dir_(user_data_dir) {
+  DCHECK(local_state);
+}
+
+BraveTorPluggableTransportUpdater::~BraveTorPluggableTransportUpdater() =
+    default;
+
+void BraveTorPluggableTransportUpdater::Register() {
+  if (registered_)
+    return;
+
+  BraveComponent::Register(kComponentName,
+                           kTorPluggableTransportComponentPublicKeySHA256);
+  registered_ = true;
+  is_ready_ = false;
+}
+
+void BraveTorPluggableTransportUpdater::Unregister() {
+  registered_ = false;
+  is_ready_ = false;
+}
+
+void BraveTorPluggableTransportUpdater::Cleanup() {
+  const base::FilePath component_dir =
+      user_data_dir_.AppendASCII(crx_file::id_util::GenerateIdFromHash(
+          kTorPluggableTransportComponentPublicKeySHA256));
+  GetTaskRunner()->PostTask(
+      FROM_HERE, base::GetDeletePathRecursivelyCallback(component_dir));
+}
+
+bool BraveTorPluggableTransportUpdater::IsReady() const {
+  return is_ready_;
+}
+
+const base::FilePath&
+BraveTorPluggableTransportUpdater::GetSnowflakeExecutable() const {
+  return snowflake_path_;
+}
+
+const base::FilePath& BraveTorPluggableTransportUpdater::GetObfs4Executable()
+    const {
+  return obfs4_path_;
+}
+
+void BraveTorPluggableTransportUpdater::AddObserver(Observer* observer) {
+  observers_.AddObserver(observer);
+}
+
+void BraveTorPluggableTransportUpdater::RemoveObserver(Observer* observer) {
+  observers_.RemoveObserver(observer);
+}
+
+void BraveTorPluggableTransportUpdater::OnComponentReady(
+    const std::string& component_id,
+    const base::FilePath& install_dir,
+    const std::string& manifest) {
+  GetTaskRunner()->PostTaskAndReplyWithResult(
+      FROM_HERE, base::BindOnce(&Initialize, install_dir),
+      base::BindOnce(&BraveTorPluggableTransportUpdater::OnInitialized,
+                     weak_ptr_factory_.GetWeakPtr(), install_dir));
+}
+
+void BraveTorPluggableTransportUpdater::OnInitialized(
+    const base::FilePath& install_dir,
+    bool success) {
+  if (success) {
+    // <component_id>/<version>
+    const auto relative_component_path =
+        base::FilePath::FromASCII(
+            crx_file::id_util::GenerateIdFromHash(
+                kTorPluggableTransportComponentPublicKeySHA256))
+            .Append(install_dir.BaseName());
+
+    snowflake_path_ =
+        relative_component_path.AppendASCII(kSnowflakeExecutableName);
+    obfs4_path_ = relative_component_path.AppendASCII(kObfs4ExecutableName);
+  } else {
+    snowflake_path_.clear();
+    obfs4_path_.clear();
+  }
+
+  is_ready_ = success;
+
+  for (auto& observer : observers_) {
+    observer.OnPluggableTransportReady(success);
+  }
+}
+
+}  // namespace tor

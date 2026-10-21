@@ -1,0 +1,12 @@
+diff --git a/chrome/renderer/resources/plugins/pdf_plugin.html b/chrome/renderer/resources/plugins/pdf_plugin.html
+index b3163d670aabda8d118aa73fa7c7fa6f9945a0c3..729db280b0eac6d7c33b0f62f9edb70188520892 100644
+--- a/chrome/renderer/resources/plugins/pdf_plugin.html
++++ b/chrome/renderer/resources/plugins/pdf_plugin.html
+@@ -30,6 +30,7 @@
+     <link rel="stylesheet" href="../../../../components/security_interstitials/core/common/resources/interstitial_core.css">
+     <link rel="stylesheet" href="../../../../components/security_interstitials/core/common/resources/interstitial_common.css">
+     <link rel="stylesheet" href="../../../../components/security_interstitials/core/browser/resources/interstitial_webview_quiet.css">
++    <link rel="stylesheet" href="../../../../brave/components/security_interstitials/core/common/resources/interstitial_common.css">
+     <style>
+       path {
+         fill-opacity: 0.2;

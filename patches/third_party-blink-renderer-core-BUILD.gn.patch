@@ -1,0 +1,36 @@
+diff --git a/third_party/blink/renderer/core/BUILD.gn b/third_party/blink/renderer/core/BUILD.gn
+index 056bd22809479eac64251cfc67f37336c4438424..5d512b71799ea2f622ede451a4277bed7327dacf 100644
+--- a/third_party/blink/renderer/core/BUILD.gn
++++ b/third_party/blink/renderer/core/BUILD.gn
+@@ -264,6 +264,7 @@ component("core") {
+     "core_initializer.cc",
+     "core_initializer.h",
+   ]
++  sources += brave_blink_renderer_core_sources
+ 
+   sources += blink_core_sources_bindings
+ 
+@@ -394,6 +395,7 @@ component("core") {
+     "//url",
+     "//v8",
+   ]
++  public_deps += brave_blink_renderer_core_public_deps
+ 
+   if (is_mac) {
+     public_deps += [ "//ui/gfx" ]
+@@ -445,6 +447,7 @@ component("core") {
+     "//ui/gfx/geometry:geometry_skia",
+     "//ui/strings",
+   ]
++  deps += brave_blink_renderer_core_deps
+ 
+   if (is_mac) {
+     deps += [ "//ui/base/mojom" ]
+@@ -476,6 +479,7 @@ component("core") {
+       "Carbon.framework",
+     ]
+   }
++  visibility += brave_blink_renderer_core_visibility
+ }
+ 
+ # Certain sources should be compiled with heavy optimization enabled.

@@ -1,0 +1,13 @@
+diff --git a/components/browser_ui/site_settings/android/java/src/org/chromium/components/browser_ui/site_settings/AllSiteSettings.java b/components/browser_ui/site_settings/android/java/src/org/chromium/components/browser_ui/site_settings/AllSiteSettings.java
+index b08c968e69e92b1e648c48d275ed861ca6624c98..104253bb44395ab7ba1d0f771d796a2e7ac460be 100644
+--- a/components/browser_ui/site_settings/android/java/src/org/chromium/components/browser_ui/site_settings/AllSiteSettings.java
++++ b/components/browser_ui/site_settings/android/java/src/org/chromium/components/browser_ui/site_settings/AllSiteSettings.java
+@@ -72,7 +72,7 @@ import java.util.Set;
+  */
+ @UsedByReflection("all_site_preferences.xml")
+ @NullMarked
+-public class AllSiteSettings extends BaseSiteSettingsFragment
++public class AllSiteSettings extends BraveAllSiteSettings
+         implements EmbeddableSettingsPage,
+                 PreferenceManager.OnPreferenceTreeClickListener,
+                 View.OnClickListener,

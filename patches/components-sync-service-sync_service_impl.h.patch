@@ -1,0 +1,12 @@
+diff --git a/components/sync/service/sync_service_impl.h b/components/sync/service/sync_service_impl.h
+index ba56598bb08e022e6179188f5108bfe4a479ec06..973ccae93c303467b5aea65d85dbeab78cf6bee2 100644
+--- a/components/sync/service/sync_service_impl.h
++++ b/components/sync/service/sync_service_impl.h
+@@ -308,6 +308,7 @@ class SyncServiceImpl : public SyncService,
+   size_t GetQueuedLocalDataMigrationItemCountForTest() const;
+ 
+  private:
++  BRAVE_SYNC_SERVICE_IMPL_H_
+   enum UnrecoverableErrorReason {
+     ERROR_REASON_ENGINE_INIT_FAILURE,
+     ERROR_REASON_ACTIONABLE_ERROR,

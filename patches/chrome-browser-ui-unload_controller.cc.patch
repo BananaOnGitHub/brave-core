@@ -1,0 +1,58 @@
+diff --git a/chrome/browser/ui/unload_controller.cc b/chrome/browser/ui/unload_controller.cc
+index fb499c2360cea197cd5c43052725f4b56d28629c..c506b369da85acbd045cf4a7019bd29438c1275a 100644
+--- a/chrome/browser/ui/unload_controller.cc
++++ b/chrome/browser/ui/unload_controller.cc
+@@ -180,6 +180,7 @@ void UnloadController::OnWindowClosing() {
+   if (!HandleBeforeClose()) {
+     return;
+   }
++  sidebar::MaybeCloseWebPanel(browser_);
+ 
+   // Don't use GetForProfileIfExisting here, we want to force creation of the
+   // session service so that user can restore what was open.
+@@ -206,6 +207,9 @@ void UnloadController::OnWindowClosing() {
+   if (tab_restore_service && notify_restore_service) {
+     tab_restore_service->BrowserClosing(BrowserLiveTabContext::From(browser_));
+   }
++  if (MaybeHandleSharedPinnedTabsClosing(browser_)) {
++    return;
++  }
+ 
+   if (!browser_->GetTabStripModel()->empty()) {
+     // Closing all the tabs results in eventually calling back to
+@@ -499,6 +503,7 @@ UnloadController::GetBrowserClosingStatus() const {
+ bool UnloadController::RunBeforeUnloadForShutdown(
+     bool skip_beforeunload,
+     const base::RepeatingCallback<void(bool)>& on_close_confirmed) {
++  confirmed_to_close_ = true;
+   cancel_download_confirmation_state_ =
+       CancelDownloadConfirmationState::kResponseReceived;
+   // The devtools browser gets its beforeunload events as the results of
+@@ -522,6 +527,7 @@ bool UnloadController::RunBeforeUnloadForShutdown(
+ }
+ 
+ void UnloadController::ResetBeforeUnloadForShutdown() {
++  confirmed_to_close_ = false;
+   cancel_download_confirmation_state_ =
+       CancelDownloadConfirmationState::kNotPrompted;
+   if (state_ != State::kRunningBeforeUnloadForShutdown &&
+@@ -628,6 +634,9 @@ void UnloadController::OnTabStripModelChanged(
+ }
+ 
+ void UnloadController::TabStripEmpty() {
++  if (!browser_->GetProfile()->GetPrefs()->GetBoolean(kEnableClosingLastTab)) {
++    return;
++  }
+   // Set state_ here, so that extensions, etc, do not attempt to add tabs to the
+   // browser before it closes.
+   if (state_ == State::kIdle) {
+@@ -1096,6 +1105,9 @@ void UnloadController::InProgressDownloadResponse(bool cancel_downloads) {
+ }
+ 
+ void UnloadController::FinishWarnBeforeClosing(WarnBeforeClosingResult result) {
++  if (result == WarnBeforeClosingResult::kDoNotClose) {
++    confirmed_to_close_ = false;
++  }
+   switch (result) {
+     case WarnBeforeClosingResult::kOkToClose:
+       chrome::CloseWindow(browser_);

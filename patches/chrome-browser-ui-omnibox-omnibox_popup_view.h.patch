@@ -1,0 +1,12 @@
+diff --git a/chrome/browser/ui/omnibox/omnibox_popup_view.h b/chrome/browser/ui/omnibox/omnibox_popup_view.h
+index 2e188c4520a766e19cc2b4605d19439b32e74dc5..1ef896f7619ea701884ffead32bf9fff8aceb11d 100644
+--- a/chrome/browser/ui/omnibox/omnibox_popup_view.h
++++ b/chrome/browser/ui/omnibox/omnibox_popup_view.h
+@@ -123,6 +123,7 @@ class OmniboxPopupView {
+   virtual const OmniboxController* controller() const;
+ 
+  private:
++  friend class BraveOmniboxResultView;
+   // Owned by the LocationBarView that owns this. Outlives this.
+   const raw_ptr<OmniboxController> controller_;
+ 

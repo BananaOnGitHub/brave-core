@@ -1,0 +1,12 @@
+diff --git a/net/url_request/url_request_http_job.cc b/net/url_request/url_request_http_job.cc
+index c909310d202002b724941bd4e2b4fede56b69d45..519893fd659016468e7febcde8e1413938d3bb1e 100644
+--- a/net/url_request/url_request_http_job.cc
++++ b/net/url_request/url_request_http_job.cc
+@@ -746,6 +746,7 @@ void URLRequestHttpJob::AddExtraHeaders() {
+       request()->context()->enable_brotli(),
+       request()->context()->enable_zstd());
+ 
++  BRAVE_URL_REQUEST_HTTP_JOB_ADD_EXTRA_HEADERS
+   if (http_user_agent_settings_) {
+     // Only add default Accept-Language if the request didn't have it
+     // specified.

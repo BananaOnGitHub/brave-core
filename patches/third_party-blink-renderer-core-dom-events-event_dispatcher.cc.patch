@@ -1,0 +1,13 @@
+diff --git a/third_party/blink/renderer/core/dom/events/event_dispatcher.cc b/third_party/blink/renderer/core/dom/events/event_dispatcher.cc
+index 6ca9e82f00b2fcce87a62cd5cb347b5b1d5d97fe..b7f535b9d839b01ddf05a6c4c763fa15505fce0b 100644
+--- a/third_party/blink/renderer/core/dom/events/event_dispatcher.cc
++++ b/third_party/blink/renderer/core/dom/events/event_dispatcher.cc
+@@ -439,7 +439,7 @@ inline void EventDispatcher::DispatchEventPostProcess(
+   // Call default event handlers. While the DOM does have a concept of
+   // preventing default handling, the detail of which handlers are called is an
+   // internal implementation detail and not part of the DOM.
+-  if (!event_->defaultPrevented() && !event_->DefaultHandled() &&
++  if ((!event_->defaultPrevented() || ShouldBypassDefaultPreventedForContextMenu(event_)) && !event_->DefaultHandled() &&
+       is_trusted_or_click) {
+     // Non-bubbling events call only one default event handler, the one for the
+     // target.

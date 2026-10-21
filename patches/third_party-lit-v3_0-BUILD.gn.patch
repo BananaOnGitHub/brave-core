@@ -1,0 +1,28 @@
+diff --git a/third_party/lit/v3_0/BUILD.gn b/third_party/lit/v3_0/BUILD.gn
+index a75e73285cf865a2ae9f2c4e937f63e8b188f10d..1c5f7a4864f0ee7fe053cbd1028e0f53b77eba76 100644
+--- a/third_party/lit/v3_0/BUILD.gn
++++ b/third_party/lit/v3_0/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/third_party/lit/v3_0/sources.gni")
+ import("//tools/typescript/ts_library.gni")
+ import("//ui/webui/resources/tools/bundle_js.gni")
+ import("//ui/webui/resources/tools/generate_code_cache.gni")
+@@ -24,6 +25,7 @@ ts_library("build_ts") {
+     # dependency to CrOS-only UIs (to reduce coupling between Desktop and CrOS
+     # and reduce the maintenance burden for the Desktop WebUI team).
+ 
++    "//brave/ui/webui/resources:build_ts",
+     "//chrome/browser/resources/about_sys:build_ts",
+     "//chrome/browser/resources/access_code_cast:build_ts",
+     "//chrome/browser/resources/actor_overlay:build_ts",
+@@ -185,6 +187,7 @@ ts_library("build_ts") {
+     "//ui/webui/resources/cr_elements:build_ts",
+     "//ui/webui/resources/tools:webui_resources_tools_python_unittests",
+   ]
++  visibility += brave_lit_build_ts_visibility
+   tsconfig_base = "tsconfig_base.json"
+   composite = true
+   in_files = [

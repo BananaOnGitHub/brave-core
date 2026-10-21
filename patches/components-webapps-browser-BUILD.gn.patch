@@ -1,0 +1,20 @@
+diff --git a/components/webapps/browser/BUILD.gn b/components/webapps/browser/BUILD.gn
+index b08a644bcfc21a5fda830097c71e9f856a36afae..e17a3e4580b57c3d08cd722cc2e6400b686bbcf5 100644
+--- a/components/webapps/browser/BUILD.gn
++++ b/components/webapps/browser/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/components/webapps/browser/sources.gni")
+ import("//build/config/features.gni")
+ 
+ assert(use_blink)
+@@ -127,6 +128,7 @@ source_set("browser") {
+     "//third_party/blink/public/mojom:mojom_platform_headers",
+     "//url",
+   ]
++  deps += brave_components_webapps_browser_deps
+ 
+   public_deps = [
+     ":constants",

@@ -1,0 +1,255 @@
+/* The title for the settings to change default model for conversations */
+"aichat.advancedSettingsDefaultModelTitle" = "Standardmodell";
+
+/* The title for the header for adjusting leo ai settings */
+"aichat.advancedSettingsHeaderTitle" = "Leo er en AI-basert smart assistent – bygget inn i nettleseren.";
+
+/* The subtitle for the button which links purchase to Brave Account */
+"aichat.advancedSettingsLinkPurchaseActionSubTitle" = "Koble App Store-kjøpet ditt til Brave-kontoen din for å bruke Leo på andre enheter.";
+
+/* The title for the button which links purchase to Brave Account */
+"aichat.advancedSettingsLinkPurchaseActionTitle" = "Koble kjøpet til Brave-kontoen din";
+
+/* The description for the settings to show Leo in Quick Search Engines Bar. */
+"aichat.advancedSettingsShowInQSEBarDescription" = "Aktiverer en snarvei til Leo i hurtigsøklinjen.";
+
+/* The title for the settings to show Leo in Quick Search Engines Bar. */
+"aichat.advancedSettingsShowInQSEBarTitle" = "Vis i hurtigsøklinjen";
+
+/* The title for the label showing the date which subscription expires */
+"aichat.advancedSettingsSubscriptionExpiresTitle" = "Utløper";
+
+/* The title for the header for subscription details */
+"aichat.advancedSettingsSubscriptionHeaderTitle" = "Abonnement";
+
+/* The title for the label showing status if the subscription */
+"aichat.advancedSettingsSubscriptionStatusTitle" = "Status";
+
+/* The title for the button that allows the user to view the App Store Receipt */
+"aichat.advancedSettingsViewReceiptTitle" = "Se App Store-kvittering";
+
+/* The subtitle for the error showing there is an error from App Store */
+"aichat.appStoreErrorSubTitle" = "Kunne ikke koble til App Store. Prøv igjen senere.";
+
+/* The title for the error showing there is an error from App Store */
+"aichat.appStoreErrorTitle" = "Feil i App Store";
+
+/* The button title for adding a new custom model */
+"aichat.byomAddNewModelButtonTitle" = "Legg til ny modell";
+
+/* The description shown when no custom models have been added, prompting the user to add one */
+"aichat.byomEmptyStateDescription" = "Start ved å trykke \"Legg til ny modell\"";
+
+/* The title shown when no custom models have been added yet */
+"aichat.byomEmptyStateTitle" = "Du har ikke koblet til en modell ennå";
+
+/* The section header description explaining the Bring Your Own Model feature with a link to learn more. The text inside square brackets should be translated. */
+"aichat.byomSectionHeaderDescription" = "Koble din egenhostet eller tredjeparts hostet LLM til Leo og bruk dem i nettleseren. Bruk hvilket som helst OpenAI Chat Protocol kompatibelt rammeverk som Ollama. [Les mer](https://support.brave.app/hc/en-us/articles/34070140231821-How-do-I-use-the-Bring-Your-Own-Model-BYOM-with-Brave-Leo)";
+
+/* The section header title for the Bring Your Own Model feature */
+"aichat.byomSectionHeaderTitle" = "Ta med din egen modell";
+
+/* The navigation bar title when adding a new custom model */
+"aichat.customModelFormAddModelNavigationTitle" = "Legg til modell";
+
+/* The footer text explaining when and how API keys are used */
+"aichat.customModelFormApiKeyFieldFooter" = "Noen serveringsrammeverk kan kreve autentiseringslegitimasjon, for eksempel en API-nøkkel eller et tilgangstoken. Disse vil bli lagt til forespørselsoverskriften.";
+
+/* The label for the API key field */
+"aichat.customModelFormApiKeyFieldTitle" = "API-nøkkel";
+
+/* The footer text explaining what context size means for AI models */
+"aichat.customModelFormContextSizeFieldFooter" = "Dette er det maksimale antallet tegn modellen kan behandle i en samtale. Jo større kontekst, jo lengre samtaler kan modellen ha. Ulike modeller takler ulike størrelser på kontekst.";
+
+/* The label for the context size field */
+"aichat.customModelFormContextSizeFieldTitle" = "Størrelse på kontekst";
+
+/* The placeholder text for generic detail input fields */
+"aichat.customModelFormDetailsFieldPlaceholder" = "Skriv inn detaljer";
+
+/* The button title for dismissing the keyboard */
+"aichat.customModelFormDoneButtonTitle" = "Ferdig";
+
+/* The navigation bar title when editing an existing custom model */
+"aichat.customModelFormEditModelNavigationTitle" = "Rediger modell";
+
+/* The alert title shown when saving a custom model fails */
+"aichat.customModelFormFailedToSaveAlertTitle" = "Kunne ikke lagre modell";
+
+/* The error message shown when the context size is invalid */
+"aichat.customModelFormInvalidContextSizeErrorMessage" = "Ugyldig kontekststørrelse";
+
+/* The error message shown when the server endpoint URL is invalid */
+"aichat.customModelFormInvalidUrlErrorMessage" = "Ugyldig nettadresse";
+
+/* The footer text explaining the purpose of the label field */
+"aichat.customModelFormLabelFieldFooter" = "Modellnavn som skal brukes i Leos modellvelger.";
+
+/* The placeholder text for the custom model name field */
+"aichat.customModelFormLabelFieldPlaceholder" = "Skriv inn en etikett for denne modellen";
+
+/* The label for the custom model name field in the custom model form */
+"aichat.customModelFormLabelFieldTitle" = "Etikett";
+
+/* The error message shown when trying to use a private network address, explaining why it's blocked and how to enable it */
+"aichat.customModelFormPrivateEndpointErrorMessage" = "Adressen du skrev inn ser ut til å være fra et privat nettverk – som rutteren eller en lokal server. Brave blokkerer disse automatisk for å beskytte deg, men du kan aktivere dem hvis du er sikker på at de er sikre.\n\nFor å fortsette, besøk brave://flags/, søk etter \"brave-ai-chat-allow-private-ips,\" og aktiver funksjonen. Når den er aktivert, kan du bruke private nettverksadresser i Leos innstillinger.";
+
+/* The footer text explaining what the model request name is used for and providing an example */
+"aichat.customModelFormRequestNameFieldFooter" = "Navnet på modellen slik det skal vises i forespørselen til serveringsrammeverket, dvs. phi-3 (merk at hvis dette navnet ikke samsvarer nøyaktig med det som forventes av server-rammeverket, vil ikke integrasjonen fungere).";
+
+/* The placeholder text for the model request name field */
+"aichat.customModelFormRequestNameFieldPlaceholder" = "Skriv inn navn på modellforespørsel";
+
+/* The label for the model request name field */
+"aichat.customModelFormRequestNameFieldTitle" = "Navn på modellforespørsel";
+
+/* The indicator text shown next to required fields in forms */
+"aichat.customModelFormRequiredFieldIndicator" = "Påkrevd";
+
+/* The button title for saving a custom model */
+"aichat.customModelFormSaveButtonTitle" = "Lagre";
+
+/* The footer text explaining what the server endpoint is and providing an example URL for Ollama */
+"aichat.customModelFormServerEndpointFieldFooter" = "Nettadressen der rammeverket ditt søker etter forespørsler. Dersom du ikke er sikker, kan du sjekke dokumentasjonen om rammeverket. For Ollama er dette for eksempel alltid http://localhost:11434/v1/chat/completions. Brave proxyer ikke disse forespørslene – les personvernvillkårene til den valgte leverandøren.";
+
+/* The label for the server endpoint URL field */
+"aichat.customModelFormServerEndpointFieldTitle" = "Serverendepunkt";
+
+/* The footer text explaining what a system prompt is and noting the %datetime% placeholder */
+"aichat.customModelFormSystemPromptFieldFooter" = "Du kan skrive instruksjoner og/eller kontekst som veiledning for å få et bestemt tema eller en bestemt stil på svarene fra modellen. Lim inn %datetime% der du ønsker å sette inn nåværende dato og tidspunkt.";
+
+/* The label for the system prompt field */
+"aichat.customModelFormSystemPromptFieldTitle" = "Systemledetekst";
+
+/* The description text explaining what tools supports means */
+"aichat.customModelFormToolsSupportFieldDescription" = "Hvis denne modellen støtter funksjonsanrop/verktøybruk";
+
+/* The label for the tools support toggle */
+"aichat.customModelFormToolsSupportFieldTitle" = "Verktøystøtte";
+
+/* Warning message shown when user enters an HTTP (not HTTPS) endpoint */
+"aichat.customModelFormUnsafeEndpointWarning" = "Dette endepunktet er potensielt usikkert.";
+
+/* The description text explaining what vision support means with an example */
+"aichat.customModelFormVisionSupportFieldDescription" = "Hvis denne modellen tar bilde som inndata, f. eks. llama 3.2b Vision";
+
+/* The label for the vision support toggle */
+"aichat.customModelFormVisionSupportFieldTitle" = "Støtte for bilder";
+
+/* The button title for opening paywall screen */
+"aichat.goPremiumButtonTitle" = "Bruk premium";
+
+/* The message that shows in an alert, to let the user know the 'Leo' feature is disabled, and explains how to re-enable the feature. */
+"aichat.leoDisabledMessageDescription" = "Leo er for øyeblikket deaktivert via funksjonsflagg. For å aktivere Leo igjen, gå til brave://flags og aktiver den.";
+
+/* The title that shows in an alert when the Leo/AI-Chat feature is disabled. */
+"aichat.leoDisabledMessageTitle" = "Leo funksjonshemmet";
+
+/* The message that shows in an alert, to let the user know the 'Leo' feature is disabled in private browsing mode. */
+"aichat.leoDisabledPrivateBrowsingMessageDescription" = "Leo er for øyeblikket ikke tilgjengelig i privat modus. For å bruke Leo, må du deaktivere moduset og prøve igjen.";
+
+/* The title that shows in an alert when the Leo/AI-Chat is disabled due to the user being in private browsing mode. */
+"aichat.leoDisabledPrivateBrowsingMessageTitle" = "Leo er ikke tilgjengelig";
+
+/* The title of the advanced settings view */
+"aichat.leoNavigationTitle" = "Leo AI";
+
+/* The button title for managing subscriptions */
+"aichat.manageSubscriptionsButtonTitle" = "Administrer abonnementer";
+
+/* Title showing monthly subscription */
+"aichat.monthlySubscriptionTitle" = "Månedlig abonnement";
+
+/* The text which will be used to indicate period of payments like 10 / month */
+"aichat.paywallMonthlyPriceDividend" = "mnd";
+
+/* Title indicating monthly subscription */
+"aichat.paywallMontlySubscriptionTitle" = "Månedlig";
+
+/* The title for dismiss button when premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellDismissAction" = "Kanskje senere";
+
+/* The title for button when premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellPrimaryAction" = "Oppgrader";
+
+/* The title for premium upsell when paywall is triggered */
+"aichat.paywallPremiumUpsellTitle" = "Lås opp Leos fulle potensial med Premium:";
+
+/* The title of the button for action triggering purchase */
+"aichat.paywallPurchaseActionIntroOfferTitle" = "Prøv 7 dager gratis";
+
+/* The title of the button for action triggering purchase */
+"aichat.paywallPurchaseActionTitle" = "Oppgrader nå";
+
+/* The text displayed on the bottom of paywall screen which indicates subscriptions are auto renewable. */
+"aichat.paywallPurchaseDeepNote" = "Alle abonnementer fornyes automatisk, men kan avbestilles når som helst før fornyelsesdatoen.";
+
+/* The error description when in app purcahse is erroneous. */
+"aichat.paywallPurchaseErrorDescription" = "Kan ikke fullføre kjøpet. Vennligst prøv igjen, eller sjekk betalingsinformasjonen din på Apple og prøv igjen.";
+
+/* The subtitle for premium upseel when rate limit is shown after sending a message */
+"aichat.paywallRateLimitSubTitle" = "Få tilgang til en høyere svarrate ved å abonnere på Premium, eller prøv på nytt senere.";
+
+/* The title for premium upseel when rate limit is shown after sending a message */
+"aichat.paywallRateLimitTitle" = "Svargrensen er nådd";
+
+/* The subtitle accuracy entry in paywall upsell screen */
+"aichat.paywallUpsellAccuracyTopicSubTitle" = "Få mer presise svar og mer nyanserte samtaler.";
+
+/* The title accuracy entry in paywall upsell screen */
+"aichat.paywallUpsellAccuracyTopicTitle" = "Fortsett med samme tema";
+
+/* The subtitle chat length entry in paywall upsell screen */
+"aichat.paywallUpsellChatLengthTopicSubTitle" = "Utvid svargrensene for å ha lengre samtaler.";
+
+/* The title chat length entry in paywall upsell screen */
+"aichat.paywallUpsellChatLengthTopicTitle" = "Hold samtalen i gang";
+
+/* The subtitle creativity entry in paywall upsell screen */
+"aichat.paywallUpsellCreativityTopicSubTitle" = "Få tilgang til modeller som er bedre egnet for kreative oppgaver og innholdsgenerering.";
+
+/* The title creativity entry in paywall upsell screen */
+"aichat.paywallUpsellCreativityTopicTitle" = "Få utløp for kreativiteten";
+
+/* The subtitle model type entry in paywall upsell screen */
+"aichat.paywallUpsellModelTypeTopicSubTitle" = "Prioritert tilgang til kraftige modeller med forskjellige evner.";
+
+/* The title model type entry in paywall upsell screen */
+"aichat.paywallUpsellModelTypeTopicTitle" = "Utforsk ulike AI-modeller";
+
+/* The title for paywall view */
+"aichat.paywallViewTitle" = "Leo Premium";
+
+/* The text which will be used to indicate period of payments like 150 / year */
+"aichat.paywallYearlyPriceDividend" = "år";
+
+/* The description indicating how valuable the yearly subscription is, compared to purchasing monthly */
+"aichat.paywallYearlySubscriptionDescription" = "BESTE VERDI";
+
+/* Title indicating yearly subscription */
+"aichat.paywallYearlySubscriptionTitle" = "Ett år";
+
+/* The title of the badge where a model which can be used limited */
+"aichat.premiumModelStatusTitle" = "Premium";
+
+/* Title showing premium subscription - not determined monthly por yearly */
+"aichat.premiumSubscriptionTitle" = "Premium-abonnement";
+
+/* The title for the button where it triggers reset leo data */
+"aichat.resetLeoDataActionTitle" = "Tilbakestill og tøm alle Leo-data";
+
+/* The title of a button that will reset data for leo */
+"aichat.resetLeoDataAlertButtonTitle" = "Tilbakestill";
+
+/* The description for the error whre leo data reset */
+"aichat.resetLeoDataErrorDescription" = "Er du sikker på at du vil tilbakestille og tømme alle Leo-data?";
+
+/* The title for the error whre leo data reset */
+"aichat.resetLeoDataErrorTitle" = "Tilbakestill Leo-data";
+
+/* The button title for restoring ai-app purchse for Leo. */
+"aichat.restorePaywallButtonTitle" = "Gjenopprett";
+
+/* Title showing yearly subscription - annual */
+"aichat.yearlySubscriptionTitle" = "Årsabonnement";
+

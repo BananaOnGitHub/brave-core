@@ -1,0 +1,13 @@
+diff --git a/ios/web/web_state/web_state_impl_realized_web_state.mm b/ios/web/web_state/web_state_impl_realized_web_state.mm
+index 1880d96d50f2edfc166bf1b2952506b54ba66cb1..1bc971c6232e651c72019f82df0241cfff0a9d49 100644
+--- a/ios/web/web_state/web_state_impl_realized_web_state.mm
++++ b/ios/web/web_state/web_state_impl_realized_web_state.mm
+@@ -1136,7 +1136,7 @@ std::unique_ptr<WebUIIOS> WebStateImpl::RealizedWebState::CreateWebUIIOS(
+   if (!factory) {
+     return nullptr;
+   }
+-  std::unique_ptr<WebUIIOS> web_ui = std::make_unique<WebUIIOSImpl>(owner_);
++  std::unique_ptr<WebUIIOS> web_ui = std::make_unique<WebUIIOSImpl>(owner_, url.GetHost());
+   auto controller = factory->CreateWebUIIOSControllerForURL(web_ui.get(), url);
+   if (!controller) {
+     return nullptr;

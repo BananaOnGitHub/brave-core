@@ -1,0 +1,13 @@
+diff --git a/content/browser/webui/web_ui_data_source_impl.cc b/content/browser/webui/web_ui_data_source_impl.cc
+index f34f58365ec88cdbfda66b739263b80a0fa5f7f4..f381e14497ffe67b5999f2a97745d523591658c1 100644
+--- a/content/browser/webui/web_ui_data_source_impl.cc
++++ b/content/browser/webui/web_ui_data_source_impl.cc
+@@ -361,7 +361,7 @@ void WebUIDataSourceImpl::OverrideContentSecurityPolicy(
+     network::mojom::CSPDirectiveName directive,
+     const std::string& value) {
+   CHECK(!resources_frozen_);
+-  csp_overrides_.insert_or_assign(directive, value);
++  csp_overrides_.insert_or_assign(directive, GetBraveTrustedTypesValue(directive, value));
+ }
+ 
+ void WebUIDataSourceImpl::OverrideCrossOriginOpenerPolicy(

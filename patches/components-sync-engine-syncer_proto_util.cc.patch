@@ -1,0 +1,12 @@
+diff --git a/components/sync/engine/syncer_proto_util.cc b/components/sync/engine/syncer_proto_util.cc
+index 9528970986fc67c4222165d9fbe9d8ede7a72295..32005de08cac399f0a4f93f8743a25c0febe35ff 100644
+--- a/components/sync/engine/syncer_proto_util.cc
++++ b/components/sync/engine/syncer_proto_util.cc
+@@ -271,6 +271,7 @@ SyncerError SyncerProtoUtil::HandleClientToServerMessageResponse(
+ 
+   SyncProtocolError sync_protocol_error =
+       GetProtocolErrorFromResponse(response, cycle->context());
++  BRAVE_SYNCER_PROTO_UTIL_POST_CLIENT_TO_SERVER_MESSAGE
+ 
+   // Inform the delegate of the error we got.
+   cycle->delegate()->OnSyncProtocolError(sync_protocol_error);

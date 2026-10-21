@@ -1,0 +1,20 @@
+diff --git a/components/browser_ui/site_settings/android/BUILD.gn b/components/browser_ui/site_settings/android/BUILD.gn
+index 273fb740be3f97fdcd946a6f31528244d0e39fda..6af485297b4de97a15c6c5914b39a482c093d5bc 100644
+--- a/components/browser_ui/site_settings/android/BUILD.gn
++++ b/components/browser_ui/site_settings/android/BUILD.gn
+@@ -111,6 +111,7 @@ android_library("java") {
+     "java/src/org/chromium/components/browser_ui/site_settings/WebsitePreferenceBridge.java",
+     "java/src/org/chromium/components/browser_ui/site_settings/WebsiteRowPreference.java",
+   ]
++  sources += brave_components_browser_ui_site_settings_java_sources
+ 
+   resources_package = "org.chromium.components.browser_ui.site_settings"
+   deps = [
+@@ -155,6 +156,7 @@ android_library("java") {
+     "//ui/android:ui_utils_java",
+     "//url:gurl_java",
+   ]
++  deps += brave_components_browser_ui_site_settings_java_deps
+   srcjar_deps = [
+     ":site_settings_jni_headers",
+     "//components/content_settings/android:java_pref_names_srcjar",

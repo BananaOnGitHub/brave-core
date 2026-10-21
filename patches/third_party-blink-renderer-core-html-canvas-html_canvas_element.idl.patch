@@ -1,0 +1,13 @@
+diff --git a/third_party/blink/renderer/core/html/canvas/html_canvas_element.idl b/third_party/blink/renderer/core/html/canvas/html_canvas_element.idl
+index 14667ddbac868271fc08c244507932191f8b618b..ecb18a7ea41ab7f756af4d6e3973ed4ecc456848 100644
+--- a/third_party/blink/renderer/core/html/canvas/html_canvas_element.idl
++++ b/third_party/blink/renderer/core/html/canvas/html_canvas_element.idl
+@@ -51,7 +51,7 @@
+     [RuntimeEnabled=CanvasDrawElement, RaisesException] void updateElementGeometry((Element or ElementImage) element, optional UpdateElementGeometryOptions options = {});
+     [RuntimeEnabled=CanvasDrawElement] void clearElementGeometry((Element or ElementImage) element);
+ 
+-    [MeasureAs=CanvasToDataURL, RaisesException] DOMString toDataURL(optional DOMString type = "image/png", optional any quality);
++    [CallWith=ScriptState, MeasureAs=CanvasToDataURL, RaisesException] DOMString toDataURL(optional DOMString type = "image/png", optional any quality);
+ 
+     [MeasureAs=CanvasToBlob, RaisesException] void toBlob(BlobCallback _callback, optional DOMString type = "image/png", optional any quality);
+ 

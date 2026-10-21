@@ -1,0 +1,14 @@
+# Copyright (c) 2026 The Brave Authors. All rights reserved.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this file,
+# You can obtain one at https://mozilla.org/MPL/2.0/.
+
+substitutions:
+  - description: |-
+      Keep the window's UnownedUserDataHost.
+
+      Brave's window feature checks look up the window's VerticalTabController
+      through this host when they run.
+    add_to_protected:
+      class_name: WindowFeatureController
+      code: 'raw_ptr<ui::UnownedUserDataHost> unowned_user_data_host_;'

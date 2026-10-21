@@ -1,0 +1,21 @@
+diff --git a/config/gni/devtools_grd_files.gni b/config/gni/devtools_grd_files.gni
+index 90c2bd6fbf2f888fef7d5103a8c0f3acc35f54f1..eefd99e3d9d0195730a67d61e8ad375ad9101165 100644
+--- a/config/gni/devtools_grd_files.gni
++++ b/config/gni/devtools_grd_files.gni
+@@ -9,6 +9,8 @@
+ # BUILD.gn these lists are used to ensure that no files
+ # are missed from the GRD.
+ 
++import("//brave/third_party/devtools-frontend/src/config/gni/sources.gni")
++
+ grd_files_bundled_sources = [
+   "front_end/Images/3d-center.svg",
+   "front_end/Images/3d-pan.svg",
+@@ -2847,6 +2849,7 @@ grd_files_unbundled_sources = [
+   "front_end/ui/visual_logging/LoggingState.js",
+   "front_end/ui/visual_logging/NonDomState.js",
+ ]
++grd_files_unbundled_sources += brave_grd_files_unbundled_sources
+ 
+ # Confirm that there is no overlap between the two lists.
+ _grd_files_bundled_sources =

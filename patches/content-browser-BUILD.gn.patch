@@ -1,0 +1,36 @@
+diff --git a/content/browser/BUILD.gn b/content/browser/BUILD.gn
+index 3162721b67d5b744c2c1d7021656a862eea2c2c5..f57f0ad3aed3f3f6420c5311e15f112d18d3e808 100644
+--- a/content/browser/BUILD.gn
++++ b/content/browser/BUILD.gn
+@@ -2,6 +2,7 @@
+ # Use of this source code is governed by a BSD-style license that can be
+ # found in the LICENSE file.
+ 
++import("//brave/content/browser/sources.gni")
+ import("//base/allocator/partition_allocator/partition_alloc.gni")
+ import("//build/buildflag_header.gni")
+ import("//build/config/compiler/pgo/pgo.gni")
+@@ -383,6 +384,7 @@ source_set("browser") {
+     "//v8",
+     "//v8:v8_version",
+   ]
++  deps += brave_content_browser_deps
+ 
+   public_deps = [
+     "//base",
+@@ -2381,6 +2383,7 @@ source_set("browser") {
+     "worker_host/worker_util.cc",
+     "worker_host/worker_util.h",
+   ]
++  sources += brave_content_browser_sources
+ 
+   if (is_android) {
+     sources += [
+@@ -3653,6 +3656,7 @@ group("for_content_tests") {
+     "//content/test/*",
+     "//content/web_test:web_test_browser",
+   ]
++  visibility += brave_content_browser_for_content_tests_visibility
+   if (!is_component_build) {
+     public_deps = [ ":browser" ]
+   } else {
