@@ -1337,9 +1337,9 @@
             alwaysOutOfDate = 1;
             buildActionMask = 2147483647;
             files = ();
-            inputPaths = ("$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)", "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)");
+            inputPaths = ("$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)", "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)", "$(PROJECT_DIR)/../../tor/Harness/strip_static_tor_bundle.py");
             name = "Remove static Tor bundle";
-            outputPaths = ();
+            outputPaths = ("$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/tor.framework");
             runOnlyForDeploymentPostprocessing = 0;
             shellPath = /bin/sh;
             shellScript = "python3 \"${PROJECT_DIR}/../../tor/Harness/strip_static_tor_bundle.py\" \"${TARGET_BUILD_DIR}/${WRAPPER_NAME}\"\n";

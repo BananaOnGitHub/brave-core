@@ -288,6 +288,10 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
     guard let fixupURL = URIFixup.getURL(text) else {
       return false
     }
+    if tabManager.selectedTab?.isTor == true {
+      finishEditingAndSubmit(fixupURL, isUserDefinedURLNavigation: isUserDefinedURLNavigation)
+      return true
+    }
 
     // check text is decentralized DNS supported domain
     if let decentralizedDNSHelper = self.decentralizedDNSHelperFor(url: fixupURL) {
@@ -716,6 +720,7 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
   }
 
   func topToolbarDidPressVoiceSearchButton(_ urlBar: TopToolbarView) {
+    guard tabManager.selectedTab?.isTor != true else { return }
     Task { @MainActor [self] in
       onPendingRequestUpdatedCancellable = speechRecognizer.$finalizedRecognition.sink {
         [weak self] finalizedRecognition in
@@ -924,6 +929,10 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
   }
 
   func presentMenu(from tabToolbar: ToolbarProtocol) {
+    if tabManager.selectedTab?.isTor == true {
+      presentTorMenu(from: tabToolbar.menuButton)
+      return
+    }
     /// The selected tab's url, or the extracted url from
     /// error page or reader mode page
     let selectedTabURL: URL? = {
@@ -1108,6 +1117,7 @@ extension BrowserViewController: ToolbarDelegate {
   }
 
   func tabToolbarDidPressShare() {
+    guard tabManager.selectedTab?.isTor != true else { return }
     navigationHelper.openShareSheet()
   }
 

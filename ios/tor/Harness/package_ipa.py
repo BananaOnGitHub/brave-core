@@ -24,7 +24,8 @@ def require(condition, message):
         raise RuntimeError(message)
 
 
-def package(source, output):
+def package(source, output, ipa_name="BraveTorPrototype-unsigned.ipa"):
+    require(Path(ipa_name).name == ipa_name and ipa_name.endswith(".ipa"), "Invalid IPA name")
     require(source.is_dir(), f"Missing app: {source}")
     require(not output.exists(), f"Refusing to replace output: {output}")
     output.mkdir(parents=True)
@@ -83,7 +84,7 @@ def package(source, output):
         "signing": "unsigned; requires a valid device provisioning profile",
         "physical_device_installation": "not verified",
     }
-    ipa = output / "BraveTorPrototype-unsigned.ipa"
+    ipa = output / ipa_name
     with zipfile.ZipFile(ipa, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in sorted((output / "Payload").rglob("*")):
             if path.is_file():
@@ -104,5 +105,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("app", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--ipa-name", default="BraveTorPrototype-unsigned.ipa")
     args = parser.parse_args()
-    package(args.app, args.output)
+    package(args.app, args.output, args.ipa_name)

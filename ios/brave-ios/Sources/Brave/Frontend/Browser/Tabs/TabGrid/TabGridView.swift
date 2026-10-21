@@ -599,6 +599,7 @@ struct TabGridView: View {
   }
 
   private func contextMenu(for tabs: [any TabState]) -> UIMenu? {
+    guard !tabs.contains(where: \.isTor) else { return nil }
     let tabIDs = Set(tabs.map(\.id))
     let isShredAvailable = viewModel.isShredAvailableForSelectedTabs(tabIDs)
     let allTabsAreSelected = editMode == .active && selectedTabs == tabIDs

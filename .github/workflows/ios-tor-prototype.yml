@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ios-tor-27-${{ github.head_ref || github.ref }}
+  group: ios-tor-integration-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions:

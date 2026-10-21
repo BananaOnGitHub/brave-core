@@ -13,6 +13,7 @@ extension BrowserViewController {
     tab: (any TabState)? = nil,
     source: SharePopoverSource
   ) {
+    guard (tab ?? tabManager.selectedTab)?.isTor != true else { return }
     presentShareActivity(
       url: url,
       tab: tab,

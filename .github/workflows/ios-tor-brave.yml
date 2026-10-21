@@ -1,0 +1,80 @@
+name: Brave iOS with Tor
+on:
+  pull_request:
+    branches: ["prototype/ios-embedded-tor"]
+    paths: ["ios/**", ".github/workflows/ios-tor-brave.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brave-ios-tor-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  archive:
+    if: github.repository == 'BananaOnGitHub/brave-core'
+    runs-on: xcode-27
+    timeout-minutes: 360
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+    defaults:
+      run:
+        working-directory: src/brave
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: src/brave
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Prepare build tools and logs
+        run: |
+          mkdir -p ios/tor/.build/full-brave-logs
+          df -h .
+          node --version
+          npm install --global pnpm
+      - name: Initialize Chromium and Brave dependencies
+        timeout-minutes: 90
+        run: |
+          set -o pipefail
+          pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee ios/tor/.build/full-brave-logs/init.log
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          echo "$PWD/vendor/depot_tools" >> "$GITHUB_PATH"
+      - name: Build device BraveCore and bootstrap Swift resources
+        timeout-minutes: 180
+        run: |
+          set -o pipefail
+          pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --ninja j:4 2>&1 | tee ios/tor/.build/full-brave-logs/core.log
+          pnpm run ios_bootstrap
+      - name: Archive full Brave application
+        timeout-minutes: 75
+        run: |
+          set -o pipefail
+          xcodebuild -project ios/brave-ios/App/Client.xcodeproj -scheme Release -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/tor/.build/full-brave-derived -archivePath ios/tor/.build/BravePrivateTor.xcarchive CODE_SIGNING_ALLOWED=NO BASE_BUNDLE_ID=com.banana.brave.tor CURRENT_PROJECT_VERSION=6 archive 2>&1 | tee ios/tor/.build/full-brave-logs/archive.log
+          python3 ios/tor/Harness/package_ipa.py ios/tor/.build/BravePrivateTor.xcarchive/Products/Applications/Client.app ios/tor/.build/full-brave-package --ipa-name BravePrivateTor-unsigned.ipa
+      - name: Upload full Brave IPA directly
+        id: ipa
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          path: src/brave/ios/tor/.build/full-brave-package/BravePrivateTor-unsigned.ipa
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload full app package report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          path: src/brave/ios/tor/.build/full-brave-package/package-report.json
+          archive: false
+          if-no-files-found: error
+      - name: Save build logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Full-Brave-build-logs
+          path: src/brave/ios/tor/.build/full-brave-logs
+          if-no-files-found: warn
+      - name: Link full app download
+        env:
+          IPA_URL: ${{ steps.ipa.outputs.artifact-url }}
+        run: printf '[Download full Brave with Tor unsigned IPA](%s)\n' "$IPA_URL" >> "$GITHUB_STEP_SUMMARY"

@@ -5,6 +5,8 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let newTab = NSLocalizedString("Tor.newTab", bundle: .module, value: "New Tor tab", comment: "Open a private Tor tab")
+    public static let reload = NSLocalizedString("Tor.reload", bundle: .module, value: "Reload", comment: "Reload Tor page")
     public static let title = NSLocalizedString("Tor.title", bundle: .module, value: "Private with Tor", comment: "Tor tab group title")
     public static let waiting = NSLocalizedString("Tor.waiting", bundle: .module, value: "Waiting for a network…", comment: "Tor paused")
     public static let connecting = NSLocalizedString("Tor.connecting", bundle: .module, value: "Connecting through Tor…", comment: "Tor connecting")
