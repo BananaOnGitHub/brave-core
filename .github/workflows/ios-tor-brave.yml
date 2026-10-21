@@ -13,7 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  native:
+    uses: ./.github/workflows/ios-tor-prototype.yml
   archive:
+    needs: native
     if: github.repository == 'BananaOnGitHub/brave-core'
     runs-on: xcode-27
     timeout-minutes: 360

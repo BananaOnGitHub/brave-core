@@ -21,6 +21,14 @@ final class TorTimeZoneTests: XCTestCase {
     controlConfiguration.processPool = try XCTUnwrap(BraveTorProcessPoolForTimeZone("America/Chicago"))
     let control = WKWebView(frame: .zero, configuration: controlConfiguration)
     let browser = WKWebView(frame: .zero, configuration: configuration)
+    let ready = expectation(description: "Local documents ready")
+    ready.expectedFulfillmentCount = 2
+    let loader = LocalDocumentObserver { ready.fulfill() }
+    control.navigationDelegate = loader
+    browser.navigationDelegate = loader
+    control.loadHTMLString("<!doctype html><html><body></body></html>", baseURL: nil)
+    browser.loadHTMLString("<!doctype html><html><body></body></html>", baseURL: nil)
+    await fulfillment(of: [ready], timeout: 10)
     let chicago = try await control.callAsyncJavaScript(
       "return Intl.DateTimeFormat().resolvedOptions().timeZone;", arguments: [:], in: nil, contentWorld: .page
     )
@@ -63,6 +71,13 @@ final class TorTimeZoneTests: XCTestCase {
       "return Intl.DateTimeFormat().resolvedOptions().timeZone;", arguments: [:], in: nil, contentWorld: .page
     )
     XCTAssertEqual(unchanged as? String, "America/Chicago")
+    withExtendedLifetime(loader) {}
+  }
+
+  private final class LocalDocumentObserver: NSObject, WKNavigationDelegate {
+    let onFinish: () -> Void
+    init(onFinish: @escaping () -> Void) { self.onFinish = onFinish }
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { onFinish() }
   }
 }
 #endif

@@ -11,10 +11,11 @@ import WebKit
 /// credentials for each tab. Route changes preserve all tab content.
 @MainActor
 public final class TorBrowsingSession: NSObject {
-  public static let shared = TorBrowsingSession(runtime: TorRuntime())
+  public static let shared = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: true)
   public enum State: Equatable { case waiting, connecting(Int), connected, unavailable }
   public private(set) var state: State = .waiting
   private let runtime: TorRuntime
+  private let automaticallyConnect: Bool
   private let gate = TorSOCKSGate()
   private let monitor = NWPathMonitor()
   private var policy = TorNetworkPolicy()
@@ -25,15 +26,16 @@ public final class TorBrowsingSession: NSObject {
   private var generation = 0
   private var transition: Task<Void, Never>?
 
-  public init(runtime: TorRuntime) {
+  public init(runtime: TorRuntime, automaticallyConnect: Bool) {
     self.runtime = runtime
+    self.automaticallyConnect = automaticallyConnect
     super.init()
     appActive = UIApplication.shared.applicationState == .active
     monitor.pathUpdateHandler = { [weak self] path in
       MainActor.assumeIsolated {
         guard let self else { return }
-        let changed = policy.update(TorNetworkPath(path))
-        if changed { reconnect() } else { connectIfNeeded() }
+        let changed = self.policy.update(TorNetworkPath(path))
+        if changed { self.reconnect() } else { self.connectIfNeeded() }
       }
     }
     monitor.start(queue: .main)
@@ -91,7 +93,7 @@ public final class TorBrowsingSession: NSObject {
     }
   }
 
-  private func reconnect() {
+  public func reconnect() {
     pause()
     connectIfNeeded()
   }
@@ -100,7 +102,7 @@ public final class TorBrowsingSession: NSObject {
   @objc private func resume() { appActive = true; connectIfNeeded() }
 
   private func connectIfNeeded() {
-    guard sessionTask == nil, !clients.isEmpty, appActive, policy.canConnect else { return }
+    guard automaticallyConnect, sessionTask == nil, !clients.isEmpty, appActive, policy.canConnect else { return }
     let expected = generation
     let previous = transition
     publish(.connecting(0))

@@ -44,8 +44,13 @@ targets:
     platform: iOS
     sources:
       - ../Tests/BraveTorUITests
+      - TabContracts/Tests
     dependencies:
       - target: BraveTorPrototype
+      - target: WebTabContracts
+      - target: ContractBraveCore
+      - target: ContractBraveStrings
+      - target: ContractFaviconModels
       - package: BraveTor
         product: BraveTorUI
       - package: BraveTor
@@ -65,6 +70,55 @@ targets:
           - "$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)"
           - "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)"
         basedOnDependencyAnalysis: false
+  ContractBraveCore:
+    type: library.static
+    platform: iOS
+    sources: [TabContracts/BraveCore]
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: BraveCore
+        SWIFT_VERSION: "5.0"
+  ContractFaviconModels:
+    type: library.static
+    platform: iOS
+    sources: [TabContracts/FaviconModels]
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: FaviconModels
+        SWIFT_VERSION: "5.0"
+  ContractBraveStrings:
+    type: library.static
+    platform: iOS
+    sources:
+      - TabContracts/BraveStrings
+      - ../../brave-ios/Sources/BraveStrings/BraveStrings+Tor.swift
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: BraveStrings
+        SWIFT_VERSION: "5.0"
+  WebTabContracts:
+    type: library.static
+    platform: iOS
+    sources:
+      - TabContracts/Generated
+      - TabContracts/Web
+      - ../../brave-ios/Sources/Web/WebKit/TorTabState.swift
+      - ../../brave-ios/Sources/Web/WebKit/SafeJavaScript.swift
+      - ../../brave-ios/Sources/Web/TabObserver.swift
+      - ../../brave-ios/Sources/Web/TabDelegate.swift
+      - ../../brave-ios/Sources/Web/TabPolicyDecider.swift
+    dependencies:
+      - target: ContractBraveCore
+      - target: ContractFaviconModels
+      - target: ContractBraveStrings
+      - package: BraveTor
+        product: BraveTorUI
+      - package: BraveTor
+        product: BraveTor
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        OTHER_SWIFT_FLAGS: "$(inherited) -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature NonisolatedNonsendingByDefault"
 schemes:
   BraveTorPrototype:
     build:

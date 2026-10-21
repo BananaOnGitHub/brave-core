@@ -1,8 +1,10 @@
 name: iOS Tor prototype
 on:
   pull_request:
+    branches-ignore: ["prototype/ios-embedded-tor"]
     paths: ["ios/tor/**", "ios/brave-ios/**", ".github/workflows/ios-tor-prototype.yml"]
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: ios-tor-integration-${{ github.head_ref || github.ref }}
@@ -38,6 +40,7 @@ jobs:
         working-directory: ios/tor/Harness
         run: |
           python3 -m unittest -v test_strip_static_tor_bundle.py
+          python3 generate_tab_contracts.py
           brew install xcodegen
           xcodegen generate
       - name: Boot iOS simulator
@@ -52,10 +55,10 @@ jobs:
           fi
           xcrun simctl bootstatus "$simulator_id" -b
       - name: Test native WebKit protections
-        timeout-minutes: 10
+        timeout-minutes: 15
         working-directory: ios/tor/Harness
         run: |
-          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$TOR_SIMULATOR_ID" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO -resultBundlePath ../.build/TorPrototypeTests.xcresult test
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$TOR_SIMULATOR_ID" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 90 -resultBundlePath ../.build/TorPrototypeTests.xcresult test
       - name: Summarize native test results
         if: always()
         continue-on-error: true

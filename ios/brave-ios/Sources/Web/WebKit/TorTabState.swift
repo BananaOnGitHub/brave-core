@@ -105,6 +105,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         self.browser = browser
         proxy = TorWebViewProxy(browser)
         observe(browser)
+        browser.loadHTMLString("<!doctype html><html><body></body></html>", baseURL: nil)
         observers.forEach { $0.tabDidCreateWebView(self) }
         flushPendingRequest()
       } catch {
@@ -137,7 +138,10 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     if state == .connected { flushPendingRequest() }
   }
 
-  public var visibleURL: URL? { virtualURL ?? browser?.url }
+  public var visibleURL: URL? {
+    let url = virtualURL ?? browser?.url
+    return url?.absoluteString == "about:blank" ? nil : url
+  }
   public var visibleSecureContentState: SecureContentState {
     guard let browser, let url = lastCommittedURL else { return .unknown }
     return url.scheme == "https" ? (browser.hasOnlySecureContent ? .secure : .mixedContent) : .missingSSL
@@ -232,44 +236,62 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
       browser.observe(\.url) { [weak self] _, _ in
         MainActor.assumeIsolated {
           guard let self else { return }
-          virtualURL = nil
-          observers.forEach { $0.tabDidUpdateURL(self) }
+          self.virtualURL = nil
+          self.observers.forEach { $0.tabDidUpdateURL(self) }
         }
       },
       browser.observe(\.title) { [weak self] _, _ in
-        MainActor.assumeIsolated { guard let self else { return }; observers.forEach { $0.tabDidChangeTitle(self) } }
+        MainActor.assumeIsolated { guard let self else { return }; self.observers.forEach { $0.tabDidChangeTitle(self) } }
       },
       browser.observe(\.estimatedProgress) { [weak self] _, _ in
-        MainActor.assumeIsolated { guard let self else { return }; observers.forEach { $0.tabDidChangeLoadProgress(self) } }
+        MainActor.assumeIsolated { guard let self else { return }; self.observers.forEach { $0.tabDidChangeLoadProgress(self) } }
       },
       browser.observe(\.isLoading) { [weak self] browser, _ in
         MainActor.assumeIsolated {
           guard let self else { return }
-          observers.forEach { browser.isLoading ? $0.tabDidStartLoading(self) : $0.tabDidStopLoading(self) }
+          self.observers.forEach { browser.isLoading ? $0.tabDidStartLoading(self) : $0.tabDidStopLoading(self) }
         }
       },
       browser.observe(\.canGoBack) { [weak self] _, _ in
-        MainActor.assumeIsolated { guard let self else { return }; observers.forEach { $0.tabDidChangeBackForwardState(self) } }
+        MainActor.assumeIsolated { guard let self else { return }; self.observers.forEach { $0.tabDidChangeBackForwardState(self) } }
       },
       browser.observe(\.canGoForward) { [weak self] _, _ in
-        MainActor.assumeIsolated { guard let self else { return }; observers.forEach { $0.tabDidChangeBackForwardState(self) } }
+        MainActor.assumeIsolated { guard let self else { return }; self.observers.forEach { $0.tabDidChangeBackForwardState(self) } }
       },
     ]
   }
 
   public func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
     TorWebPolicy.applyPagePreferences(preferences, javaScriptEnabled: true)
-    guard !action.shouldPerformDownload, let url = action.request.url, TorDestination.isAllowed(url) else { return (.cancel, preferences) }
+    guard !action.shouldPerformDownload, let url = action.request.url else { return (.cancel, preferences) }
+    if url.absoluteString == "about:blank" || (url.absoluteString == "about:srcdoc" && action.targetFrame?.isMainFrame == false) {
+      return (.allow, preferences)
+    }
+    guard TorDestination.isAllowed(url) else { return (.cancel, preferences) }
+    let info = WebRequestInfo(
+      navigationType: WebNavigationType(rawValue: action.navigationType.rawValue) ?? .other,
+      isMainFrame: action.targetFrame?.isMainFrame ?? true,
+      isNewWindow: action.targetFrame == nil, isUserInitiated: action.navigationType == .linkActivated,
+      isCrossOriginFrame: !action.sourceFrame.isMainFrame, isCrossOriginWindow: false,
+      hasUserTappedRecently: action.navigationType == .linkActivated
+    )
+    for decider in deciders {
+      if await decider.tab(self, shouldAllowRequest: action.request, requestInfo: info) == .cancel { return (.cancel, preferences) }
+    }
     return (.allow, preferences)
   }
   public func webView(_ webView: WKWebView, decidePolicyFor response: WKNavigationResponse) async -> WKNavigationResponsePolicy {
     let mime = response.response.mimeType?.lowercased() ?? ""
     guard response.canShowMIMEType, !mime.hasPrefix("audio/"), !mime.hasPrefix("video/") else { return .cancel }
+    for decider in deciders {
+      if await decider.tab(self, shouldAllowResponse: response.response, responseInfo: .init(isForMainFrame: response.isForMainFrame)) == .cancel { return .cancel }
+    }
     if response.isForMainFrame { contentsMimeType = mime }
     return .allow
   }
   public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { observers.forEach { $0.tabDidStartNavigation(self) } }
   public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    guard webView.url?.absoluteString != "about:blank" else { return }
     previousCommittedURL = lastCommittedURL
     lastCommittedURL = webView.url
     observers.forEach { $0.tabDidCommitNavigation(self); $0.tabDidChangeVisibleSecurityState(self) }

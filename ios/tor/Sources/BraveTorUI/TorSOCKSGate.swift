@@ -106,12 +106,12 @@ final class TorSOCKSGate {
       self.upstream = upstream
       upstream.stateUpdateHandler = { [weak self] state in
         MainActor.assumeIsolated {
-          guard let self, !closed else { return }
+          guard let self, !self.closed else { return }
           switch state {
           case .ready:
-            pump(from: client, to: upstream)
-            pump(from: upstream, to: client)
-          case .failed, .cancelled: close()
+            self.pump(from: self.client, to: upstream)
+            self.pump(from: upstream, to: self.client)
+          case .failed, .cancelled: self.close()
           default: break
           }
         }
@@ -122,12 +122,12 @@ final class TorSOCKSGate {
     private func pump(from source: NWConnection, to destination: NWConnection) {
       source.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, _, end, error in
         MainActor.assumeIsolated {
-          guard let self, !closed else { return }
-          guard error == nil, let data, !data.isEmpty else { close(); return }
+          guard let self, !self.closed else { return }
+          guard error == nil, let data, !data.isEmpty else { self.close(); return }
           destination.send(content: data, completion: .contentProcessed { [weak self] error in
             MainActor.assumeIsolated {
-              guard let self, !closed else { return }
-              if error != nil || end { close() } else { pump(from: source, to: destination) }
+              guard let self, !self.closed else { return }
+              if error != nil || end { self.close() } else { self.pump(from: source, to: destination) }
             }
           })
         }

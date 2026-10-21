@@ -334,7 +334,7 @@ class TabManager: NSObject {
       Self.defaultConfiguration = Self.getNewConfiguration(isPrivate: false)
       Self.privateConfiguration = Self.getNewConfiguration(isPrivate: true)
     }
-    for tab in allTabs {
+    for tab in allTabs where !tab.isTor {
       if tab.isWebViewCreated {
         tab.deleteWebView()
       }
@@ -1395,10 +1395,13 @@ class TabManager: NSObject {
   }
 
   func getTabForURL(_ url: URL, isPrivate: Bool) -> (any TabState)? {
+    if isPrivate && privateBrowsingManager.isTorBrowsing {
+      return allTabs.first { $0.isTor && $0.visibleURL == url }
+    }
     assert(Thread.isMainThread)
 
     let tab = allTabs.filter {
-      guard let tabURL = $0.visibleURL, $0.isPrivate == isPrivate else {
+      guard !$0.isTor, let tabURL = $0.visibleURL, $0.isPrivate == isPrivate else {
         return false
       }
 
