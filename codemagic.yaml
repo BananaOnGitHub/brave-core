@@ -94,7 +94,7 @@ workflows:
             echo "Restored matching BraveCore frameworks"
           else
             # Non-official Release avoids requiring Brave's private service keys.
-            pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn is_official_build:false --gn symbol_level:0 --ninja j:4 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/core.log"
+            pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn is_official_build:false --gn symbol_level:0 --ninja j:2 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/core.log"
           fi
           for item in BraveCore.xcframework NalaAssets.xcframework PartitionAllocSupport.xcframework args.xcconfig; do
             test -e "$core_output/$item"
