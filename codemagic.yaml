@@ -7,7 +7,6 @@ workflows:
     working_directory: ci-work/src/brave
     environment:
       xcode: "27.0"
-      node: "24.19.0"
       vars:
         CIPD_PARALLEL_DOWNLOADS: "1"
         CIPD_MAX_THREADS: "2"
@@ -25,8 +24,23 @@ workflows:
           mkdir -p "$CM_BUILD_DIR/artifacts/logs" "$CM_BUILD_DIR/ci-work/src"
           df -h "$CM_BUILD_DIR"
           xcodebuild -version
-          node --version
-          npm install --global pnpm@12.14.0
+          # Install a job-local runtime instead of relying on the image's Node selection.
+          node_download_dir="$(mktemp -d "$CM_BUILD_DIR/.node-download.XXXXXX")"
+          node_archive="node-v24.19.0-darwin-arm64.tar.gz"
+          curl --fail --location --retry 3 "https://nodejs.org/dist/v24.19.0/$node_archive" -o "$node_download_dir/$node_archive"
+          curl --fail --location --retry 3 "https://nodejs.org/dist/v24.19.0/SHASUMS256.txt" -o "$node_download_dir/SHASUMS256.txt"
+          (
+            cd "$node_download_dir"
+            awk -v archive="$node_archive" '$2 == archive { print; found = 1 } END { if (!found) exit 1 }' SHASUMS256.txt | shasum -a 256 -c -
+          )
+          mkdir -p "$CM_BUILD_DIR/.ci-node"
+          tar -xzf "$node_download_dir/$node_archive" --strip-components=1 -C "$CM_BUILD_DIR/.ci-node"
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          npm install --global --prefix "$CM_BUILD_DIR/.ci-node" pnpm@12.14.0
+          test "$(pnpm --version)" = "12.14.0"
           revision="$(git rev-parse HEAD)"
           # Share local Git objects; keep Codemagic's original checkout intact.
           git clone --shared --no-checkout "$CM_BUILD_DIR" "$CM_BUILD_DIR/ci-work/src/brave"
@@ -38,6 +52,10 @@ workflows:
           #!/bin/bash
           set -euo pipefail
           unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
           swift test --disable-keychain --package-path ios/tor 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/tor-tests.log"
           python3 -m unittest discover -s ios/tor/Harness -p 'test_*.py' 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/helper-tests.log"
       - name: Initialize Chromium and Brave dependencies
@@ -45,6 +63,10 @@ workflows:
           #!/bin/bash
           set -euo pipefail
           unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
           revision="$(git rev-parse HEAD)"
           pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/init.log"
           test "$(git rev-parse HEAD)" = "$revision"
@@ -54,6 +76,10 @@ workflows:
           #!/bin/bash
           set -euo pipefail
           unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
           export PATH="$PWD/vendor/depot_tools:$PATH"
           core_key="$(python3 ios/tor/Harness/core_cache_key.py)"
           core_cache="$CM_BUILD_DIR/.codemagic-cache/BraveCore.tar"
@@ -85,6 +111,10 @@ workflows:
           #!/bin/bash
           set -euo pipefail
           unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
           export PATH="$PWD/vendor/depot_tools:$PATH"
           pnpm run ios_bootstrap 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/bootstrap.log"
           python3 - <<'PY'
@@ -103,6 +133,10 @@ workflows:
           #!/bin/bash
           set -euo pipefail
           unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
           export PATH="$PWD/vendor/depot_tools:$PATH"
           build_number="$((7 + ${BUILD_NUMBER:-0}))"
           xcodebuild -packageAuthorizationProvider netrc -project ios/brave-ios/App/Client.xcodeproj -scheme TorCIRelease -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/tor/.build/full-brave-derived -archivePath ios/tor/.build/BravePrivateTor.xcarchive CODE_SIGNING_ALLOWED=NO BASE_BUNDLE_ID=com.banana.brave.tor CURRENT_PROJECT_VERSION="$build_number" archive 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/archive.log"
