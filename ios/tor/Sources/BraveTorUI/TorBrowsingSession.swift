@@ -7,14 +7,15 @@ import Network
 import UIKit
 import WebKit
 
-/// One process-wide runtime, with independent ephemeral stores and SOCKS
-/// credentials for each tab. Route changes preserve all tab content.
+/// One process-wide runtime with independent ephemeral stores and optional
+/// per-tab SOCKS isolation. Route changes preserve all tab content.
 @MainActor
 public final class TorBrowsingSession: NSObject {
   public static let shared = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: true)
   public enum State: Equatable { case waiting, connecting(Int), connected, unavailable }
   public private(set) var state: State = .waiting
   private let runtime: TorRuntime
+  private let sharedIsolationID = UUID()
   private let automaticallyConnect: Bool
   private let gate = TorSOCKSGate()
   private let monitor = NWPathMonitor()
@@ -60,7 +61,13 @@ public final class TorBrowsingSession: NSObject {
     if clients.isEmpty { pause() }
   }
 
-  public func configuration(isolationID: UUID) async throws -> WKWebViewConfiguration {
+  func connectionIsolationID(for tabID: UUID, keepTabsSeparate: Bool) -> UUID {
+    keepTabsSeparate ? tabID : sharedIsolationID
+  }
+
+  public func configuration(
+    isolationID: UUID, keepTabsSeparate: Bool = true
+  ) async throws -> WKWebViewConfiguration {
     if configurationTask == nil {
       configurationTask = Task { [gate] in
         let endpoint = try await gate.start()
@@ -70,7 +77,8 @@ public final class TorBrowsingSession: NSObject {
     guard let configurationTask else { throw TorError.unavailable }
     let (endpoint, rules) = try await configurationTask.value
     return try TorWebPolicy.configuration(
-      endpoint: endpoint, rules: rules, isolationID: isolationID.uuidString,
+      endpoint: endpoint, rules: rules,
+      isolationID: connectionIsolationID(for: isolationID, keepTabsSeparate: keepTabsSeparate).uuidString,
       javaScriptEnabled: true
     )
   }

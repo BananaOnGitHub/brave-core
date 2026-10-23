@@ -543,7 +543,10 @@ class TabManager: NSObject {
 
   @discardableResult
   @MainActor func addTorTab(_ request: URLRequest? = nil, afterTab: (any TabState)? = nil) -> any TabState {
-    let tab = TorTabState(id: UUID(), profile: profile.offTheRecordProfile, session: .shared)
+    let tab = TorTabState(
+      id: UUID(), profile: profile.offTheRecordProfile, session: .shared,
+      keepTabsSeparate: Preferences.Privacy.keepTorTabsSeparate.value
+    )
     configureTab(tab, request: request, afterTab: afterTab, flushToDisk: false, zombie: false)
     return tab
   }

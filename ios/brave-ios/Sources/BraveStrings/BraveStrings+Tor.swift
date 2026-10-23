@@ -5,6 +5,36 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let keepTabsSeparate = NSLocalizedString(
+      "Tor.keepTabsSeparate", bundle: .module,
+      value: "Keep Tor tabs separate",
+      comment: "Tor connection isolation setting in Private Tabs"
+    )
+    public static let keepTabsSeparateOn = NSLocalizedString(
+      "Tor.keepTabsSeparateOn", bundle: .module,
+      value: "On (Recommended)",
+      comment: "Recommended per-tab Tor connection isolation option"
+    )
+    public static let keepTabsSeparateOnDescription = NSLocalizedString(
+      "Tor.keepTabsSeparateOnDescription", bundle: .module,
+      value: "Each tab uses a separate Tor connection to help prevent websites from linking your activity across tabs.",
+      comment: "Explanation of enabled Tor connection isolation"
+    )
+    public static let keepTabsSeparateOff = NSLocalizedString(
+      "Tor.keepTabsSeparateOff", bundle: .module,
+      value: "Off",
+      comment: "Shared Tor connections option"
+    )
+    public static let keepTabsSeparateOffDescription = NSLocalizedString(
+      "Tor.keepTabsSeparateOffDescription", bundle: .module,
+      value: "Tabs can share Tor connections. Websites may be able to link activity between tabs more easily.",
+      comment: "Explanation of disabled Tor connection isolation"
+    )
+    public static let keepTabsSeparateFooter = NSLocalizedString(
+      "Tor.keepTabsSeparateFooter", bundle: .module,
+      value: "Changes apply to new Tor tabs. Close and reopen existing Tor tabs to use the selected setting.",
+      comment: "When Tor connection isolation changes take effect"
+    )
     public static let newTab = NSLocalizedString(
       "Tor.newTab", bundle: .module,
       value: "New Tor tab",

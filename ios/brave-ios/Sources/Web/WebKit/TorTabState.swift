@@ -24,6 +24,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private let browserContainer = UIView()
   private let status = UILabel()
   private let session: TorBrowsingSession
+  private let keepTabsSeparate: Bool
   private var browser: WKWebView?
   private var creationTask: Task<Void, Never>?
   private var observations: [NSKeyValueObservation] = []
@@ -40,11 +41,15 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public private(set) var contentsMimeType: String?
   public private(set) var lastActiveTime: Date?
 
-  public init(id: UUID, profile: any Profile, session: TorBrowsingSession) {
+  public init(
+    id: UUID, profile: any Profile, session: TorBrowsingSession,
+    keepTabsSeparate: Bool = true
+  ) {
     precondition(profile.isOffTheRecord)
     self.id = id
     self.profile = profile
     self.session = session
+    self.keepTabsSeparate = keepTabsSeparate
     super.init()
     container.backgroundColor = .systemBackground
     status.font = .preferredFont(forTextStyle: .caption1)
@@ -90,9 +95,11 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
       registered = true
       session.attach(id: id) { [weak self] state in self?.connectionChanged(state) }
     }
-    creationTask = Task { [weak self, session, id] in
+    creationTask = Task { [weak self, session, id, keepTabsSeparate] in
       do {
-        let configuration = try await session.configuration(isolationID: id)
+        let configuration = try await session.configuration(
+          isolationID: id, keepTabsSeparate: keepTabsSeparate
+        )
         guard let self, !Task.isCancelled else { return }
         let browser = WKWebView(frame: .zero, configuration: configuration)
         browser.navigationDelegate = self

@@ -9,6 +9,37 @@ import XCTest
 
 @MainActor
 final class TorWebPolicyTests: XCTestCase {
+  func testConnectionIsolationCanBeSharedWithoutSharingWebsiteData() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let first = UUID()
+    let second = UUID()
+    XCTAssertEqual(session.connectionIsolationID(for: first, keepTabsSeparate: true), first)
+    XCTAssertEqual(session.connectionIsolationID(for: second, keepTabsSeparate: true), second)
+    let shared = session.connectionIsolationID(for: first, keepTabsSeparate: false)
+    XCTAssertEqual(shared, session.connectionIsolationID(for: second, keepTabsSeparate: false))
+    XCTAssertNotEqual(shared, first)
+    XCTAssertNotEqual(shared, second)
+    XCTAssertEqual(session.connectionIsolationID(for: first, keepTabsSeparate: true), first)
+    let nextSession = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    XCTAssertNotEqual(shared, nextSession.connectionIsolationID(for: first, keepTabsSeparate: false))
+
+    let firstConfiguration = try await session.configuration(
+      isolationID: first, keepTabsSeparate: false
+    )
+    let secondConfiguration = try await session.configuration(
+      isolationID: second, keepTabsSeparate: false
+    )
+    XCTAssertFalse(firstConfiguration.websiteDataStore.isPersistent)
+    XCTAssertFalse(secondConfiguration.websiteDataStore.isPersistent)
+    XCTAssertFalse(firstConfiguration.websiteDataStore === secondConfiguration.websiteDataStore)
+    XCTAssertFalse(
+      try XCTUnwrap(firstConfiguration.websiteDataStore.proxyConfigurations.first).allowFailover
+    )
+    XCTAssertFalse(
+      try XCTUnwrap(secondConfiguration.websiteDataStore.proxyConfigurations.first).allowFailover
+    )
+  }
+
   func testProtectionCompilationAndSeparateEphemeralStores() async throws {
     let rules = try await TorWebPolicy.compileRules()
     let endpoint = try TorEndpoint(listener: "127.0.0.1:9050")
