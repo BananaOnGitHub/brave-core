@@ -25,6 +25,8 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private let status = UILabel()
   private let session: TorBrowsingSession
   private let keepTabsSeparate: Bool
+  private var tabSession: TorTabSession?
+  private var creationGeneration = 0
   private var browser: WKWebView?
   private var creationTask: Task<Void, Never>?
   private var observations: [NSKeyValueObservation] = []
@@ -50,6 +52,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     self.profile = profile
     self.session = session
     self.keepTabsSeparate = keepTabsSeparate
+    self.tabSession = session.openTabSession(keepTabsSeparate: keepTabsSeparate)
     super.init()
     container.backgroundColor = .systemBackground
     status.font = .preferredFont(forTextStyle: .caption1)
@@ -73,6 +76,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   isolated deinit {
     creationTask?.cancel()
+    if let tabSession { session.closeTabSession(tabSession) }
     session.detach(id: id)
     observers.forEach { $0.tabWillBeDestroyed(self) }
   }
@@ -90,17 +94,19 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   public func createWebView() {
     guard browser == nil, creationTask == nil else { return }
+    let tabSession = self.tabSession ?? session.openTabSession(keepTabsSeparate: keepTabsSeparate)
+    self.tabSession = tabSession
+    creationGeneration += 1
+    let generation = creationGeneration
     protectionsUnavailable = false
     if !registered {
       registered = true
       session.attach(id: id) { [weak self] state in self?.connectionChanged(state) }
     }
-    creationTask = Task { [weak self, session, id, keepTabsSeparate] in
+    creationTask = Task { [weak self, session, tabSession] in
       do {
-        let configuration = try await session.configuration(
-          isolationID: id, keepTabsSeparate: keepTabsSeparate
-        )
-        guard let self, !Task.isCancelled else { return }
+        let configuration = try await session.configuration(for: tabSession)
+        guard let self, !Task.isCancelled, creationGeneration == generation else { return }
         let browser = WKWebView(frame: .zero, configuration: configuration)
         browser.navigationDelegate = self
         browser.uiDelegate = self
@@ -121,27 +127,39 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         observers.forEach { $0.tabDidCreateWebView(self) }
         flushPendingRequest()
       } catch {
-        self?.protectionsUnavailable = true
-        self?.status.text = Strings.Tor.utcUnavailable
-        self?.session.detach(id: id)
-        self?.registered = false
-        if let self { self.observers.forEach { $0.tabDidStopLoading(self) } }
+        guard let self, !Task.isCancelled, creationGeneration == generation else { return }
+        protectionsUnavailable = true
+        status.text = Strings.Tor.utcUnavailable
+        session.detach(id: id)
+        registered = false
+        observers.forEach { $0.tabDidStopLoading(self) }
       }
-      self?.creationTask = nil
+      if self?.creationGeneration == generation { self?.creationTask = nil }
     }
   }
 
   public func deleteWebView() {
+    creationGeneration += 1
     session.detach(id: id)
     registered = false
     creationTask?.cancel()
     creationTask = nil
     observers.forEach { $0.tabWillDeleteWebView(self) }
     observations.removeAll()
+    browser?.navigationDelegate = nil
+    browser?.uiDelegate = nil
     browser?.stopLoading()
     browser?.removeFromSuperview()
     browser = nil
     proxy = nil
+  }
+
+  /// Closing releases browsing data even when another object retains this tab
+  /// for undo. Recreating only the web view keeps the original browsing context.
+  public func close() {
+    deleteWebView()
+    if let tabSession { session.closeTabSession(tabSession) }
+    tabSession = nil
   }
 
   private func connectionChanged(_ state: TorBrowsingSession.State) {

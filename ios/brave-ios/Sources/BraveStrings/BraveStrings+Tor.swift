@@ -17,8 +17,8 @@ extension Strings {
     )
     public static let keepTabsSeparateOnDescription = NSLocalizedString(
       "Tor.keepTabsSeparateOnDescription", bundle: .module,
-      value: "Each tab uses a separate Tor connection to help prevent websites from linking your activity across tabs.",
-      comment: "Explanation of enabled Tor connection isolation"
+      value: "Each Tor tab keeps cookies and other website data separate and uses its own Tor connection. This helps prevent websites from linking activity across tabs.",
+      comment: "Explanation of isolated Tor website data and connections"
     )
     public static let keepTabsSeparateOff = NSLocalizedString(
       "Tor.keepTabsSeparateOff", bundle: .module,
@@ -27,12 +27,12 @@ extension Strings {
     )
     public static let keepTabsSeparateOffDescription = NSLocalizedString(
       "Tor.keepTabsSeparateOffDescription", bundle: .module,
-      value: "Tabs can share Tor connections. Websites may be able to link activity between tabs more easily.",
-      comment: "Explanation of disabled Tor connection isolation"
+      value: "Tor tabs share cookies, login sessions, other website data, and Tor connections. Activity may be easier to link across tabs and websites.",
+      comment: "Explanation of shared Tor website data and connections"
     )
     public static let keepTabsSeparateFooter = NSLocalizedString(
       "Tor.keepTabsSeparateFooter", bundle: .module,
-      value: "Changes apply to new Tor tabs. Close and reopen existing Tor tabs to use the selected setting.",
+      value: "Applies to new Tor tabs. Close and reopen existing tabs to change their setting. Shared data is cleared when the last tab using shared data is closed.",
       comment: "When Tor connection isolation changes take effect"
     )
     public static let newTab = NSLocalizedString(
@@ -82,7 +82,7 @@ extension Strings {
     )
     public static let privacyBody = NSLocalizedString(
       "Tor.privacyBody", bundle: .module,
-      value: "Tor connects automatically. These tabs use separate private sessions and UTC time. Network changes pause traffic while keeping your pages open.",
+      value: "Tor connects automatically. These tabs keep browsing data separate from other browsing modes and use UTC time. Network changes pause traffic while keeping your pages open.",
       comment: "Tor empty tab group explanation"
     )
     public static let limitations = NSLocalizedString(

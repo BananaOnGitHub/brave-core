@@ -41,9 +41,13 @@ public enum TorWebPolicy {
     endpoint: TorEndpoint, rules: WKContentRuleList, isolationID: String,
     javaScriptEnabled: Bool
   ) throws -> WKWebViewConfiguration {
-    guard let processPool = BraveTorUTCProcessPool() else { throw TorError.unavailable }
-    let configuration = WKWebViewConfiguration()
-    configuration.processPool = processPool
+    try configuration(
+      websiteDataStore: dataStore(endpoint: endpoint, isolationID: isolationID),
+      rules: rules, javaScriptEnabled: javaScriptEnabled
+    )
+  }
+
+  static func dataStore(endpoint: TorEndpoint, isolationID: String) -> WKWebsiteDataStore {
     let store = WKWebsiteDataStore.nonPersistent()
     var proxy = ProxyConfiguration(
       socksv5Proxy: .hostPort(host: .ipv4(.loopback), port: NWEndpoint.Port(rawValue: endpoint.port)!)
@@ -51,6 +55,19 @@ public enum TorWebPolicy {
     proxy.allowFailover = false
     proxy.applyCredential(username: isolationID, password: isolationID)
     store.proxyConfigurations = [proxy]
+    return store
+  }
+
+  static func configuration(
+    websiteDataStore store: WKWebsiteDataStore, rules: WKContentRuleList,
+    javaScriptEnabled: Bool
+  ) throws -> WKWebViewConfiguration {
+    guard !store.isPersistent, !store.proxyConfigurations.isEmpty,
+      store.proxyConfigurations.allSatisfy({ !$0.allowFailover }),
+      let processPool = BraveTorUTCProcessPool()
+    else { throw TorError.unavailable }
+    let configuration = WKWebViewConfiguration()
+    configuration.processPool = processPool
     configuration.websiteDataStore = store
     configuration.userContentController.add(rules)
     applyPagePreferences(

@@ -7,17 +7,44 @@ import Network
 import UIKit
 import WebKit
 
-/// One process-wide runtime with independent ephemeral stores and optional
-/// per-tab SOCKS isolation. Route changes preserve all tab content.
+/// Immutable browsing context chosen when a Tor tab opens. Close through its
+/// owning TorBrowsingSession when the tab closes, even if the tab is kept for undo.
+@MainActor
+public final class TorTabSession {
+  fileprivate let id = UUID()
+  fileprivate let ownerID: UUID
+  fileprivate let keepTabsSeparate: Bool
+  fileprivate var context: TorBrowsingContext?
+
+  var isolationID: UUID? { context?.isolationID }
+  var websiteDataStore: WKWebsiteDataStore? { context?.websiteDataStore }
+
+  fileprivate init(ownerID: UUID, keepTabsSeparate: Bool, context: TorBrowsingContext) {
+    self.ownerID = ownerID
+    self.keepTabsSeparate = keepTabsSeparate
+    self.context = context
+  }
+}
+
+@MainActor
+fileprivate final class TorBrowsingContext {
+  let isolationID = UUID()
+  var websiteDataStore: WKWebsiteDataStore?
+}
+
+/// One process-wide runtime. Storage/proxy contexts outlive web-view recreation
+/// but are retired when their last tab closes. Reconnects preserve tab content.
 @MainActor
 public final class TorBrowsingSession: NSObject {
   public static let shared = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: true)
   public enum State: Equatable { case waiting, connecting(Int), connected, unavailable }
   public private(set) var state: State = .waiting
   private let runtime: TorRuntime
-  private let sharedIsolationID = UUID()
+  private let ownerID = UUID()
+  private var sharedContext: TorBrowsingContext?
+  private var sharedTabSessions: Set<UUID> = []
   private let automaticallyConnect: Bool
-  private let gate = TorSOCKSGate()
+  private let gate: TorSOCKSGate
   private let monitor = NWPathMonitor()
   private var policy = TorNetworkPolicy()
   private var appActive = false
@@ -27,9 +54,14 @@ public final class TorBrowsingSession: NSObject {
   private var generation = 0
   private var transition: Task<Void, Never>?
 
-  public init(runtime: TorRuntime, automaticallyConnect: Bool) {
+  public convenience init(runtime: TorRuntime, automaticallyConnect: Bool) {
+    self.init(runtime: runtime, automaticallyConnect: automaticallyConnect, gate: TorSOCKSGate())
+  }
+
+  init(runtime: TorRuntime, automaticallyConnect: Bool, gate: TorSOCKSGate) {
     self.runtime = runtime
     self.automaticallyConnect = automaticallyConnect
+    self.gate = gate
     super.init()
     appActive = UIApplication.shared.applicationState == .active
     monitor.pathUpdateHandler = { [weak self] path in
@@ -61,13 +93,36 @@ public final class TorBrowsingSession: NSObject {
     if clients.isEmpty { pause() }
   }
 
-  func connectionIsolationID(for tabID: UUID, keepTabsSeparate: Bool) -> UUID {
-    keepTabsSeparate ? tabID : sharedIsolationID
+  public func openTabSession(keepTabsSeparate: Bool) -> TorTabSession {
+    let context: TorBrowsingContext
+    if keepTabsSeparate {
+      context = TorBrowsingContext()
+    } else {
+      context = sharedContext ?? TorBrowsingContext()
+      sharedContext = context
+    }
+    let tabSession = TorTabSession(
+      ownerID: ownerID, keepTabsSeparate: keepTabsSeparate, context: context
+    )
+    if !keepTabsSeparate { sharedTabSessions.insert(tabSession.id) }
+    return tabSession
   }
 
-  public func configuration(
-    isolationID: UUID, keepTabsSeparate: Bool = true
-  ) async throws -> WKWebViewConfiguration {
+  public func closeTabSession(_ tabSession: TorTabSession) {
+    guard tabSession.ownerID == ownerID, tabSession.context != nil else { return }
+    tabSession.context = nil
+    if !tabSession.keepTabsSeparate {
+      sharedTabSessions.remove(tabSession.id)
+      // Retire synchronously: cancelled creations and undo references must not
+      // make a later tab rejoin a session whose last tab has already closed.
+      if sharedTabSessions.isEmpty { sharedContext = nil }
+    }
+  }
+
+  public func configuration(for tabSession: TorTabSession) async throws -> WKWebViewConfiguration {
+    guard tabSession.ownerID == ownerID, let context = tabSession.context else {
+      throw TorError.unavailable
+    }
     if configurationTask == nil {
       configurationTask = Task { [gate] in
         let endpoint = try await gate.start()
@@ -76,10 +131,16 @@ public final class TorBrowsingSession: NSObject {
     }
     guard let configurationTask else { throw TorError.unavailable }
     let (endpoint, rules) = try await configurationTask.value
+    try Task.checkCancellation()
+    guard tabSession.context === context else { throw TorError.unavailable }
+    if context.websiteDataStore == nil {
+      context.websiteDataStore = TorWebPolicy.dataStore(
+        endpoint: endpoint, isolationID: context.isolationID.uuidString
+      )
+    }
+    guard let store = context.websiteDataStore else { throw TorError.unavailable }
     return try TorWebPolicy.configuration(
-      endpoint: endpoint, rules: rules,
-      isolationID: connectionIsolationID(for: isolationID, keepTabsSeparate: keepTabsSeparate).uuidString,
-      javaScriptEnabled: true
+      websiteDataStore: store, rules: rules, javaScriptEnabled: true
     )
   }
 

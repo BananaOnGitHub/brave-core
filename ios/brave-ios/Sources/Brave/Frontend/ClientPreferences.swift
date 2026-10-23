@@ -251,7 +251,7 @@ extension Preferences {
   }
 
   final public class Privacy {
-    /// Use separate Tor circuits for each newly created Tor tab.
+    /// Keep each new Tor tab's website data and circuits separate.
     public static let keepTorTabsSeparate = Option<Bool>(
       key: "privacy.keep-tor-tabs-separate",
       default: true

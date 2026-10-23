@@ -1153,7 +1153,7 @@ class TabManager: NSObject {
     let oldSelectedTab = selectedTab
 
     delegates.forEach { $0.get()?.tabManager(self, willRemoveTab: tab) }
-    if tab.isTor { tab.deleteWebView() }
+    if let torTab = tab as? TorTabState { torTab.close() }
 
     // The index of the tab in its respective tab grouping. Used to figure out which tab is next
     var currentTabs = tab.isTor ? allTabs.filter(\.isTor) : tabs(isPrivate: tab.isPrivate)
