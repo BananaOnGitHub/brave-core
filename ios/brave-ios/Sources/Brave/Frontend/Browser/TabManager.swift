@@ -956,13 +956,16 @@ class TabManager: NSObject {
     }
   }
 
-  /// Include every Tor tab that shares browsing data with a requested tab.
+  /// Close this website's Tor tabs across both storage modes.
   @MainActor func torTabsToShred(_ tabs: [any TabState]) -> [TorTabState] {
     let requested = tabs.compactMap { requested in
       allTabs.first(where: { $0 === requested }) as? TorTabState
     }
+    let domains = Set(requested.compactMap { $0.visibleURL?.urlToShred?.baseDomain })
     return allTabs.compactMap { $0 as? TorTabState }.filter { candidate in
-      requested.contains { $0 === candidate || $0.sharesBrowsingData(with: candidate) }
+      if requested.contains(where: { $0 === candidate }) { return true }
+      guard let domain = candidate.visibleURL?.urlToShred?.baseDomain else { return false }
+      return domains.contains(domain)
     }
   }
 
@@ -970,12 +973,14 @@ class TabManager: NSObject {
     let targets = torTabsToShred(tabs)
     let ids = Set(targets.map(\.id))
     guard !targets.isEmpty else { return [] }
-    // Close affected views before clearing their retired Tor stores.
+    let domains = Set(targets.compactMap { $0.visibleURL?.urlToShred?.baseDomain })
+    // A Tor store may contain data from earlier visits even when its current
+    // page is unrelated. Clear only the chosen sites in every live Tor store.
     var stores: [ObjectIdentifier: WKWebsiteDataStore] = [:]
-    for tab in targets {
+    for tab in allTabs.compactMap({ $0 as? TorTabState }) {
       if let store = tab.torDataStore { stores[ObjectIdentifier(store)] = store }
-      tab.close()
     }
+    for tab in targets { tab.close() }
     let wasBulkDeleting = isBulkDeleting
     isBulkDeleting = true
     removeTabs(targets)
@@ -984,14 +989,18 @@ class TabManager: NSObject {
       selectTab(addTorTab())
     }
     Task {
-      for store in stores.values {
-        await store.removeData(
-          ofTypes: WKWebsiteDataStore.allWebsiteDataTypesIncludingPrivate(),
-          modifiedSince: .distantPast
-        )
-      }
+      await clearTorSiteData(for: domains, in: Array(stores.values))
     }
     return ids
+  }
+
+  @MainActor func clearTorSiteData(
+    for domains: Set<String>, in stores: [WKWebsiteDataStore]
+  ) async {
+    guard !domains.isEmpty else { return }
+    for store in stores where !store.isPersistent {
+      await store.deleteDataRecords(forDomains: domains)
+    }
   }
 
   /// Shreds data for a set of tabs and returns tabs that are to be shredded/removed.

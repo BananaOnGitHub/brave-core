@@ -297,7 +297,7 @@ struct TabGridView: View {
           case .selectedTab:
             Strings.Shields.shredSiteDataConfirmationMessage
           }
-        Text(viewModel.mode == .tor ? message + "\n\n" + Strings.Tor.shredSharedDataExplanation : message)
+        Text(message)
       }
     )
     .overlay {

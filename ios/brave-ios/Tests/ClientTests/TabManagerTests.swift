@@ -7,6 +7,7 @@ import Preferences
 import Shared
 import UIKit
 import Web
+import WebKit
 import XCTest
 
 @testable import Brave
@@ -200,7 +201,7 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     return tab
   }
 
-  func testTorShredTargetsSharedCohortWithoutTouchingOtherModes() {
+  func testTorShredTargetsWebsiteAcrossModesAndPreservesUnrelatedTabs() {
     setPersistentPrivateMode(true)
     let regular = manager.addTestTab(isPrivate: false)
     let ordinaryPrivate = manager.addTestTab(isPrivate: true)
@@ -217,21 +218,53 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     let isolatedA = addTor(true)
     let sharedB = addTor(false)
     let isolatedB = addTor(true)
+    sharedA.setVirtualURL(URL(string: "https://example.com/first"))
+    isolatedA.setVirtualURL(URL(string: "https://sub.example.com/second"))
+    sharedB.setVirtualURL(URL(string: "https://other.net/"))
+    isolatedB.setVirtualURL(URL(string: "https://example.com.evil.net/"))
+    regular.setVirtualURL(URL(string: "https://example.com/"))
+    ordinaryPrivate.setVirtualURL(URL(string: "https://example.com/"))
     defer { [sharedA, sharedB, isolatedA, isolatedB].forEach { $0.close() } }
-    XCTAssertEqual(Set(manager.torTabsToShred([sharedA]).map(\.id)), [sharedA.id, sharedB.id])
-    XCTAssertEqual(Set(manager.torTabsToShred([isolatedA]).map(\.id)), [isolatedA.id])
+    XCTAssertEqual(Set(manager.torTabsToShred([sharedA]).map(\.id)), [sharedA.id, isolatedA.id])
+    XCTAssertEqual(Set(manager.torTabsToShred([isolatedA]).map(\.id)), [sharedA.id, isolatedA.id])
+    XCTAssertEqual(Set(manager.torTabsToShred([sharedA, isolatedB]).map(\.id)), [sharedA.id, isolatedA.id, isolatedB.id])
     XCTAssertTrue(manager.torTabsToShred([regular, ordinaryPrivate]).isEmpty)
     let affected = manager.shredTorTabs([sharedA])
-    XCTAssertEqual(affected, [sharedA.id, sharedB.id])
+    XCTAssertEqual(affected, [sharedA.id, isolatedA.id])
     XCTAssertFalse(sharedA.sharesBrowsingData(with: sharedB))
-    XCTAssertEqual(Set(manager.allTabs.map(\.id)), [regular.id, ordinaryPrivate.id, isolatedA.id, isolatedB.id])
-    XCTAssertEqual(manager.shredTorTabs([isolatedA]), [isolatedA.id])
+    XCTAssertEqual(Set(manager.allTabs.map(\.id)), [regular.id, ordinaryPrivate.id, sharedB.id, isolatedB.id])
+    XCTAssertTrue(manager.shredTorTabs([isolatedA]).isEmpty)
     XCTAssertTrue(manager.allTabs.contains { $0.id == isolatedB.id })
+  }
+
+  func testTorSiteDataDeletionPreservesOtherSitesAndUnrelatedStores() async throws {
+    let sharedStore = WKWebsiteDataStore.nonPersistent()
+    let isolatedStore = WKWebsiteDataStore.nonPersistent()
+    let ordinaryPrivateStore = WKWebsiteDataStore.nonPersistent()
+    for store in [sharedStore, isolatedStore, ordinaryPrivateStore] {
+      for domain in ["example.com", "other.net"] {
+        let cookie = try XCTUnwrap(HTTPCookie(properties: [
+          .name: "shred_test", .value: domain, .domain: domain, .path: "/",
+        ]))
+        await store.httpCookieStore.setCookie(cookie)
+      }
+    }
+    await manager.clearTorSiteData(for: ["example.com"], in: [sharedStore, isolatedStore])
+    for store in [sharedStore, isolatedStore] {
+      let cookies = await store.httpCookieStore.allCookies()
+      XCTAssertFalse(cookies.contains { $0.value == "example.com" })
+      XCTAssertTrue(cookies.contains { $0.value == "other.net" })
+    }
+    let ordinaryCookies = await ordinaryPrivateStore.httpCookieStore.allCookies()
+    XCTAssertTrue(ordinaryCookies.contains { $0.value == "example.com" })
+    XCTAssertTrue(ordinaryCookies.contains { $0.value == "other.net" })
   }
 
   func testTorShredMenusAllowSingleMultipleAndAllTabs() {
     let first = addOfflineTorTab()
     let second = addOfflineTorTab()
+    first.setVirtualURL(URL(string: "https://example.com/"))
+    second.setVirtualURL(URL(string: "https://other.net/"))
     defer { manager.allTabs.compactMap { $0 as? TorTabState }.forEach { $0.close() } }
     manager.selectTab(first)
     let grid = TabGridViewModel(

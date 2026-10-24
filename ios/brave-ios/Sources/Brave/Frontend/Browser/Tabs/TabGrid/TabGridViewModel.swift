@@ -192,7 +192,7 @@ class TabGridViewModel {
   }
 
   var isShredMenuVisible: Bool {
-    if mode == .tor { return !tabs.isEmpty }
+    if mode == .tor { return tabs.contains { $0.visibleURL?.isShredAvailable == true } }
     return isSelectedTabShredAvailable
       || tabManager.tabsForCurrentMode.contains(where: { $0.visibleURL?.isShredAvailable == true })
   }
@@ -201,13 +201,15 @@ class TabGridViewModel {
     guard let selectedTab = tabManager.selectedTab,
       selectedTab.isPrivate == isPrivateBrowsing
     else { return false }
-    if mode == .tor { return selectedTab.isTor }
+    if mode == .tor { return selectedTab.isTor && selectedTab.visibleURL?.isShredAvailable == true }
     guard !selectedTab.isTor else { return false }
     return selectedTab.visibleURL?.isShredAvailable == true
   }
 
   func isShredAvailableForSelectedTabs(_ tabs: Set<TabState.ID>) -> Bool {
-    if mode == .tor { return self.tabs.contains { tabs.contains($0.id) && $0.isTor } }
+    if mode == .tor {
+      return self.tabs.contains { tabs.contains($0.id) && $0.visibleURL?.isShredAvailable == true }
+    }
     let tabs = tabs.map({ tabManager[$0] })
     return tabs.contains(where: { $0?.visibleURL?.isShredAvailable == true })
   }

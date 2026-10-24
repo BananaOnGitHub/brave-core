@@ -5,11 +5,6 @@ import Foundation
 
 extension Strings {
   public enum Tor {
-    public static let shredSharedDataExplanation = NSLocalizedString(
-      "Tor.shredSharedDataExplanation", bundle: .module,
-      value: "Shredding closes the chosen Tor tabs and clears their browsing data. When Tor tabs share browsing data, all tabs in that shared session are shredded together.",
-      comment: "Tor shred confirmation explaining shared session scope"
-    )
     public static let keepTabsSeparate = NSLocalizedString(
       "Tor.keepTabsSeparate", bundle: .module,
       value: "Keep Tor tabs separate",
