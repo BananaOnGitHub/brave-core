@@ -127,7 +127,7 @@ struct TabGridView: View {
         if !viewModel.isPrivateTabsLocked {
           GeometryReader { proxy in
             ScrollView {
-              PrivateModeInfoView()
+              PrivateModeInfoView(isTor: viewModel.mode == .tor)
                 .padding(40)
                 .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
@@ -350,7 +350,7 @@ struct TabGridView: View {
       .keyboardShortcut("w", modifiers: [.command, .shift])
 
       Button {
-        viewModel.isPrivateBrowsing.toggle()
+        viewModel.mode = viewModel.isPrivateBrowsing ? .regular : .private
       } label: {
         Text(
           viewModel.isPrivateBrowsing
@@ -510,7 +510,7 @@ struct TabGridView: View {
 
       if !privateBrowsingOnly.value {
         TabGridModeSwitcher(
-          isPrivateBrowsing: $viewModel.isPrivateBrowsing,
+          mode: $viewModel.mode,
           regularTabCount: viewModel.regularTabCount
         )
         .scaledToFit()
@@ -599,6 +599,7 @@ struct TabGridView: View {
   }
 
   private func contextMenu(for tabs: [any TabState]) -> UIMenu? {
+    guard !tabs.contains(where: \.isTor) else { return nil }
     let tabIDs = Set(tabs.map(\.id))
     let isShredAvailable = viewModel.isShredAvailableForSelectedTabs(tabIDs)
     let allTabsAreSelected = editMode == .active && selectedTabs == tabIDs
@@ -756,7 +757,8 @@ private struct TabGridLegacyAddTabButtonStyle: ButtonStyle {
 // We must use a UISegmentedControl directly as you cannot change the height of a PickerView using
 // a segmented picker style
 private struct TabGridModeSwitcher: UIViewRepresentable {
-  @Binding var isPrivateBrowsing: Bool
+  @Binding var mode: TabBrowsingMode
+  private var isPrivateBrowsing: Bool { mode != .regular }
   var regularTabCount: Int
 
   private var tabCount: String {
@@ -814,6 +816,7 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
     let items: [Any] = [
       tabCount,
       Strings.TabGrid.privateBrowsingModeTitle,
+      Strings.Tor.title,
     ]
     let uiView: UISegmentedControl
     if #available(iOS 26.0, *) {
@@ -821,9 +824,10 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
     } else {
       uiView = UISegmentedControl(items: items)
     }
+    uiView.apportionsSegmentWidthsByContent = true
     uiView.addAction(
       .init(handler: { [unowned uiView] _ in
-        isPrivateBrowsing = uiView.selectedSegmentIndex == 1
+        mode = TabBrowsingMode(rawValue: uiView.selectedSegmentIndex) ?? .regular
       }),
       for: .valueChanged
     )
@@ -833,12 +837,12 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
 
   func updateUIView(_ uiView: UISegmentedControl, context: Context) {
     uiView.setTitle(tabCount, forSegmentAt: 0)
-    uiView.selectedSegmentIndex = isPrivateBrowsing ? 1 : 0
+    uiView.selectedSegmentIndex = mode.rawValue
     uiView.backgroundColor = UIColor(
       braveSystemName: isPrivateBrowsing ? .privateWindow10 : .neutral10
     )
     let titleFont = UIFont.preferredFont(
-      for: .subheadline,
+      for: .caption1,
       weight: .medium,
       traitCollection: .init(
         preferredContentSizeCategory: uiView.traitCollection.toolbarButtonContentSizeCategory
@@ -875,10 +879,11 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
 }
 
 private struct PrivateModeInfoView: View {
+  var isTor = false
   var body: some View {
     VStack(spacing: 48) {
       Label {
-        Text(Strings.TabGrid.privateBrowsingInfoTitle)
+        Text(isTor ? Strings.Tor.title : Strings.TabGrid.privateBrowsingInfoTitle)
           .foregroundStyle(.white)
       } icon: {
         Image(braveSystemName: "leo.product.private-window")
@@ -893,13 +898,13 @@ private struct PrivateModeInfoView: View {
         )
         BulletPointView(
           icon: "leo.antenna",
-          title: Strings.TabGrid.privateBrowsingInfoBulletTwoTitle,
-          description: Strings.TabGrid.privateBrowsingInfoBulletTwoBody
+          title: isTor ? Strings.Tor.privacyTitle : Strings.TabGrid.privateBrowsingInfoBulletTwoTitle,
+          description: isTor ? Strings.Tor.privacyBody : Strings.TabGrid.privateBrowsingInfoBulletTwoBody
         )
         BulletPointView(
           icon: "leo.product.vpn",
-          title: Strings.TabGrid.privateBrowsingInfoBulletThreeTitle,
-          description: Strings.TabGrid.privateBrowsingInfoBulletThreeBody
+          title: isTor ? Strings.Tor.title : Strings.TabGrid.privateBrowsingInfoBulletThreeTitle,
+          description: isTor ? Strings.Tor.limitations : Strings.TabGrid.privateBrowsingInfoBulletThreeBody
         )
       }
     }

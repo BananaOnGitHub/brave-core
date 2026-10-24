@@ -5,10 +5,11 @@
 import BraveTor
 import Foundation
 import Network
+import TorWebKit
 import WebKit
 
 @MainActor
-enum TorWebPolicy {
+public enum TorWebPolicy {
   // Onion Browser's Mysk mitigation uses the ping resource type for DNS prefetch.
   // Media is blocked until AVFoundation/streaming routes have been verified.
   static let contentRules = """
@@ -18,7 +19,7 @@ enum TorWebPolicy {
     ]
     """
 
-  static func compileRules() async throws -> WKContentRuleList {
+  public static func compileRules() async throws -> WKContentRuleList {
     // This local compilation has no cancellable WebKit API. Callers check their
     // lifecycle generation after the callback and before creating any web view.
     try await withCheckedThrowingContinuation { continuation in
@@ -36,11 +37,17 @@ enum TorWebPolicy {
     }
   }
 
-  static func configuration(
+  public static func configuration(
     endpoint: TorEndpoint, rules: WKContentRuleList, isolationID: String,
     javaScriptEnabled: Bool
-  ) -> WKWebViewConfiguration {
-    let configuration = WKWebViewConfiguration()
+  ) throws -> WKWebViewConfiguration {
+    try configuration(
+      websiteDataStore: dataStore(endpoint: endpoint, isolationID: isolationID),
+      rules: rules, javaScriptEnabled: javaScriptEnabled
+    )
+  }
+
+  static func dataStore(endpoint: TorEndpoint, isolationID: String) -> WKWebsiteDataStore {
     let store = WKWebsiteDataStore.nonPersistent()
     var proxy = ProxyConfiguration(
       socksv5Proxy: .hostPort(host: .ipv4(.loopback), port: NWEndpoint.Port(rawValue: endpoint.port)!)
@@ -48,6 +55,19 @@ enum TorWebPolicy {
     proxy.allowFailover = false
     proxy.applyCredential(username: isolationID, password: isolationID)
     store.proxyConfigurations = [proxy]
+    return store
+  }
+
+  static func configuration(
+    websiteDataStore store: WKWebsiteDataStore, rules: WKContentRuleList,
+    javaScriptEnabled: Bool
+  ) throws -> WKWebViewConfiguration {
+    guard !store.isPersistent, !store.proxyConfigurations.isEmpty,
+      store.proxyConfigurations.allSatisfy({ !$0.allowFailover }),
+      let processPool = BraveTorUTCProcessPool()
+    else { throw TorError.unavailable }
+    let configuration = WKWebViewConfiguration()
+    configuration.processPool = processPool
     configuration.websiteDataStore = store
     configuration.userContentController.add(rules)
     applyPagePreferences(
@@ -62,7 +82,7 @@ enum TorWebPolicy {
     return configuration
   }
 
-  static func applyPagePreferences(
+  public static func applyPagePreferences(
     _ preferences: WKWebpagePreferences, javaScriptEnabled: Bool
   ) {
     preferences.allowsContentJavaScript = javaScriptEnabled

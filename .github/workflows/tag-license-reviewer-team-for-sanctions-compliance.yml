@@ -1,8 +1,7 @@
 name: Tag license-reviewer team for Sanctions Compliance
 
 on:
-  pull_request_target:
-    types: [labeled]
+  workflow_dispatch:
 
 permissions:
   issues: write

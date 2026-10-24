@@ -9,8 +9,7 @@ name: Request netzenbot-reviewer
 # token, so this job checks nothing out and runs nothing the pull request supplies: the only input
 # is the pull request number from the event.
 on:
-  pull_request_target:
-    types: [opened, reopened]
+  workflow_dispatch:
 
 permissions:
   pull-requests: write

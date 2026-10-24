@@ -2105,6 +2105,7 @@ public class BrowserViewController: UIViewController {
 
   public func moveTab(tabId: UUID, to browser: BrowserViewController) {
     guard let tab = tabManager.allTabs.filter({ $0.id == tabId }).first,
+      !tab.isTor,
       let url = tab.visibleURL
     else {
       return

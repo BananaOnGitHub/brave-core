@@ -205,6 +205,8 @@ export class GitPatcher {
     // but everything else can.
     // First, find out which files the patch applies to, so we know
     // which files to reset.
+    // Bound Git subprocesses to avoid exhausting the runner's process limit.
+    const patchSets = []
     const prepOps = []
     this.logProgress(os.EOL + 'Getting patch data...')
     for (const patchData of patchesToApply) {
@@ -232,9 +234,13 @@ export class GitPatcher {
             return data
           }),
       )
+      if (prepOps.length === 16) {
+        patchSets.push(...(await Promise.all(prepOps)))
+        prepOps.length = 0
+      }
     }
 
-    const patchSets = await Promise.all(prepOps)
+    patchSets.push(...(await Promise.all(prepOps)))
     this.logProgress(os.EOL + 'Resetting...')
     // Reset all repo files
     const allRepoPaths = patchSets

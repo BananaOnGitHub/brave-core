@@ -1,8 +1,7 @@
 name: Compare Chromium versions
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
+  workflow_dispatch:
 
 permissions:
   pull-requests: write

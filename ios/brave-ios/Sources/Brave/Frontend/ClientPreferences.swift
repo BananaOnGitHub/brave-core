@@ -251,6 +251,11 @@ extension Preferences {
   }
 
   final public class Privacy {
+    /// Keep each new Tor tab's website data and circuits separate.
+    public static let keepTorTabsSeparate = Option<Bool>(
+      key: "privacy.keep-tor-tabs-separate",
+      default: true
+    )
     static let lockWithPasscode = Option<Bool>(key: "privacy.lock-with-passcode", default: false)
     public static let privateBrowsingLock = Option<Bool>(
       key: "privacy.private-browsing-lock",

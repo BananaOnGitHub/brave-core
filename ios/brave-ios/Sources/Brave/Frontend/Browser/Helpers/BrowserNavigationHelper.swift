@@ -159,6 +159,7 @@ class BrowserNavigationHelper {
   }
 
   func openShareSheet() {
+    guard bvc?.tabManager.selectedTab?.isTor != true else { return }
     guard let bvc = bvc else { return }
     dismissView()
 

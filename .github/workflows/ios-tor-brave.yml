@@ -1,0 +1,127 @@
+name: Brave iOS with Tor
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: brave-ios-tor-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    uses: ./.github/workflows/ios-tor-prototype.yml
+  archive:
+    needs: native
+    if: github.repository == 'BananaOnGitHub/brave-core'
+    runs-on: xcode-27
+    timeout-minutes: 360
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+      # Empty disables persistent CIPD archives; temporary downloads are removed after use.
+      CIPD_CACHE_DIR: ""
+      CIPD_PARALLEL_DOWNLOADS: "1"
+      CIPD_MAX_THREADS: "2"
+    defaults:
+      run:
+        working-directory: src/brave
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          path: src/brave
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Prepare build tools and logs
+        run: |
+          mkdir -p ios/tor/.build/full-brave-logs
+          df -h .
+          node --version
+          npm install --global pnpm
+          # These editor/coverage tools are not needed to build the device app.
+          printf '%s\n' 'projects_chrome_custom_vars={"checkout_clangd":false,"checkout_clang_coverage_tools":false}' > .env
+      - name: Identify backend sources and toolchain
+        id: core-key
+        run: python3 ios/tor/Harness/core_cache_key.py >> "$GITHUB_OUTPUT"
+      - name: Initialize Chromium and Brave dependencies
+        timeout-minutes: 90
+        run: |
+          set -o pipefail
+          pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee ios/tor/.build/full-brave-logs/init.log
+          test "$(git rev-parse HEAD)" = "${{ github.sha }}"
+          echo "$PWD/vendor/depot_tools" >> "$GITHUB_PATH"
+      - name: Report disk budget before compilation
+        run: |
+          df -h .
+          du -sh ../.git ../third_party .git node_modules
+      - name: Restore matching BraveCore frameworks
+        id: restore-core
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          key: ${{ steps.core-key.outputs.key }}
+          path: |
+            src/out/ios_Release_arm64/BraveCore.xcframework
+            src/out/ios_Release_arm64/NalaAssets.xcframework
+            src/out/ios_Release_arm64/PartitionAllocSupport.xcframework
+            src/out/ios_Release_arm64/args.xcconfig
+      - name: Build device BraveCore and bootstrap Swift resources
+        if: steps.restore-core.outputs.cache-hit != 'true'
+        timeout-minutes: 180
+        run: |
+          set -o pipefail
+          # Official builds require Brave's private service keys.
+          pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn is_official_build:false --gn symbol_level:0 --ninja j:4 2>&1 | tee ios/tor/.build/full-brave-logs/core.log
+      - name: Cache built BraveCore before archiving the app
+        if: steps.restore-core.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          key: ${{ steps.core-key.outputs.key }}
+          path: |
+            src/out/ios_Release_arm64/BraveCore.xcframework
+            src/out/ios_Release_arm64/NalaAssets.xcframework
+            src/out/ios_Release_arm64/PartitionAllocSupport.xcframework
+            src/out/ios_Release_arm64/args.xcconfig
+      - name: Prepare Swift resources and CI archive scheme
+        run: |
+          pnpm run ios_bootstrap
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          path = Path('ios/brave-ios/App/Client.xcodeproj/xcshareddata/xcschemes/Release.xcscheme')
+          tree = ET.parse(path)
+          action = tree.find('./BuildAction/PreActions/ExecutionAction/ActionContent')
+          action.set('scriptText', action.get('scriptText').rstrip() + ' --only_update_symlink\n')
+          tree.write(path.with_name('TorCIRelease.xcscheme'), encoding='utf-8', xml_declaration=True)
+          PY
+      - name: Archive full Brave application
+        timeout-minutes: 75
+        run: |
+          set -o pipefail
+          xcodebuild -project ios/brave-ios/App/Client.xcodeproj -scheme TorCIRelease -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/tor/.build/full-brave-derived -archivePath ios/tor/.build/BravePrivateTor.xcarchive CODE_SIGNING_ALLOWED=NO BASE_BUNDLE_ID=com.banana.brave.tor CURRENT_PROJECT_VERSION=6 archive 2>&1 | tee ios/tor/.build/full-brave-logs/archive.log
+          python3 ios/tor/Harness/package_ipa.py ios/tor/.build/BravePrivateTor.xcarchive/Products/Applications/Client.app ios/tor/.build/full-brave-package --ipa-name BravePrivateTor-unsigned.ipa
+      - name: Upload full Brave IPA directly
+        id: ipa
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          path: src/brave/ios/tor/.build/full-brave-package/BravePrivateTor-unsigned.ipa
+          archive: false
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload full app package report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          path: src/brave/ios/tor/.build/full-brave-package/package-report.json
+          archive: false
+          if-no-files-found: error
+      - name: Save build logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Full-Brave-build-logs
+          path: src/brave/ios/tor/.build/full-brave-logs
+          if-no-files-found: warn
+      - name: Link full app download
+        env:
+          IPA_URL: ${{ steps.ipa.outputs.artifact-url }}
+        run: printf '[Download full Brave with Tor unsigned IPA](%s)\n' "$IPA_URL" >> "$GITHUB_STEP_SUMMARY"

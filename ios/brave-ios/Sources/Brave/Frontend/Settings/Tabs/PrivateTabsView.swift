@@ -19,6 +19,7 @@ struct PrivateTabsView: View {
   @ObservedObject var privateBrowsingOnly = Preferences.Privacy.privateBrowsingOnly
   @ObservedObject var persistentPrivateBrowsing = Preferences.Privacy.persistentPrivateBrowsing
   @ObservedObject var privateBrowsingLock = Preferences.Privacy.privateBrowsingLock
+  @ObservedObject private var keepTorTabsSeparate = Preferences.Privacy.keepTorTabsSeparate
 
   var tabManager: TabManager?
   var askForAuthentication: (AuthViewType, ((Bool, LAError.Code?) -> Void)?) -> Void
@@ -114,6 +115,31 @@ struct PrivateTabsView: View {
           .disabled(true)
           .tint(Color(braveSystemName: .primitivePrimary40))
         }
+      }
+
+      Section {
+        Picker(selection: $keepTorTabsSeparate.value) {
+          LabelView(
+            title: Strings.Tor.keepTabsSeparateOn,
+            subtitle: Strings.Tor.keepTabsSeparateOnDescription
+          )
+          .tag(true)
+          LabelView(
+            title: Strings.Tor.keepTabsSeparateOff,
+            subtitle: Strings.Tor.keepTabsSeparateOffDescription
+          )
+          .tag(false)
+        } label: {
+          EmptyView()
+        }
+        .pickerStyle(.inline)
+        .tint(Color(braveSystemName: .primitivePrimary40))
+        .accessibilityLabel(Strings.Tor.keepTabsSeparate)
+        .accessibilityIdentifier("Tor.keepTabsSeparate")
+      } header: {
+        Text(Strings.Tor.keepTabsSeparate)
+      } footer: {
+        Text(Strings.Tor.keepTabsSeparateFooter)
       }
     }
     .navigationBarTitle(Strings.TabsSettings.privateTabsSettingsTitle)

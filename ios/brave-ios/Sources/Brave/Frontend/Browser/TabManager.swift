@@ -14,6 +14,7 @@ import Preferences
 import Shared
 import Web
 import WebKit
+import BraveTorUI
 import os.log
 
 protocol TabManagerDelegate: AnyObject {
@@ -86,6 +87,7 @@ class TabManager: NSObject {
   }
   var normalTabSelectedIndex: Int?
   var privateTabSelectedIndex: Int?
+  var torTabSelectedIndex: Int?
   var tempTabs: [any TabState]?
   private weak var rewards: BraveRewards?
   private var braveCore: BraveProfileController?
@@ -195,6 +197,7 @@ class TabManager: NSObject {
 
   // What the users sees displayed based on current private browsing mode
   var tabsForCurrentMode: [any TabState] {
+    if privateBrowsingManager.isTorBrowsing { return allTabs.filter(\.isTor) }
     let isPrivate = privateBrowsingManager.isPrivateBrowsing
     return tabs(isPrivate: isPrivate)
   }
@@ -213,6 +216,13 @@ class TabManager: NSObject {
   }
 
   func tabsForCurrentMode(for query: String? = nil) -> [any TabState] {
+    if privateBrowsingManager.isTorBrowsing {
+      return tabsForCurrentMode.filter {
+        guard let query, !query.isEmpty else { return true }
+        return $0.displayTitle.localizedCaseInsensitiveContains(query)
+          || ($0.visibleURL?.host?.localizedCaseInsensitiveContains(query) == true)
+      }
+    }
     if let query = query {
       let isPrivate = privateBrowsingManager.isPrivateBrowsing
       return tabs(isPrivate: isPrivate, query: query)
@@ -228,7 +238,7 @@ class TabManager: NSObject {
   private func tabs(isPrivate: Bool, query: String? = nil) -> [any TabState] {
     assert(Thread.isMainThread)
 
-    let allTabs = allTabs.filter { $0.isPrivate == isPrivate }
+    let allTabs = allTabs.filter { !$0.isTor && $0.isPrivate == isPrivate }
 
     if let query = query, !query.isEmpty {
       // Display title is the only data that will be present on every situation
@@ -324,7 +334,7 @@ class TabManager: NSObject {
       Self.defaultConfiguration = Self.getNewConfiguration(isPrivate: false)
       Self.privateConfiguration = Self.getNewConfiguration(isPrivate: true)
     }
-    for tab in allTabs {
+    for tab in allTabs where !tab.isTor {
       if tab.isWebViewCreated {
         tab.deleteWebView()
       }
@@ -363,6 +373,7 @@ class TabManager: NSObject {
     }
     // Convert the global mode to normal/private
     privateBrowsingManager.isPrivateBrowsing = tab?.isPrivate == true
+    privateBrowsingManager.isTorBrowsing = tab?.isTor == true
 
     // Make sure to wipe the private tabs if the user has the pref turned on
     if tab?.isPrivate == false
@@ -465,6 +476,7 @@ class TabManager: NSObject {
   @MainActor func addPopupForParentTab(
     _ parentTab: any TabState
   ) -> any TabState {
+    if parentTab.isTor { return addTorTab(afterTab: parentTab) }
     var wkConfiguration: WKWebViewConfiguration?
     if !FeatureList.kUseProfileWebViewConfiguration.enabled {
       wkConfiguration = parentTab.configuration
@@ -530,6 +542,16 @@ class TabManager: NSObject {
   }
 
   @discardableResult
+  @MainActor func addTorTab(_ request: URLRequest? = nil, afterTab: (any TabState)? = nil) -> any TabState {
+    let tab = TorTabState(
+      id: UUID(), profile: profile.offTheRecordProfile, session: .shared,
+      keepTabsSeparate: Preferences.Privacy.keepTorTabsSeparate.value
+    )
+    configureTab(tab, request: request, afterTab: afterTab, flushToDisk: false, zombie: false)
+    return tab
+  }
+
+  @discardableResult
   @MainActor func addTab(
     _ request: URLRequest? = nil,
     afterTab: (any TabState)? = nil,
@@ -540,6 +562,10 @@ class TabManager: NSObject {
     isPrivate: Bool
   ) -> any TabState {
     assert(Thread.isMainThread)
+
+    if afterTab?.isTor == true || (isPrivate && privateBrowsingManager.isTorBrowsing) {
+      return addTorTab(request, afterTab: afterTab)
+    }
 
     let tabId = id ?? UUID()
     var initialConfiguration: WKWebViewConfiguration?
@@ -567,9 +593,8 @@ class TabManager: NSObject {
   func moveTab(_ tab: some TabState, toIndex visibleToIndex: Int) {
     assert(Thread.isMainThread)
 
-    let currentTabs = tabs(isPrivate: tab.isPrivate)
-
-    let toTab = currentTabs[visibleToIndex]
+    let currentTabs = tab.isTor ? allTabs.filter(\.isTor) : tabs(isPrivate: tab.isPrivate)
+    guard let toTab = currentTabs[safe: visibleToIndex] else { return }
 
     guard let fromIndex = allTabs.firstIndex(where: { $0 === tab }),
       let toIndex = allTabs.firstIndex(where: { $0 === toTab })
@@ -599,8 +624,11 @@ class TabManager: NSObject {
       allTabs.first(where: { $0.id == id })
     }
     let isPrivate = tabsToMove.first?.isPrivate ?? false
+    let isTor = tabsToMove.first?.isTor ?? false
 
-    guard !tabsToMove.isEmpty, tabsToMove.allSatisfy({ $0.isPrivate == isPrivate }) else { return }
+    guard !tabsToMove.isEmpty,
+      tabsToMove.allSatisfy({ $0.isPrivate == isPrivate && $0.isTor == isTor })
+    else { return }
 
     // Save the selected tab before updating the tabs list
     let previouslySelectedTab = selectedTab
@@ -615,8 +643,8 @@ class TabManager: NSObject {
     }
 
     // Calculate insertion index in the current mode tabs after removals
-    let currentTabsAfterRemovals = tabsForCurrentMode
-    let insertionIndex = min(index, currentTabsAfterRemovals.count)
+    let currentTabsAfterRemovals = isTor ? allTabs.filter(\.isTor) : self.tabs(isPrivate: isPrivate)
+    let insertionIndex = max(0, min(index, currentTabsAfterRemovals.count))
 
     // Find the corresponding index in allTabs
     let adjustedIndex: Int
@@ -649,7 +677,7 @@ class TabManager: NSObject {
     {
       return
     }
-    let allTabIds = allTabs.compactMap { $0.id }
+    let allTabIds = allTabs.filter { !$0.isTor }.map(\.id)
     SessionTab.saveTabOrder(tabIds: allTabIds)
   }
 
@@ -664,10 +692,10 @@ class TabManager: NSObject {
     assert(Thread.isMainThread)
     var request = request
     let isPrivate = tab.isPrivate
-    let isPersistentTab =
+    let isPersistentTab = !tab.isTor && (
       !isPrivate
       || (isPrivate && !Preferences.Privacy.privateBrowsingOnly.value
-        && Preferences.Privacy.persistentPrivateBrowsing.value)
+        && Preferences.Privacy.persistentPrivateBrowsing.value))
 
     // WebKit can sometimes return a URL that isn't valid at all!
     // Do not allow configuring a tab with a Bookmarklet or Javascript URL
@@ -751,6 +779,7 @@ class TabManager: NSObject {
   }
 
   func saveTab(_ tab: some TabState, saveOrder: Bool = false) {
+    guard !tab.isTor else { return }
     if Preferences.Privacy.privateBrowsingOnly.value
       || (tab.isPrivate && !Preferences.Privacy.persistentPrivateBrowsing.value)
     {
@@ -1100,12 +1129,12 @@ class TabManager: NSObject {
       return
     }
 
-    if let url = tab.visibleURL {
+    if let url = tab.visibleURL, !tab.isTor {
       // Check if this data needs to be forgotten
       forgetDataIfNeeded(for: url, in: tab)
     }
 
-    if tab.isPrivate {
+    if tab.isPrivate && !tab.isTor {
       // Only when ALL tabs are dead, we clean up.
       // This is because other tabs share the same data-store.
       if tabsCountForMode(isPrivate: true) <= 1 {
@@ -1124,9 +1153,10 @@ class TabManager: NSObject {
     let oldSelectedTab = selectedTab
 
     delegates.forEach { $0.get()?.tabManager(self, willRemoveTab: tab) }
+    if let torTab = tab as? TorTabState { torTab.close() }
 
     // The index of the tab in its respective tab grouping. Used to figure out which tab is next
-    var currentTabs = tabs(isPrivate: tab.isPrivate)
+    var currentTabs = tab.isTor ? allTabs.filter(\.isTor) : tabs(isPrivate: tab.isPrivate)
 
     var tabIndex: Int = -1
     if let oldTab = oldSelectedTab {
@@ -1138,7 +1168,7 @@ class TabManager: NSObject {
 
     SessionTab.delete(tabId: tab.id)
 
-    currentTabs = tabs(isPrivate: tab.isPrivate)
+    currentTabs = tab.isTor ? allTabs.filter(\.isTor) : tabs(isPrivate: tab.isPrivate)
 
     // Let's select the tab to be selected next.
     if let oldTab = oldSelectedTab, tab !== oldTab {
@@ -1181,8 +1211,19 @@ class TabManager: NSObject {
 
     delegates.forEach { $0.get()?.tabManager(self, didRemoveTab: tab) }
 
+    if tab.isTor, currentTabs.isEmpty, isBulkDeleting, oldSelectedTab?.isTor == true {
+      selectTab(nil, previous: oldSelectedTab)
+      privateBrowsingManager.isPrivateBrowsing = true
+      privateBrowsingManager.isTorBrowsing = true
+      return
+    }
+
     if currentTabs.isEmpty {
-      addTab(isPrivate: tab.isPrivate)
+      if tab.isTor {
+        if !isBulkDeleting { addTorTab() }
+      } else {
+        addTab(isPrivate: tab.isPrivate)
+      }
     }
 
     // If the removed tab was selected, find the new tab to select.
@@ -1207,12 +1248,12 @@ class TabManager: NSObject {
   /// Removes all private tabs from the manager without notifying delegates.
   private func removeAllPrivateTabs() {
     // reset the selectedTabIndex if we are on a private tab because we will be removing it.
-    if selectedTab?.isPrivate == true {
+    if selectedTab?.isPrivate == true && selectedTab?.isTor != true {
       _selectedIndex = -1
     }
 
     allTabs.forEach { tab in
-      if tab.isPrivate {
+      if tab.isPrivate && !tab.isTor {
         tab.view.removeFromSuperview()
         removeAllBrowsingDataForTab(tab)
       }
@@ -1220,7 +1261,7 @@ class TabManager: NSObject {
 
     Self.nonPersistentDataStore = nil
 
-    allTabs = tabs(isPrivate: false)
+    allTabs = allTabs.filter { !$0.isPrivate || $0.isTor }
   }
 
   func removeAllBrowsingDataForTab(
@@ -1325,7 +1366,8 @@ class TabManager: NSObject {
   @MainActor func removeAllTabsForPrivateMode(isPrivate: Bool, isActiveTabIncluded: Bool = true) {
     isBulkDeleting = true
 
-    var tabsToDelete = tabs(isPrivate: isPrivate)
+    var tabsToDelete = privateBrowsingManager.isTorBrowsing && isPrivate
+      ? allTabs.filter(\.isTor) : tabs(isPrivate: isPrivate)
     if !isActiveTabIncluded, let selectedTab,
       let index = tabsToDelete.firstIndex(where: { $0.id == selectedTab.id })
     {
@@ -1358,10 +1400,13 @@ class TabManager: NSObject {
   }
 
   func getTabForURL(_ url: URL, isPrivate: Bool) -> (any TabState)? {
+    if isPrivate && privateBrowsingManager.isTorBrowsing {
+      return allTabs.first { $0.isTor && $0.visibleURL == url }
+    }
     assert(Thread.isMainThread)
 
     let tab = allTabs.filter {
-      guard let tabURL = $0.visibleURL, $0.isPrivate == isPrivate else {
+      guard !$0.isTor, let tabURL = $0.visibleURL, $0.isPrivate == isPrivate else {
         return false
       }
 
@@ -1377,6 +1422,7 @@ class TabManager: NSObject {
   }
 
   func preserveScreenshot(for tab: some TabState) {
+    guard !tab.isTor else { return }
     assert(Thread.isMainThread)
     if isRestoring { return }
 

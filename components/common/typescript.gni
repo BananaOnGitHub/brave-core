@@ -117,6 +117,8 @@ template("transpile_web_ui") {
 
   node_action(target_name) {
     script = "//brave/build/webpack/transpile-web-ui.ts"
+    # Large WebUI bundles exceed Node's default heap limit on CI.
+    node_args = [ "--max-old-space-size=4096" ]
 
     # make sure rebuilds when common files change
     inputs = brave_common_web_compile_inputs

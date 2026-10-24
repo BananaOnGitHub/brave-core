@@ -1,11 +1,10 @@
 name: iOS Tor prototype
 on:
-  pull_request:
-    paths: ["ios/tor/**", ".github/workflows/ios-tor-prototype.yml"]
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ios-tor-27-${{ github.head_ref || github.ref }}
+  group: ios-tor-integration-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -22,15 +21,47 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 1
-          sparse-checkout: ios/tor
+          sparse-checkout: |
+            ios/tor
+            ios/brave-ios/Sources/Web
+            ios/brave-ios/Sources/BraveStrings
+            ios/brave-ios/Sources/Brave/Frontend/Browser
+            ios/brave-ios/Tests/ClientTests
           persist-credentials: false
+      - name: Identify simulator SDK cache
+        id: sdk-key
+        run: |
+          fingerprint=$(python3 -c 'import hashlib,subprocess; print(hashlib.sha256(subprocess.check_output(["xcodebuild","-version"])+subprocess.check_output(["xcrun","--sdk","iphonesimulator","--show-sdk-build-version"])).hexdigest())')
+          echo "key=tor-sdk-v1-${{ runner.os }}-${{ runner.arch }}-$fingerprint" >> "$GITHUB_OUTPUT"
+      - name: Restore compiler SDK modules
+        id: sdk-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          key: ${{ steps.sdk-key.outputs.key }}
+          path: |
+            ios/tor/.build/ios/ModuleCache.noindex
+            ios/tor/.build/ios/SDKExplicitPrecompiledModules
       - name: Test embedded runtime and protocol without the Tor network
         working-directory: ios/tor
         run: swift test
+      - name: Parse Brave tab integration sources
+        run: |
+          xcrun swiftc -frontend -parse \
+            ios/brave-ios/Sources/Web/WebKit/TorTabState.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/TabManager.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/Tabs/TabGrid/TabGridViewModel.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/Tabs/TabGrid/TabGridView.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/BrowserViewController/BrowserViewController.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/BrowserViewController/BVC+TabObserver.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/BrowserViewController/BVC+Tor.swift \
+            ios/brave-ios/Sources/Brave/Frontend/Browser/Toolbars/BrowserToolbarState.swift \
+            ios/brave-ios/Tests/ClientTests/TabManagerTests.swift
       - name: Generate lightweight device harness
         working-directory: ios/tor/Harness
         run: |
           python3 -m unittest -v test_strip_static_tor_bundle.py
+          python3 -m unittest -v test_core_cache_key.py
+          python3 generate_tab_contracts.py
           brew install xcodegen
           xcodegen generate
       - name: Boot iOS simulator
@@ -45,13 +76,23 @@ jobs:
           fi
           xcrun simctl bootstatus "$simulator_id" -b
       - name: Test native WebKit protections
-        timeout-minutes: 10
+        timeout-minutes: 15
         working-directory: ios/tor/Harness
         run: |
-          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$TOR_SIMULATOR_ID" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO -resultBundlePath ../.build/TorPrototypeTests.xcresult test
+          xcodebuild -project BraveTorPrototype.xcodeproj -scheme BraveTorPrototype -destination "platform=iOS Simulator,id=$TOR_SIMULATOR_ID" -derivedDataPath ../.build/ios CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 90 -resultBundlePath ../.build/TorPrototypeTests.xcresult test
+      - name: Save compiler SDK modules
+        if: always() && steps.sdk-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          key: ${{ steps.sdk-key.outputs.key }}
+          path: |
+            ios/tor/.build/ios/ModuleCache.noindex
+            ios/tor/.build/ios/SDKExplicitPrecompiledModules
       - name: Summarize native test results
         if: always()
         continue-on-error: true
+        timeout-minutes: 1
         working-directory: ios/tor/Harness
         run: |
           if [ -d ../.build/TorPrototypeTests.xcresult ]; then
@@ -59,6 +100,7 @@ jobs:
           fi
       - name: Save native test diagnostics
         if: always()
+        timeout-minutes: 5
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: Native-test-results

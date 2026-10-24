@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import Web
 
+@MainActor
 @Observable
 class TabGridItemViewModel: TabObserver {
   private(set) var favicon: Favicon?
@@ -26,13 +27,14 @@ class TabGridItemViewModel: TabObserver {
   @ObservationIgnored
   private weak var tab: (any TabState)?
 
-  deinit {
+  isolated deinit {
     tab?.removeObserver(self)
   }
 
   func configure(with tab: any TabState) {
     if let tab = self.tab {
       tab.removeObserver(self)
+      (tab as? TorTabState)?.onVisualsUpdated = nil
     }
     self.tab = tab
 
@@ -47,9 +49,25 @@ class TabGridItemViewModel: TabObserver {
     title = tab.displayTitle
     snapshot = tab.screenshot
     isVisible = tab.isVisible
+    if let tor = tab as? TorTabState {
+      updateTorVisuals(tor)
+      tor.onVisualsUpdated = { [weak self, weak tor] in
+        guard let self, let tor, self.tab === tor else { return }
+        updateTorVisuals(tor)
+      }
+      tor.refreshPreview()
+    }
+  }
+
+  private func updateTorVisuals(_ tab: TorTabState) {
+    snapshot = tab.previewImage
+    favicon = tab.faviconImage.map {
+      Favicon(image: $0, isMonogramImage: false, backgroundColor: .clear)
+    } ?? .default
   }
 
   func reset() {
+    (tab as? TorTabState)?.onVisualsUpdated = nil
     tab?.removeObserver(self)
     tab?.onScreenshotUpdated = nil
     title = nil

@@ -1,0 +1,147 @@
+# Run manually in Codemagic on feature/ios-private-with-tor.
+workflows:
+  brave-ios-tor:
+    name: Brave iOS with Tor - unsigned IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    working_directory: ci-work/src/brave
+    environment:
+      xcode: "27.0"
+      vars:
+        CIPD_PARALLEL_DOWNLOADS: "1"
+        CIPD_MAX_THREADS: "2"
+    # Cache only completed, fingerprinted frameworks, not Chromium or download archives.
+    cache:
+      cache_paths:
+        - $CM_BUILD_DIR/.codemagic-cache/BraveCore.tar
+    scripts:
+      - name: Prepare Chromium checkout layout and build tools
+        working_directory: .
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          mkdir -p "$CM_BUILD_DIR/artifacts/logs" "$CM_BUILD_DIR/ci-work/src"
+          df -h "$CM_BUILD_DIR"
+          xcodebuild -version
+          # Install a job-local runtime instead of relying on the image's Node selection.
+          node_download_dir="$(mktemp -d "$CM_BUILD_DIR/.node-download.XXXXXX")"
+          node_archive="node-v24.19.0-darwin-arm64.tar.gz"
+          curl --fail --location --retry 3 "https://nodejs.org/dist/v24.19.0/$node_archive" -o "$node_download_dir/$node_archive"
+          curl --fail --location --retry 3 "https://nodejs.org/dist/v24.19.0/SHASUMS256.txt" -o "$node_download_dir/SHASUMS256.txt"
+          (
+            cd "$node_download_dir"
+            awk -v archive="$node_archive" '$2 == archive { print; found = 1 } END { if (!found) exit 1 }' SHASUMS256.txt | shasum -a 256 -c -
+          )
+          mkdir -p "$CM_BUILD_DIR/.ci-node"
+          tar -xzf "$node_download_dir/$node_archive" --strip-components=1 -C "$CM_BUILD_DIR/.ci-node"
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          npm install --global --prefix "$CM_BUILD_DIR/.ci-node" pnpm@12.14.0
+          test "$(pnpm --version)" = "12.14.0"
+          revision="$(git rev-parse HEAD)"
+          # Share local Git objects; keep Codemagic's original checkout intact.
+          git clone --shared --no-checkout "$CM_BUILD_DIR" "$CM_BUILD_DIR/ci-work/src/brave"
+          git -C "$CM_BUILD_DIR/ci-work/src/brave" checkout --detach "$revision"
+          cd "$CM_BUILD_DIR/ci-work/src/brave"
+          printf '%s\n' 'projects_chrome_custom_vars={"checkout_clangd":false,"checkout_clang_coverage_tools":false}' > .env
+      - name: Test offline Tor runtime and packaging helpers
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          swift test --disable-keychain --package-path ios/tor 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/tor-tests.log"
+          python3 -m unittest discover -s ios/tor/Harness -p 'test_*.py' 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/helper-tests.log"
+      - name: Initialize Chromium and Brave dependencies
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          revision="$(git rev-parse HEAD)"
+          pnpm run init --target_os=ios --target_arch=arm64 --no-history 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/init.log"
+          test "$(git rev-parse HEAD)" = "$revision"
+          df -h .
+      - name: Restore or build device BraveCore
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          export PATH="$PWD/vendor/depot_tools:$PATH"
+          core_key="$(python3 ios/tor/Harness/core_cache_key.py)"
+          core_cache="$CM_BUILD_DIR/.codemagic-cache/BraveCore.tar"
+          core_output="$CM_BUILD_DIR/ci-work/src/out/ios_Release_arm64"
+          cached_key=""
+          if [[ -f "$core_cache" ]]; then
+            cached_key="$(tar -xOf "$core_cache" codemagic-core-key 2>/dev/null || true)"
+          fi
+          if [[ "$cached_key" = "$core_key" ]]; then
+            mkdir -p "$core_output"
+            tar -xf "$core_cache" -C "$core_output"
+            echo "Restored matching BraveCore frameworks"
+          else
+            # Non-official Release avoids requiring Brave's private service keys.
+            pnpm run build Release --target_os=ios --target_arch=arm64 --target_environment=device --use_remoteexec=false --gn is_official_build:false --gn symbol_level:0 --ninja j:2 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/core.log"
+          fi
+          for item in BraveCore.xcframework NalaAssets.xcframework PartitionAllocSupport.xcframework args.xcconfig; do
+            test -e "$core_output/$item"
+          done
+          if [[ "$cached_key" != "$core_key" ]]; then
+            mkdir -p "$CM_BUILD_DIR/.codemagic-cache"
+            printf '%s\n' "$core_key" > "$core_output/codemagic-core-key"
+            tar -cf "$core_cache.tmp" -C "$core_output" codemagic-core-key BraveCore.xcframework NalaAssets.xcframework PartitionAllocSupport.xcframework args.xcconfig
+            mv "$core_cache.tmp" "$core_cache"
+          fi
+          df -h .
+      - name: Prepare Swift resources and archive scheme
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          export PATH="$PWD/vendor/depot_tools:$PATH"
+          pnpm run ios_bootstrap 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/bootstrap.log"
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          path = Path("ios/brave-ios/App/Client.xcodeproj/xcshareddata/xcschemes/Release.xcscheme")
+          tree = ET.parse(path)
+          action = tree.find("./BuildAction/PreActions/ExecutionAction/ActionContent")
+          if action is None:
+              raise RuntimeError("Release scheme is missing its build preaction")
+          action.set("scriptText", action.get("scriptText", "").rstrip() + " --only_update_symlink\n")
+          tree.write(path.with_name("TorCIRelease.xcscheme"), encoding="utf-8", xml_declaration=True)
+          PY
+      - name: Archive and package full Brave unsigned IPA
+        script: |
+          #!/bin/bash
+          set -euo pipefail
+          unset CIPD_CACHE_DIR
+          export PATH="$CM_BUILD_DIR/.ci-node/bin:$PATH"
+          hash -r
+          test "$(node --version)" = "v24.19.0"
+          node -p 'process.execPath'
+          export PATH="$PWD/vendor/depot_tools:$PATH"
+          build_number="$((7 + ${BUILD_NUMBER:-0}))"
+          xcodebuild -packageAuthorizationProvider netrc -project ios/brave-ios/App/Client.xcodeproj -scheme TorCIRelease -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/tor/.build/full-brave-derived -archivePath ios/tor/.build/BravePrivateTor.xcarchive CODE_SIGNING_ALLOWED=NO BASE_BUNDLE_ID=com.banana.brave.tor CURRENT_PROJECT_VERSION="$build_number" archive 2>&1 | tee "$CM_BUILD_DIR/artifacts/logs/archive.log"
+          python3 ios/tor/Harness/package_ipa.py ios/tor/.build/BravePrivateTor.xcarchive/Products/Applications/Client.app "$CM_BUILD_DIR/artifacts/ipa" --ipa-name BravePrivateTor-unsigned.ipa
+    artifacts:
+      - artifacts/ipa/BravePrivateTor-unsigned.ipa
+      - artifacts/ipa/package-report.json
+      - artifacts/logs/*.log
