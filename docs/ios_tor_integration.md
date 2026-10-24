@@ -28,6 +28,16 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
 
 ## Storage and circuit policy
 
+Tor tab-grid thumbnails use WebKit viewport snapshots cached only in the tab's
+memory. Icons are read from same-origin raster icon links (or `/favicon.ico`)
+inside the existing proxied web view, in an isolated script world. Requests reject
+redirects, limit response bytes/time and rasterize to 64x64 PNGs. Cross-origin,
+SVG-only, CSP-blocked or failed icons retain the default placeholder. No native
+favicon downloader, shared favicon cache or screenshot persistence is enabled.
+Navigation/closure invalidates pending visual results. Device validation should
+check grid opening, tab switching, scrolling, navigation and closure while Tor
+is reconnecting; verify icon requests at the SOCKS listener, not just the UI.
+
 The setting is captured at tab creation. ON tabs never join an OFF store or
 reuse its credentials. OFF tabs created while other OFF tabs remain open join
 that same shared session, including across OFF -> ON -> OFF changes. They do

@@ -10,6 +10,26 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testSnapshotRejectsInvalidBoundsAndClosedTab() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    XCTAssertFalse(tab.canTakeSnapshot)
+    tab.takeSnapshot(rect: .null) { XCTAssertNil($0) }
+    try await createViews([tab])
+    tab.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
+    tab.view.layoutIfNeeded()
+    XCTAssertTrue(tab.canTakeSnapshot)
+    tab.takeSnapshot(rect: CGRect(x: 10000, y: 10000, width: 10, height: 10)) {
+      XCTAssertNil($0)
+    }
+    tab.close()
+    XCTAssertFalse(tab.canTakeSnapshot)
+    XCTAssertNil(tab.previewImage)
+    XCTAssertNil(tab.faviconImage)
+    tab.takeSnapshot(rect: .null) { XCTAssertNil($0) }
+  }
+
   func testModeSnapshotRecreationAndLastSharedTabClose() async throws {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     // Constructor values model OFF -> ON -> OFF while older tabs stay open.

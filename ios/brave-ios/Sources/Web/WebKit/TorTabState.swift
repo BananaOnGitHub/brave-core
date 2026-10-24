@@ -38,6 +38,11 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private var proxy: TorWebViewProxy?
   private var registered = false
   private var protectionsUnavailable = false
+  public private(set) var previewImage: UIImage?
+  public private(set) var faviconImage: UIImage?
+  public var onVisualsUpdated: (() -> Void)?
+  private var faviconTask: Task<Void, Never>?
+  private var visualGeneration = 0
   public private(set) var lastCommittedURL: URL?
   public private(set) var previousCommittedURL: URL?
   public private(set) var contentsMimeType: String?
@@ -75,6 +80,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   isolated deinit {
+    faviconTask?.cancel()
     creationTask?.cancel()
     if let tabSession { session.closeTabSession(tabSession) }
     session.detach(id: id)
@@ -85,6 +91,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var isVisible = false {
     didSet {
       if isVisible { lastActiveTime = Date() }
+      if !isVisible { refreshPreview() }
       observers.forEach { isVisible ? $0.tabWasShown(self) : $0.tabWasHidden(self) }
     }
   }
@@ -139,6 +146,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   public func deleteWebView() {
+    clearVisuals()
     creationGeneration += 1
     session.detach(id: id)
     registered = false
@@ -234,8 +242,122 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public func goToBackForwardListItem(_ item: any BackForwardListItemProxy) {
     if let item = item as? TorBackForwardList.Item { browser?.go(to: item.item) }
   }
-  public var canTakeSnapshot: Bool { false }
-  public func takeSnapshot(rect: CGRect, handler: @escaping (UIImage?) -> Void) { handler(nil) }
+  public var canTakeSnapshot: Bool {
+    guard let browser else { return false }
+    return !browser.bounds.isEmpty && !protectionsUnavailable
+  }
+
+  public func takeSnapshot(rect: CGRect, handler: @escaping (UIImage?) -> Void) {
+    guard canTakeSnapshot, let browser else { handler(nil); return }
+    let bounds = browser.bounds
+    let region = rect.isNull ? bounds : bounds.intersection(rect)
+    guard !region.isNull, !region.isEmpty else { handler(nil); return }
+    let generation = visualGeneration
+    let configuration = WKSnapshotConfiguration()
+    configuration.rect = region
+    let scale = max(browser.traitCollection.displayScale, 1)
+    configuration.snapshotWidth = NSNumber(value: Double(min(region.width, 400 / scale)))
+    configuration.afterScreenUpdates = true
+    browser.takeSnapshot(with: configuration) { [weak self, weak browser] image, _ in
+      guard let self, let browser, self.browser === browser,
+        visualGeneration == generation else { handler(nil); return }
+      handler(image)
+    }
+  }
+
+  public func refreshPreview() {
+    // Capture only rendered pages. Retain the last good image while suspended;
+    // the tab grid must never trigger a reload or a separate network request.
+    guard browser?.window != nil else { return }
+    takeSnapshot(rect: .null) { [weak self] image in
+      guard let self, let image else { return }
+      previewImage = image
+      onVisualsUpdated?()
+    }
+  }
+
+  private func clearVisuals() {
+    visualGeneration += 1
+    faviconTask?.cancel()
+    faviconTask = nil
+    previewImage = nil
+    faviconImage = nil
+    onVisualsUpdated?()
+  }
+
+  private func loadFavicon() {
+    guard let browser, let url = browser.url, TorDestination.isAllowed(url),
+      session.state == .connected else { return }
+    let generation = visualGeneration
+    faviconTask?.cancel()
+    faviconTask = Task { [weak self, weak browser] in
+      guard let browser else { return }
+      let result = try? await browser.callAsyncJavaScript(Self.faviconScript,
+        arguments: [:], in: nil, contentWorld: .defaultClient)
+      guard let self, !Task.isCancelled, self.browser === browser,
+        visualGeneration == generation, browser.url == url,
+        let encoded = result as? String, encoded.utf8.count <= 90_000,
+        let data = Data(base64Encoded: encoded), let image = UIImage(data: data)
+      else { return }
+      faviconImage = image
+      observers.forEach { $0.tabDidUpdateFaviconStatus(self) }
+      onVisualsUpdated?()
+    }
+  }
+
+  // Same-origin candidates avoid cross-origin canvas/CORS workarounds. All
+  // fetches use this web view's ephemeral store and fail-closed SOCKS route.
+  static let faviconScript = """
+    const candidates = Array.from(document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]'))
+      .map(link => link.href).filter(value => !/\\.svg(?:[?#]|$)/i.test(value)).slice(0, 2);
+    candidates.push(new URL('/favicon.ico', location.href).href);
+    const urls = [...new Set(candidates)].filter(value => {
+      try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol) && url.origin === location.origin
+          && !url.username && !url.password;
+      } catch { return false; }
+    }).slice(0, 3);
+    for (const url of urls) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3000);
+      let blobURL;
+      try {
+        const response = await fetch(url, {signal: controller.signal, credentials: 'same-origin',
+          redirect: 'error', cache: 'no-store'});
+        if (!response.ok || !response.body) continue;
+        const reader = response.body.getReader();
+        const chunks = [];
+        let length = 0;
+        while (true) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          length += chunk.value.byteLength;
+          if (length > 262144) { await reader.cancel(); throw new Error('icon too large'); }
+          chunks.push(chunk.value);
+        }
+        const type = (response.headers.get('content-type') || '').split(';')[0];
+        if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/x-icon',
+          'image/vnd.microsoft.icon', 'image/avif', 'application/octet-stream', ''].includes(type)) continue;
+        blobURL = URL.createObjectURL(new Blob(chunks, {type: type || 'image/x-icon'}));
+        const image = new Image();
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('icon decode timeout')), 3000);
+          image.onload = () => { clearTimeout(timeout); resolve(); };
+          image.onerror = () => { clearTimeout(timeout); reject(new Error('invalid icon')); };
+          image.src = blobURL;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 64;
+        canvas.getContext('2d').drawImage(image, 0, 0, 64, 64);
+        return canvas.toDataURL('image/png').split(',')[1];
+      } catch {} finally {
+        clearTimeout(timer);
+        if (blobURL) URL.revokeObjectURL(blobURL);
+      }
+    }
+    return null;
+    """
   public func createFullPagePDF() async throws -> Data? { nil }
   public func downloadCurrentPage(to fileURL: URL) async throws { throw URLError(.unsupportedURL) }
   public func suggestedFilenameForCurrentPage(contentDisposition: String?) -> String { "document" }
@@ -332,11 +454,16 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { observers.forEach { $0.tabDidStartNavigation(self) } }
   public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
     guard webView.url?.absoluteString != "about:blank" else { return }
+    clearVisuals()
     previousCommittedURL = lastCommittedURL
     lastCommittedURL = webView.url
     observers.forEach { $0.tabDidCommitNavigation(self); $0.tabDidChangeVisibleSecurityState(self) }
   }
-  public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { observers.forEach { $0.tabDidFinishNavigation(self) } }
+  public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    observers.forEach { $0.tabDidFinishNavigation(self) }
+    refreshPreview()
+    loadFavicon()
+  }
   public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { observers.forEach { $0.tab(self, didFailNavigationWithError: error) } }
   public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { observers.forEach { $0.tabRenderProcessDidTerminate(self) } }
   public func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {

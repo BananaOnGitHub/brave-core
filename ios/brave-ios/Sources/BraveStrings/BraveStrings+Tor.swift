@@ -87,7 +87,7 @@ extension Strings {
     )
     public static let limitations = NSLocalizedString(
       "Tor.limitations", bundle: .module,
-      value: "Tor protects these tabs. Downloads, media, previews, translation, and other browser services are unavailable in this build.",
+      value: "Tor protects these tabs. Downloads, media, link previews, translation, and other browser services are unavailable in this build.",
       comment: "Tor integration feature limitations"
     )
   }
