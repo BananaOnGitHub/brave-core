@@ -17,7 +17,12 @@ public final class TorTabSession {
   fileprivate var context: TorBrowsingContext?
 
   var isolationID: UUID? { context?.isolationID }
-  var websiteDataStore: WKWebsiteDataStore? { context?.websiteDataStore }
+  public var websiteDataStore: WKWebsiteDataStore? { context?.websiteDataStore }
+
+  public func sharesBrowsingData(with other: TorTabSession) -> Bool {
+    guard ownerID == other.ownerID, let context else { return false }
+    return context === other.context
+  }
 
   fileprivate init(ownerID: UUID, keepTabsSeparate: Bool, context: TorBrowsingContext) {
     self.ownerID = ownerID

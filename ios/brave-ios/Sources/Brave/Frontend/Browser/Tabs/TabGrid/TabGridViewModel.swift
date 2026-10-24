@@ -192,37 +192,51 @@ class TabGridViewModel {
   }
 
   var isShredMenuVisible: Bool {
-    guard mode != .tor else { return false }
+    if mode == .tor { return !tabs.isEmpty }
     return isSelectedTabShredAvailable
       || tabManager.tabsForCurrentMode.contains(where: { $0.visibleURL?.isShredAvailable == true })
   }
 
   var isSelectedTabShredAvailable: Bool {
     guard let selectedTab = tabManager.selectedTab,
-      !selectedTab.isTor,
       selectedTab.isPrivate == isPrivateBrowsing
     else { return false }
+    if mode == .tor { return selectedTab.isTor }
+    guard !selectedTab.isTor else { return false }
     return selectedTab.visibleURL?.isShredAvailable == true
   }
 
   func isShredAvailableForSelectedTabs(_ tabs: Set<TabState.ID>) -> Bool {
-    guard mode != .tor else { return false }
+    if mode == .tor { return self.tabs.contains { tabs.contains($0.id) && $0.isTor } }
     let tabs = tabs.map({ tabManager[$0] })
     return tabs.contains(where: { $0?.visibleURL?.isShredAvailable == true })
   }
 
   func shredSelectedTab() {
+    if mode == .tor, let tab = tabManager.selectedTab, tab.isTor {
+      _ = tabManager.shredTorTabs([tab])
+      return
+    }
     guard let tab = tabManager.selectedTab, !tab.isTor, let url = tab.visibleURL else { return }
     tabManager.shredData(for: url, in: tab)
   }
 
+  func shredTorTabs(_ ids: Set<TabState.ID>) -> Set<TabState.ID> {
+    tabManager.shredTorTabs(tabManager.allTabs.filter { $0.isTor && ids.contains($0.id) })
+  }
+
   func shredSelectedTabs(_ tabs: Set<TabState.ID>) -> Set<TabState.ID> {
-    guard mode != .tor else { return [] }
+    if mode == .tor {
+      return tabManager.shredTorTabs(self.tabs.filter { tabs.contains($0.id) })
+    }
     return tabManager.shredDataForTabs(tabs.compactMap({ tabManager[$0] }))
   }
 
   func shredAllTabs() {
-    guard mode != .tor else { return }
+    if mode == .tor {
+      _ = tabManager.shredTorTabs(tabs)
+      return
+    }
     tabManager.shredAllTabsForCurrentMode()
   }
 

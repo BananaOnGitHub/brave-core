@@ -956,6 +956,44 @@ class TabManager: NSObject {
     }
   }
 
+  /// Include every Tor tab that shares browsing data with a requested tab.
+  @MainActor func torTabsToShred(_ tabs: [any TabState]) -> [TorTabState] {
+    let requested = tabs.compactMap { requested in
+      allTabs.first(where: { $0 === requested }) as? TorTabState
+    }
+    return allTabs.compactMap { $0 as? TorTabState }.filter { candidate in
+      requested.contains { $0 === candidate || $0.sharesBrowsingData(with: candidate) }
+    }
+  }
+
+  @MainActor func shredTorTabs(_ tabs: [any TabState]) -> Set<TabState.ID> {
+    let targets = torTabsToShred(tabs)
+    let ids = Set(targets.map(\.id))
+    guard !targets.isEmpty else { return [] }
+    // Close affected views before clearing their retired Tor stores.
+    var stores: [ObjectIdentifier: WKWebsiteDataStore] = [:]
+    for tab in targets {
+      if let store = tab.torDataStore { stores[ObjectIdentifier(store)] = store }
+      tab.close()
+    }
+    let wasBulkDeleting = isBulkDeleting
+    isBulkDeleting = true
+    removeTabs(targets)
+    isBulkDeleting = wasBulkDeleting
+    if privateBrowsingManager.isTorBrowsing && !allTabs.contains(where: \.isTor) {
+      selectTab(addTorTab())
+    }
+    Task {
+      for store in stores.values {
+        await store.removeData(
+          ofTypes: WKWebsiteDataStore.allWebsiteDataTypesIncludingPrivate(),
+          modifiedSince: .distantPast
+        )
+      }
+    }
+    return ids
+  }
+
   /// Shreds data for a set of tabs and returns tabs that are to be shredded/removed.
   @MainActor func shredDataForTabs(_ tabs: [any TabState]) -> Set<TabState.ID> {
     let isPrivateBrowsing = privateBrowsingManager.isPrivateBrowsing

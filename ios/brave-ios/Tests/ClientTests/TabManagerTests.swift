@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import BraveTorUI
 import Preferences
 import Shared
 import UIKit
@@ -197,6 +198,54 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     )
     manager.configureTab(tab, request: nil, flushToDisk: true, zombie: true)
     return tab
+  }
+
+  func testTorShredTargetsSharedCohortWithoutTouchingOtherModes() {
+    setPersistentPrivateMode(true)
+    let regular = manager.addTestTab(isPrivate: false)
+    let ordinaryPrivate = manager.addTestTab(isPrivate: true)
+    let session = TorBrowsingSession(runtime: .init(), automaticallyConnect: false)
+    func addTor(_ separate: Bool) -> TorTabState {
+      let tab = TorTabState(
+        id: UUID(), profile: FakeProfile().offTheRecordProfile,
+        session: session, keepTabsSeparate: separate
+      )
+      manager.configureTab(tab, request: nil, flushToDisk: false, zombie: true)
+      return tab
+    }
+    let sharedA = addTor(false)
+    let isolatedA = addTor(true)
+    let sharedB = addTor(false)
+    let isolatedB = addTor(true)
+    defer { [sharedA, sharedB, isolatedA, isolatedB].forEach { $0.close() } }
+    XCTAssertEqual(Set(manager.torTabsToShred([sharedA]).map(\.id)), [sharedA.id, sharedB.id])
+    XCTAssertEqual(Set(manager.torTabsToShred([isolatedA]).map(\.id)), [isolatedA.id])
+    XCTAssertTrue(manager.torTabsToShred([regular, ordinaryPrivate]).isEmpty)
+    let affected = manager.shredTorTabs([sharedA])
+    XCTAssertEqual(affected, [sharedA.id, sharedB.id])
+    XCTAssertFalse(sharedA.sharesBrowsingData(with: sharedB))
+    XCTAssertEqual(Set(manager.allTabs.map(\.id)), [regular.id, ordinaryPrivate.id, isolatedA.id, isolatedB.id])
+    XCTAssertEqual(manager.shredTorTabs([isolatedA]), [isolatedA.id])
+    XCTAssertTrue(manager.allTabs.contains { $0.id == isolatedB.id })
+  }
+
+  func testTorShredMenusAllowSingleMultipleAndAllTabs() {
+    let first = addOfflineTorTab()
+    let second = addOfflineTorTab()
+    defer { manager.allTabs.compactMap { $0 as? TorTabState }.forEach { $0.close() } }
+    manager.selectTab(first)
+    let grid = TabGridViewModel(
+      tabManager: manager, historyModel: nil, openTabsModel: nil,
+      toolbarUrlActionsDelegate: nil, profileController: nil, windowProtection: nil
+    )
+    XCTAssertTrue(grid.isShredMenuVisible)
+    XCTAssertTrue(grid.isSelectedTabShredAvailable)
+    XCTAssertTrue(grid.isShredAvailableForSelectedTabs([first.id, second.id]))
+    XCTAssertFalse(grid.isShredAvailableForSelectedTabs([]))
+    XCTAssertEqual(grid.shredSelectedTabs([first.id]), [first.id])
+    XCTAssertTrue(manager.allTabs.contains { $0.id == second.id })
+    grid.shredAllTabs()
+    XCTAssertFalse(manager.allTabs.contains { $0.id == second.id })
   }
 
   func testTorTabsStaySeparateWhenReorderedOrPrivateTabsAreCleared() {
@@ -1072,4 +1121,3 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     )
   }
 }
-

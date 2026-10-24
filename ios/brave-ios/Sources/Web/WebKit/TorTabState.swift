@@ -98,6 +98,12 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var webViewProxy: (any WebViewProxy)? { proxy }
   public var isWebViewCreated: Bool { browser != nil }
   public var configuration: WKWebViewConfiguration? { browser?.configuration }
+  public var torDataStore: WKWebsiteDataStore? { tabSession?.websiteDataStore }
+
+  public func sharesBrowsingData(with other: TorTabState) -> Bool {
+    guard let tabSession, let otherSession = other.tabSession else { return false }
+    return tabSession.sharesBrowsingData(with: otherSession)
+  }
 
   public func createWebView() {
     guard browser == nil, creationTask == nil else { return }

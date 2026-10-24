@@ -92,6 +92,7 @@ struct TabGridView: View {
   @State private var isShredAlertPresented: Bool = false
   @State private var activeShredMode: ActiveShredMode?
   @State private var isShredAnimationVisible: Bool = false
+  @State private var pendingTorShredIDs: Set<TabState.ID>?
 
   var browserColors: BrowserColors {
     viewModel.isPrivateBrowsing ? .privateMode : .standard
@@ -268,6 +269,18 @@ struct TabGridView: View {
       presenting: activeShredMode,
       actions: { _ in
         Button(role: .destructive) {
+          if viewModel.mode == .tor {
+            switch activeShredMode {
+            case .selectedTab:
+              pendingTorShredIDs = Set([viewModel.selectedTab?.id].compactMap { $0 })
+            case .selectedTabs:
+              pendingTorShredIDs = Set(selectedTabs)
+            case .allTabs:
+              pendingTorShredIDs = Set(viewModel.tabs.map(\.id))
+            case nil:
+              pendingTorShredIDs = []
+            }
+          }
           isShredAnimationVisible = true
         } label: {
           Text(Strings.Shields.shredDataButtonTitle)
@@ -284,7 +297,7 @@ struct TabGridView: View {
           case .selectedTab:
             Strings.Shields.shredSiteDataConfirmationMessage
           }
-        Text(message)
+        Text(viewModel.mode == .tor ? message + "\n\n" + Strings.Tor.shredSharedDataExplanation : message)
       }
     )
     .overlay {
@@ -300,18 +313,24 @@ struct TabGridView: View {
           .animationDidFinish { _ in
             let originalTabIDs = Set(viewModel.tabs.map(\.id))
             var dismissAfterShred = originalTabIDs.count == 1 || shredMode == .allTabs
-            switch shredMode {
-            case .selectedTab:
-              viewModel.shredSelectedTab()
-            case .selectedTabs:
-              let affectedTabsIDs = viewModel.shredSelectedTabs(Set(selectedTabs))
-              if !dismissAfterShred {
-                dismissAfterShred = originalTabIDs.count == affectedTabsIDs.count
+            if let torIDs = pendingTorShredIDs {
+              let affected = viewModel.shredTorTabs(torIDs)
+              dismissAfterShred = viewModel.mode == .tor && originalTabIDs.isSubset(of: affected)
+            } else {
+              switch shredMode {
+              case .selectedTab:
+                viewModel.shredSelectedTab()
+              case .selectedTabs:
+                let affectedTabsIDs = viewModel.shredSelectedTabs(Set(selectedTabs))
+                if !dismissAfterShred {
+                  dismissAfterShred = originalTabIDs.count == affectedTabsIDs.count
+                }
+              case .allTabs:
+                viewModel.shredAllTabs()
               }
-            case .allTabs:
-              viewModel.shredAllTabs()
             }
             withAnimation {
+              pendingTorShredIDs = nil
               isShredAnimationVisible = false
               activeShredMode = nil
               editMode = .inactive
@@ -599,7 +618,6 @@ struct TabGridView: View {
   }
 
   private func contextMenu(for tabs: [any TabState]) -> UIMenu? {
-    guard !tabs.contains(where: \.isTor) else { return nil }
     let tabIDs = Set(tabs.map(\.id))
     let isShredAvailable = viewModel.isShredAvailableForSelectedTabs(tabIDs)
     let allTabsAreSelected = editMode == .active && selectedTabs == tabIDs
