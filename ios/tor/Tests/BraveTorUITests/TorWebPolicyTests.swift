@@ -31,6 +31,7 @@ final class TorWebPolicyTests: XCTestCase {
       XCTAssertEqual(store.proxyConfigurations.count, 1)
       XCTAssertFalse(try XCTUnwrap(store.proxyConfigurations.first).allowFailover)
       XCTAssertTrue(configuration.defaultWebpagePreferences.isLockdownModeEnabled)
+      XCTAssertTrue(configuration.preferences.isTextInteractionEnabled)
     }
     XCTAssertFalse(stores[0] === stores[2])
     XCTAssertTrue(stores[1] === stores[3])
@@ -159,7 +160,7 @@ final class TorWebPolicyTests: XCTestCase {
     XCTAssertFalse(first.allowsAirPlayForMediaPlayback)
     XCTAssertFalse(first.allowsPictureInPictureMediaPlayback)
     XCTAssertFalse(first.preferences.javaScriptCanOpenWindowsAutomatically)
-    XCTAssertFalse(first.preferences.isTextInteractionEnabled)
+    XCTAssertTrue(first.preferences.isTextInteractionEnabled)
   }
 
   func testReusedStoreMustBeEphemeralAndFailClosed() async throws {
@@ -186,6 +187,7 @@ final class TorWebPolicyTests: XCTestCase {
       endpoint: endpoint, rules: rules, isolationID: "script-test", javaScriptEnabled: true
     )
     XCTAssertTrue(configuration.defaultWebpagePreferences.allowsContentJavaScript)
+    XCTAssertTrue(configuration.preferences.isTextInteractionEnabled)
     XCTAssertTrue(configuration.defaultWebpagePreferences.isLockdownModeEnabled)
     XCTAssertFalse(configuration.websiteDataStore.isPersistent)
     XCTAssertEqual(configuration.websiteDataStore.proxyConfigurations.count, 1)
