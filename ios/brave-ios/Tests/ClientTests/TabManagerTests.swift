@@ -281,12 +281,12 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     XCTAssertFalse(manager.allTabs.contains { $0.id == second.id })
   }
 
-  func testTorTabsStaySeparateWhenReorderedOrPrivateTabsAreCleared() {
+  func testTorTabsStaySeparateWhenReorderedAndCloseOnRegularBrowsing() {
     let regular = manager.addTestTab(isPrivate: false)
     let ordinaryPrivate = manager.addTestTab(isPrivate: true)
     let first = addOfflineTorTab()
     let second = addOfflineTorTab()
-    defer { first.deleteWebView(); second.deleteWebView() }
+    defer { first.close(); second.close() }
     manager.selectTab(first)
     XCTAssertEqual(manager.tabsForCurrentMode.map(\.id), [first.id, second.id])
     XCTAssertEqual(manager.tabsCountForMode(isPrivate: true), 1)
@@ -304,9 +304,96 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     XCTAssertNil(SessionTab.from(tabId: first.id))
     manager.selectTab(regular)
     XCTAssertFalse(manager.allTabs.contains { $0.id == ordinaryPrivate.id })
-    XCTAssertTrue(manager.allTabs.contains { $0.id == first.id })
-    XCTAssertTrue(manager.allTabs.contains { $0.id == second.id })
+    XCTAssertFalse(manager.allTabs.contains { $0.id == first.id })
+    XCTAssertFalse(manager.allTabs.contains { $0.id == second.id })
+    XCTAssertFalse(first.isWebViewCreated)
+    XCTAssertFalse(second.isWebViewCreated)
     XCTAssertEqual(manager.tabsForCurrentMode.map(\.id), [regular.id])
+  }
+
+  func testTorSessionsCloseOnRegularSelectionWithKeepPrivateTabsOff() {
+    XCTAssertFalse(Preferences.Privacy.persistentPrivateBrowsing.value)
+    let regular = manager.addTestTab(isPrivate: false)
+    let ordinaryPrivate = manager.addTestTab(isPrivate: true)
+    let session = TorBrowsingSession(runtime: .init(), automaticallyConnect: false)
+    var torTabs: [TorTabState] = []
+    for separate in [true, false, false] {
+      let tab = TorTabState(
+        id: UUID(), profile: FakeProfile().offTheRecordProfile,
+        session: session, keepTabsSeparate: separate
+      )
+      manager.configureTab(tab, request: nil, flushToDisk: false, zombie: true)
+      torTabs.append(tab)
+    }
+    defer { torTabs.forEach { $0.close() } }
+    manager.selectTab(torTabs[0])
+    manager.selectTab(ordinaryPrivate)
+    XCTAssertEqual(manager.allTabs.count, 5)
+    XCTAssertTrue(torTabs[1].sharesBrowsingData(with: torTabs[2]))
+
+    manager.selectTab(regular)
+    XCTAssertEqual(manager.allTabs.map(\.id), [regular.id])
+    XCTAssertEqual(manager.selectedTab?.id, regular.id)
+    XCTAssertFalse(privateBrowsingManager.isTorBrowsing)
+    XCTAssertFalse(privateBrowsingManager.isPrivateBrowsing)
+    XCTAssertTrue(torTabs.allSatisfy { !$0.isWebViewCreated && $0.torDataStore == nil })
+    XCTAssertFalse(torTabs[1].sharesBrowsingData(with: torTabs[2]))
+    XCTAssertEqual(session.state, .waiting)
+  }
+
+  func testGridKeepsTorAcrossPrivateGroupsAndClosesBothGroupsOnRegularBrowsing() {
+    let previousLock = Preferences.Privacy.privateBrowsingLock.value
+    Preferences.Privacy.privateBrowsingLock.value = false
+    defer { Preferences.Privacy.privateBrowsingLock.value = previousLock }
+    let regular = manager.addTestTab(isPrivate: false)
+    let ordinaryPrivate = manager.addTestTab(isPrivate: true)
+    let tor = addOfflineTorTab()
+    defer { tor.close() }
+    manager.selectTab(tor)
+    let grid = TabGridViewModel(
+      tabManager: manager, historyModel: nil, openTabsModel: nil,
+      toolbarUrlActionsDelegate: nil, profileController: nil, windowProtection: nil
+    )
+    grid.mode = .private
+    XCTAssertTrue(manager.allTabs.contains { $0.id == tor.id })
+    XCTAssertEqual(grid.tabs.map(\.id), [ordinaryPrivate.id])
+    grid.mode = .tor
+    XCTAssertTrue(manager.allTabs.contains { $0.id == ordinaryPrivate.id })
+    XCTAssertEqual(grid.selectedTab?.id, tor.id)
+    grid.mode = .private
+    grid.mode = .regular
+    XCTAssertEqual(manager.allTabs.map(\.id), [regular.id])
+    XCTAssertEqual(grid.tabs.map(\.id), [regular.id])
+    XCTAssertEqual(manager.selectedTab?.id, regular.id)
+    XCTAssertFalse(tor.isWebViewCreated)
+  }
+
+  func testKeepPrivateTabsRetainsTorOnDirectRegularSelection() {
+    setPersistentPrivateMode(true)
+    let regular = manager.addTestTab(isPrivate: false)
+    let ordinaryPrivate = manager.addTestTab(isPrivate: true)
+    let session = TorBrowsingSession(runtime: .init(), automaticallyConnect: false)
+    let first = TorTabState(
+      id: UUID(), profile: FakeProfile().offTheRecordProfile,
+      session: session, keepTabsSeparate: false
+    )
+    let second = TorTabState(
+      id: UUID(), profile: FakeProfile().offTheRecordProfile,
+      session: session, keepTabsSeparate: false
+    )
+    defer { first.close(); second.close() }
+    for tab in [first, second] {
+      manager.configureTab(tab, request: nil, flushToDisk: false, zombie: true)
+    }
+    manager.selectTab(first)
+    manager.selectTab(ordinaryPrivate)
+    manager.selectTab(regular)
+    manager.willSwitchTabMode(leavingPBM: true)
+    XCTAssertEqual(
+      manager.allTabs.map(\.id), [regular.id, ordinaryPrivate.id, first.id, second.id]
+    )
+    XCTAssertTrue(first.sharesBrowsingData(with: second))
+    XCTAssertEqual(manager.selectedTab?.id, regular.id)
   }
 
   func testGridSwitchesAmongThreeGroupsWithoutSelectingAnUnprotectedTab() {

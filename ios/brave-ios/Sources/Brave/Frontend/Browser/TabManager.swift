@@ -375,7 +375,7 @@ class TabManager: NSObject {
     privateBrowsingManager.isPrivateBrowsing = tab?.isPrivate == true
     privateBrowsingManager.isTorBrowsing = tab?.isTor == true
 
-    // Make sure to wipe the private tabs if the user has the pref turned on
+    // Keep both private tab groups only when Keep Private Tabs is enabled.
     if tab?.isPrivate == false
       && (Preferences.Privacy.privateBrowsingOnly.value
         || !Preferences.Privacy.persistentPrivateBrowsing.value)
@@ -1295,20 +1295,25 @@ class TabManager: NSObject {
   /// Removes all private tabs from the manager without notifying delegates.
   private func removeAllPrivateTabs() {
     // reset the selectedTabIndex if we are on a private tab because we will be removing it.
-    if selectedTab?.isPrivate == true && selectedTab?.isTor != true {
+    if selectedTab?.isPrivate == true {
       _selectedIndex = -1
     }
 
     allTabs.forEach { tab in
-      if tab.isPrivate && !tab.isTor {
+      if tab.isPrivate {
         tab.view.removeFromSuperview()
-        removeAllBrowsingDataForTab(tab)
+        if let torTab = tab as? TorTabState {
+          // Retire storage and detach from Tor, including pending web-view creation.
+          torTab.close()
+        } else {
+          removeAllBrowsingDataForTab(tab)
+        }
       }
     }
 
     Self.nonPersistentDataStore = nil
 
-    allTabs = allTabs.filter { !$0.isPrivate || $0.isTor }
+    allTabs = allTabs.filter { !$0.isPrivate }
   }
 
   func removeAllBrowsingDataForTab(
