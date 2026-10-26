@@ -1304,7 +1304,9 @@ class TabManager: NSObject {
         tab.view.removeFromSuperview()
         if let torTab = tab as? TorTabState {
           // Retire storage and detach from Tor, including pending web-view creation.
-          torTab.close()
+          MainActor.assumeIsolated {
+            torTab.close()
+          }
         } else {
           removeAllBrowsingDataForTab(tab)
         }
