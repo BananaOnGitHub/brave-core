@@ -121,6 +121,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         let configuration = try await session.configuration(for: tabSession)
         guard let self, !Task.isCancelled, creationGeneration == generation else { return }
         let browser = WKWebView(frame: .zero, configuration: configuration)
+        browser.tintColor = .systemBlue
         browser.navigationDelegate = self
         browser.uiDelegate = self
         browser.allowsBackForwardNavigationGestures = true
