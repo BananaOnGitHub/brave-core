@@ -484,7 +484,7 @@ public class BrowserViewController: UIViewController {
     }
 
     for tab in tabManager.tabsForCurrentMode where tab.id != tabManager.selectedTab?.id {
-      tab.browserData?.newTabPageViewController = nil
+      tab.nativeNewTabPageViewController = nil
     }
   }
 
@@ -1757,7 +1757,7 @@ public class BrowserViewController: UIViewController {
 
   fileprivate func showNewTabPageController() {
     guard let selectedTab = tabManager.selectedTab else { return }
-    if selectedTab.newTabPageViewController == nil {
+    if selectedTab.nativeNewTabPageViewController == nil {
       let ntpController = NewTabPageViewController(
         tab: selectedTab,
         profilePrefs: profileController.profile.prefs,
@@ -1767,19 +1767,17 @@ public class BrowserViewController: UIViewController {
         rewards: rewards,
         privateBrowsingManager: privateBrowsingManager
       )
-      // Donate NewTabPage Activity For Custom Suggestions
-      let newTabPageActivity =
-        ActivityShortcutManager.shared.createShortcutActivity(
+      ntpController.delegate = self
+      if !selectedTab.isTor {
+        let newTabPageActivity = ActivityShortcutManager.shared.createShortcutActivity(
           type: selectedTab.isPrivate ? .newPrivateTab : .newTab
         )
-
-      ntpController.delegate = self
-      ntpController.userActivity = newTabPageActivity
-
-      newTabPageActivity.becomeCurrent()
-      selectedTab.newTabPageViewController = ntpController
+        ntpController.userActivity = newTabPageActivity
+        newTabPageActivity.becomeCurrent()
+      }
+      selectedTab.nativeNewTabPageViewController = ntpController
     }
-    guard let ntpController = selectedTab.newTabPageViewController else {
+    guard let ntpController = selectedTab.nativeNewTabPageViewController else {
       assertionFailure("homePanelController is still nil after assignment.")
       return
     }

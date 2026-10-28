@@ -215,14 +215,16 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   public func loadRequest(_ request: URLRequest) {
     guard let url = request.url else { return }
-    guard TorDestination.isAllowed(url) else {
-      // The native new-tab request is rendered locally, without a scheme handler
-      // that could hand work to Chromium or a native networking service.
-      if url.scheme == "brave" || url.scheme == "chrome" || url.scheme == "internal" || url.absoluteString == "about:blank" {
-        if lastCommittedURL == nil { virtualURL = nil }
-      }
+    if url.absoluteString == "about://newtab" {
+      pendingRequest = nil
+      initialURL = nil
+      deleteWebView()
+      virtualURL = url
+      createWebView()
+      observers.forEach { $0.tabDidUpdateURL(self) }
       return
     }
+    guard TorDestination.isAllowed(url) else { return }
     pendingRequest = request
     virtualURL = url
     initialURL = url
@@ -402,10 +404,16 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   private func observe(_ browser: WKWebView) {
     observations = [
-      browser.observe(\.url) { [weak self] _, _ in
+      browser.observe(\.url) { [weak self] browser, _ in
         MainActor.assumeIsolated {
           guard let self else { return }
-          self.virtualURL = nil
+          guard self.virtualURL?.absoluteString != "about://newtab" else { return }
+          if browser.url?.absoluteString == "about:blank" {
+            // Keep a queued destination visible while its blank document loads.
+            if self.virtualURL == nil { self.virtualURL = URL(string: "about://newtab") }
+          } else {
+            self.virtualURL = nil
+          }
           self.observers.forEach { $0.tabDidUpdateURL(self) }
         }
       },

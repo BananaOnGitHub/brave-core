@@ -10,6 +10,31 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testNativeNewTabMarkerSurvivesWebViewCreationAndRecreation() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let newTabURL = URL(string: "about://newtab")!
+    let website = URL(string: "https://pending-tor-request.invalid/")!
+    tab.loadRequest(URLRequest(url: website))
+    tab.loadRequest(URLRequest(url: newTabURL))
+    try await createViews([tab])
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    XCTAssertNil(tab.lastCommittedURL)
+    let location = try await tab.callAsyncJavaScript(
+      "return location.href;", arguments: [:], in: nil, contentWorld: .page
+    )
+    XCTAssertEqual(location as? String, "about:blank")
+    tab.deleteWebView()
+    try await createViews([tab])
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    tab.loadRequest(URLRequest(url: URL(string: "chrome://settings")!))
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    tab.loadRequest(URLRequest(url: website))
+    XCTAssertEqual(tab.visibleURL, website)
+    XCTAssertNil(tab.sessionData)
+  }
+
   func testSnapshotRejectsInvalidBoundsAndClosedTab() async throws {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)

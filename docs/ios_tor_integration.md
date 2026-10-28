@@ -23,7 +23,7 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
   Other browsing modes retain their own process configuration.
 - Tor tab sessions, URLs and screenshots are excluded from session persistence.
   Ordinary tab helpers, native metadata/favicons, translation, external schemes,
-  native previews, sharing, voice search, favorite tiles, and decentralized
+  native link previews, sharing, voice search, and decentralized
   address resolution are detached or blocked. Downloads and media remain blocked.
 
 ## Storage and circuit policy
@@ -150,3 +150,22 @@ relaunch; it does not substitute for an actual process-restart/device test.
 The refinement's full-app build and device acceptance remain unverified until
 their actual results are recorded. This implementation does not provide
 Tor Browser-equivalent fingerprinting protection.
+
+## Native Tor new tab page
+
+Tor tabs display the existing native private new tab page, retained in a separate
+tab-data slot without installing Chromium browser helpers. The New Tab Page
+preferences control the Privacy Hub widget, local backgrounds and favorites.
+The Privacy Hub detail view remains disabled as in ordinary private browsing;
+its displayed totals are Brave's existing global statistics, not Tor measurements.
+
+Tor backgrounds use local image files and never request sponsored placements.
+Favorites use cached icons or a placeholder without starting native favicon
+requests. Brave News loads and shortcut donations are disabled for Tor.
+Website requests still use the Tor tab's ephemeral proxied WebKit store.
+
+On-device checks: open multiple Tor new tabs while disconnected; toggle the
+Privacy Hub, background and favorites preferences; switch tab groups; open a
+favorite and verify the destination stays in Tor. Check there are no favicon,
+news or sponsored-ad requests when opening the page. The tab-contract test
+covers the new-tab URL surviving blank-document creation and web-view recreation.
