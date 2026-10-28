@@ -1665,12 +1665,12 @@ extension TabDataValues {
 @MainActor
 extension TabState {
   var nativeNewTabPageViewController: NewTabPageViewController? {
-    get { isTor ? data.torNewTabPageViewController : browserData?.newTabPageViewController }
+    get { isTor ? data.torNewTabPageViewController : data.browserData?.newTabPageViewController }
     set {
       if isTor {
         data.torNewTabPageViewController = newValue
       } else {
-        browserData?.newTabPageViewController = newValue
+        data.browserData?.newTabPageViewController = newValue
       }
     }
   }
