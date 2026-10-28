@@ -455,7 +455,7 @@ extension BrowserViewController: TabDelegate {
 extension BrowserViewController {
   private func didSelectSearchWithBrave(_ selectedText: String, tab: some TabState) {
     let engine = profile.searchEngines.defaultEngine(
-      forType: tab.isPrivate ? .privateMode : .standard
+      forType: .init(isPrivate: tab.isPrivate, isTor: tab.isTor)
     )
 
     guard let url = engine?.searchURLForQuery(selectedText) else {

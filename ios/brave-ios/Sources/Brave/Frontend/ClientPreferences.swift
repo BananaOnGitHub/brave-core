@@ -190,6 +190,10 @@ extension Preferences {
       key: "search.defaultprivate.name",
       default: nil
     )
+    /// The independently selected engine for Tor tabs.
+    static let defaultTorEngineName = Option<String?>(
+      key: "search.defaulttor.name", default: "braveSearch"
+    )
     /// Whether or not to show recent searches
     static let shouldShowRecentSearches = Option<Bool>(
       key: "search.should-show-recent-searches",

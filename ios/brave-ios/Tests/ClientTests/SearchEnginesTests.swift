@@ -20,12 +20,62 @@ class SearchEnginesTests: XCTestCase {
 
     Preferences.Search.defaultEngineName.reset()
     Preferences.Search.defaultPrivateEngineName.reset()
+    Preferences.Search.defaultTorEngineName.reset()
     Preferences.Search.disabledEngines.reset()
     Preferences.Search.orderedEngines.reset()
     Preferences.Search.showSuggestions.reset()
 
     Preferences.Search.defaultEngineName.reset()
     Preferences.Search.defaultPrivateEngineName.reset()
+  }
+
+  override func tearDown() {
+    Preferences.Search.defaultTorEngineName.reset()
+    super.tearDown()
+  }
+
+  func testTorDefaultIsIndependentAndPersistsAcrossReload() async throws {
+    let engines = SearchEngines()
+    await engines.loadSearchEngines()
+    XCTAssertEqual(
+      engines.defaultEngine(forType: .tor)?.engineID,
+      InitialSearchEngines.SearchEngineID.braveSearch.rawValue
+    )
+    let normal = try XCTUnwrap(engines.defaultEngine(forType: .standard))
+    let privateEngine = try XCTUnwrap(engines.defaultEngine(forType: .privateMode))
+    let torEngine = try XCTUnwrap(engines.orderedEngines.first { $0.shortName == "Qwant" })
+    let privateChoice = Preferences.Search.userPickedPrivateDSEName.value
+    engines.updateDefaultEngine(torEngine.shortName, forType: .tor)
+    XCTAssertEqual(engines.defaultEngine(forType: .tor)?.shortName, torEngine.shortName)
+    XCTAssertEqual(engines.defaultEngine(forType: .standard)?.shortName, normal.shortName)
+    XCTAssertEqual(engines.defaultEngine(forType: .privateMode)?.shortName, privateEngine.shortName)
+    XCTAssertEqual(Preferences.Search.userPickedPrivateDSEName.value, privateChoice)
+
+    let reloaded = SearchEngines()
+    await reloaded.loadSearchEngines()
+    XCTAssertEqual(reloaded.defaultEngine(forType: .tor)?.shortName, torEngine.shortName)
+    reloaded.updateDefaultEngine(normal.shortName, forType: .privateMode)
+    reloaded.updateDefaultEngine(normal.shortName, forType: .standard)
+    XCTAssertEqual(reloaded.defaultEngine(forType: .tor)?.shortName, torEngine.shortName)
+
+    Preferences.Search.defaultTorEngineName.value = "removed-custom-engine"
+    XCTAssertEqual(
+      reloaded.defaultEngine(forType: .tor)?.engineID,
+      InitialSearchEngines.SearchEngineID.braveSearch.rawValue
+    )
+  }
+
+  func testTorModeSelectsItsOwnEngineAndKeepsSuggestionsLocal() {
+    XCTAssertEqual(DefaultEngineType(isPrivate: false, isTor: false), .standard)
+    XCTAssertEqual(DefaultEngineType(isPrivate: true, isTor: false), .privateMode)
+    XCTAssertEqual(DefaultEngineType(isPrivate: true, isTor: true), .tor)
+    let source = SearchSuggestionDataSource(
+      isPrivate: true, isAIChatAvailable: false, isPlaylistAvailable: false,
+      searchEngines: SearchEngines(), isTor: true
+    )
+    XCTAssertEqual(source.defaultEngineType, .tor)
+    XCTAssertTrue(source.quickSearchEngines.isEmpty)
+    XCTAssertFalse(source.braveSearchPromotionAvailable)
   }
 
   func testIncludesExpectedEngines() async {

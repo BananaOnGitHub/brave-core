@@ -204,7 +204,10 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
     let searchURL = self.tabManager.selectedTab?.currentInitialURL
     if let query = profile.searchEngines.queryForSearchURL(
       searchURL as URL?,
-      forType: privateBrowsingManager.isPrivateBrowsing ? .privateMode : .standard
+      forType: .init(
+        isPrivate: privateBrowsingManager.isPrivateBrowsing,
+        isTor: privateBrowsingManager.isTorBrowsing
+      )
     ) {
       return (query, true)
     } else {

@@ -5,6 +5,10 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let searchTab = NSLocalizedString(
+      "Tor.searchTab", bundle: .module, value: "Private with Tor Tab",
+      comment: "Tor tab default search engine setting and picker title"
+    )
     public static let keepTabsSeparate = NSLocalizedString(
       "Tor.keepTabsSeparate", bundle: .module,
       value: "Keep Tor tabs separate",

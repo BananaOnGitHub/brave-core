@@ -65,7 +65,8 @@ class SearchContainerViewController: UIViewController {
         isPrivate: privateBrowsingManager.isPrivateBrowsing,
         isAIChatAvailable: isAIChatAvailable && !privateBrowsingManager.isTorBrowsing,
         isPlaylistAvailable: isPlaylistAvailable && !privateBrowsingManager.isTorBrowsing,
-        searchEngines: searchEngines
+        searchEngines: searchEngines,
+        isTor: privateBrowsingManager.isTorBrowsing
       ),
       browserColors: privateBrowsingManager.browserColors
     )

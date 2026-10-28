@@ -3181,7 +3181,10 @@ extension BrowserViewController {
 
   public func submitSearchText(_ text: String, isBraveSearchPromotion: Bool = false) {
     var engine = profile.searchEngines.defaultEngine(
-      forType: privateBrowsingManager.isPrivateBrowsing ? .privateMode : .standard
+      forType: .init(
+        isPrivate: privateBrowsingManager.isPrivateBrowsing,
+        isTor: privateBrowsingManager.isTorBrowsing
+      )
     )
 
     if isBraveSearchPromotion {
