@@ -118,6 +118,20 @@ protocol NewTabPageDelegate: AnyObject {
 /// favourites
 class NewTabPageViewController: UIViewController {
   weak var delegate: NewTabPageDelegate?
+  private(set) var torTabGridPreview: UIImage?
+
+  @discardableResult
+  func captureTorTabGridPreview() -> UIImage? {
+    guard browserTab?.isTor == true, let page = viewIfLoaded,
+      page.window != nil, !page.bounds.isEmpty
+    else { return torTabGridPreview }
+    page.layoutIfNeeded()
+    torTabGridPreview = page.screenshot(
+      offset: .init(x: 0, y: -page.safeAreaInsets.top),
+      quality: UIConstants.activeScreenshotQuality
+    )
+    return torTabGridPreview
+  }
 
   var ntpStatsOnboardingFrame: CGRect? {
     guard let section = sections.firstIndex(where: { $0 is StatsSectionProvider }) else {
@@ -484,6 +498,12 @@ class NewTabPageViewController: UIViewController {
   }
 
   override func willMove(toParent parent: UIViewController?) {
+    if parent == nil {
+      captureTorTabGridPreview()
+      if browserTab?.visibleURL?.isNewTabURL == true {
+        (browserTab as? TorTabState)?.onVisualsUpdated?()
+      }
+    }
     super.willMove(toParent: parent)
 
     backgroundView.imageView.image = parent == nil ? nil : background.backgroundImage

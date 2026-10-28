@@ -4,8 +4,10 @@
 // You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import BraveStrings
+import BraveUI
 import Favicon
 import Foundation
+import Shared
 import SwiftUI
 import Web
 
@@ -55,11 +57,23 @@ class TabGridItemViewModel: TabObserver {
         guard let self, let tor, self.tab === tor else { return }
         updateTorVisuals(tor)
       }
-      tor.refreshPreview()
+      if tor.visibleURL?.isNewTabURL == true {
+        _ = tor.nativeNewTabPageViewController?.captureTorTabGridPreview()
+        updateTorVisuals(tor)
+      } else {
+        tor.refreshPreview()
+      }
     }
   }
 
   private func updateTorVisuals(_ tab: TorTabState) {
+    if tab.visibleURL?.isNewTabURL == true {
+      snapshot = tab.nativeNewTabPageViewController?.torTabGridPreview
+      favicon = Favicon(
+        image: UIImage(sharedNamed: "brave.logo"), isMonogramImage: false, backgroundColor: .clear
+      )
+      return
+    }
     snapshot = tab.previewImage
     favicon = tab.faviconImage.map {
       Favicon(image: $0, isMonogramImage: false, backgroundColor: .clear)
