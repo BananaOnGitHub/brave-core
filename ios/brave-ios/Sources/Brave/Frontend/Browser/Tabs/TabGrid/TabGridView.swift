@@ -527,14 +527,14 @@ struct TabGridView: View {
       .keyboardShortcut("t", modifiers: [.command])
       Spacer()
 
-      if !privateBrowsingOnly.value {
-        TabGridModeSwitcher(
-          mode: $viewModel.mode,
-          regularTabCount: viewModel.regularTabCount
-        )
-        .scaledToFit()
-        .dynamicTypeSize(.xSmall..<DynamicTypeSize.xxxLarge)
-      }
+      TabGridModeSwitcher(
+        mode: $viewModel.mode,
+        modes: viewModel.availableModes,
+        regularTabCount: viewModel.regularTabCount
+      )
+      .id(privateBrowsingOnly.value)
+      .scaledToFit()
+      .dynamicTypeSize(.xSmall..<DynamicTypeSize.xxxLarge)
       Spacer()
 
       Button {
@@ -776,11 +776,20 @@ private struct TabGridLegacyAddTabButtonStyle: ButtonStyle {
 // a segmented picker style
 private struct TabGridModeSwitcher: UIViewRepresentable {
   @Binding var mode: TabBrowsingMode
+  var modes: [TabBrowsingMode]
   private var isPrivateBrowsing: Bool { mode != .regular }
   var regularTabCount: Int
 
   private var tabCount: String {
     String.localizedStringWithFormat(Strings.TabGrid.tabsCountFormat, regularTabCount)
+  }
+
+  private func title(for mode: TabBrowsingMode) -> String {
+    switch mode {
+    case .regular: tabCount
+    case .private: Strings.TabGrid.privateBrowsingModeTitle
+    case .tor: Strings.Tor.title
+    }
   }
 
   private var controlHeight: CGFloat {
@@ -831,11 +840,7 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
   }
 
   func makeUIView(context: Context) -> UISegmentedControl {
-    let items: [Any] = [
-      tabCount,
-      Strings.TabGrid.privateBrowsingModeTitle,
-      Strings.Tor.title,
-    ]
+    let items: [Any] = modes.map { title(for: $0) }
     let uiView: UISegmentedControl
     if #available(iOS 26.0, *) {
       uiView = GlassBackedSegmentedControl(items: items)
@@ -845,7 +850,9 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
     uiView.apportionsSegmentWidthsByContent = true
     uiView.addAction(
       .init(handler: { [unowned uiView] _ in
-        mode = TabBrowsingMode(rawValue: uiView.selectedSegmentIndex) ?? .regular
+        if let selectedMode = modes[safe: uiView.selectedSegmentIndex] {
+          mode = selectedMode
+        }
       }),
       for: .valueChanged
     )
@@ -854,8 +861,10 @@ private struct TabGridModeSwitcher: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: UISegmentedControl, context: Context) {
-    uiView.setTitle(tabCount, forSegmentAt: 0)
-    uiView.selectedSegmentIndex = mode.rawValue
+    for (index, mode) in modes.enumerated() {
+      uiView.setTitle(title(for: mode), forSegmentAt: index)
+    }
+    uiView.selectedSegmentIndex = modes.firstIndex(of: mode) ?? UISegmentedControl.noSegment
     uiView.backgroundColor = UIColor(
       braveSystemName: isPrivateBrowsing ? .privateWindow10 : .neutral10
     )

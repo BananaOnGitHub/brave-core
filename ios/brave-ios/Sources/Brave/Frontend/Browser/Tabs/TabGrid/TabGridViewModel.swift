@@ -16,10 +16,14 @@ import Web
 class TabGridViewModel {
   private var _isPrivateBrowsing: Bool = false
   private var _isTorBrowsing = false
+  var availableModes: [TabBrowsingMode] {
+    Preferences.Privacy.privateBrowsingOnly.value ? [.private, .tor] : [.regular, .private, .tor]
+  }
+
   var mode: TabBrowsingMode {
     get { _isTorBrowsing ? .tor : (isPrivateBrowsing ? .private : .regular) }
     set {
-      guard mode != newValue else { return }
+      guard mode != newValue, availableModes.contains(newValue) else { return }
       let oldPrivateIndex = tabManager.privateTabSelectedIndex
       if _isTorBrowsing { tabManager.torTabSelectedIndex = tabManager.selectedIndex }
       else if isPrivateBrowsing { tabManager.privateTabSelectedIndex = tabManager.selectedIndex }

@@ -396,6 +396,42 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     XCTAssertEqual(manager.selectedTab?.id, regular.id)
   }
 
+  func testPrivateBrowsingOnlyOffersBothPrivateGroupsAndRejectsRegularMode() {
+    let previousLock = Preferences.Privacy.privateBrowsingLock.value
+    Preferences.Privacy.privateBrowsingLock.value = false
+    Preferences.Privacy.privateBrowsingOnly.value = true
+    defer {
+      Preferences.Privacy.privateBrowsingOnly.reset()
+      Preferences.Privacy.privateBrowsingLock.value = previousLock
+    }
+    let ordinaryPrivate = manager.addTestTab(isPrivate: true)
+    let tor = addOfflineTorTab()
+    defer { tor.close() }
+    manager.selectTab(ordinaryPrivate)
+    let grid = TabGridViewModel(
+      tabManager: manager, historyModel: nil, openTabsModel: nil,
+      toolbarUrlActionsDelegate: nil, profileController: nil, windowProtection: nil
+    )
+    XCTAssertEqual(grid.availableModes, [.private, .tor])
+    grid.mode = .tor
+    XCTAssertEqual(grid.mode, .tor)
+    XCTAssertEqual(grid.selectedTab?.id, tor.id)
+    XCTAssertTrue(privateBrowsingManager.isPrivateBrowsing)
+    XCTAssertTrue(privateBrowsingManager.isTorBrowsing)
+    grid.mode = .regular
+    XCTAssertEqual(grid.mode, .tor)
+    XCTAssertEqual(grid.selectedTab?.id, tor.id)
+    grid.mode = .private
+    XCTAssertEqual(grid.selectedTab?.id, ordinaryPrivate.id)
+    XCTAssertTrue(manager.allTabs.contains { $0.id == tor.id })
+    XCTAssertTrue(privateBrowsingManager.isPrivateBrowsing)
+    XCTAssertFalse(privateBrowsingManager.isTorBrowsing)
+    grid.mode = .tor
+    XCTAssertEqual(grid.selectedTab?.id, tor.id)
+    Preferences.Privacy.privateBrowsingOnly.value = false
+    XCTAssertEqual(grid.availableModes, [.regular, .private, .tor])
+  }
+
   func testGridSwitchesAmongThreeGroupsWithoutSelectingAnUnprotectedTab() {
     setPersistentPrivateMode(true)
     let previousLock = Preferences.Privacy.privateBrowsingLock.value
