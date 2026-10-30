@@ -5,6 +5,19 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let shortcutTitle = NSLocalizedString(
+      "Tor.shortcutTitle", bundle: .module, value: "Open Private with Tor Tab",
+      comment: "Siri shortcut to open a new private tab using Tor"
+    )
+    public static let shortcutDescription = NSLocalizedString(
+      "Tor.shortcutDescription", bundle: .module,
+      value: "Open a new Private with Tor tab in Brave.",
+      comment: "Description of the Tor Siri shortcut"
+    )
+    public static let shortcutPhrase = NSLocalizedString(
+      "Tor.shortcutPhrase", bundle: .module, value: "Open Private with Tor",
+      comment: "Suggested invocation phrase for the Tor Siri shortcut"
+    )
     public static let searchTab = NSLocalizedString(
       "Tor.searchTab", bundle: .module, value: "Private with Tor Tab",
       comment: "Tor tab default search engine setting and picker title"
