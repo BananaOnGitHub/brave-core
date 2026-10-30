@@ -106,6 +106,14 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
     }
   }
 
+  func topToolbarDidPressOnionLocation(_ topToolbar: TopToolbarView) {
+    guard let tab = tabManager.selectedTab as? TorTabState,
+      let url = tab.onionLocation
+    else { return }
+    let onionTab = tabManager.addTorTab(URLRequest(url: url), afterTab: tab)
+    tabManager.selectTab(onionTab)
+  }
+
   func topToolbarDidPressStop(_ topToolbar: TopToolbarView) {
     stopTabToolbarLoading()
   }

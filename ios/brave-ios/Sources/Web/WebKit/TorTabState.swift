@@ -101,6 +101,35 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var configuration: WKWebViewConfiguration? { browser?.configuration }
   public var torDataStore: WKWebsiteDataStore? { tabSession?.websiteDataStore }
 
+  public var onionLocation: URL? { data[TorOnionLocationKey.self].committed }
+
+  static func onionLocation(from response: URLResponse) -> URL? {
+    guard let response = response as? HTTPURLResponse,
+      (200..<300).contains(response.statusCode),
+      response.url?.scheme?.lowercased() == "https",
+      let sourceHost = response.url?.host?.lowercased(), !sourceHost.hasSuffix(".onion"),
+      let value = response.value(forHTTPHeaderField: "Onion-Location")?
+        .trimmingCharacters(in: .whitespacesAndNewlines),
+      !value.isEmpty, !value.contains(where: { $0.isWhitespace }),
+      let url = URL(string: value), TorDestination.isAllowed(url),
+      url.host?.lowercased().hasSuffix(".onion") == true
+    else { return nil }
+    return url
+  }
+
+  func receiveOnionLocationResponse(_ response: URLResponse, isMainFrame: Bool) {
+    guard isMainFrame else { return }
+    data[TorOnionLocationKey.self].pending = Self.onionLocation(from: response)
+    data[TorOnionLocationKey.self].responseURL = response.url
+  }
+
+  func commitOnionLocation(for url: URL?) {
+    let state = data[TorOnionLocationKey.self]
+    data[TorOnionLocationKey.self] = .init(
+      committed: url == state.responseURL ? state.pending : nil
+    )
+  }
+
   public func sharesBrowsingData(with other: TorTabState) -> Bool {
     guard let tabSession, let otherSession = other.tabSession else { return false }
     return tabSession.sharesBrowsingData(with: otherSession)
@@ -154,6 +183,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   public func deleteWebView() {
+    data[TorOnionLocationKey.self] = .init()
     activeLinkPreview?.close()
     activeLinkPreview = nil
     clearVisuals()
@@ -218,6 +248,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   public func loadRequest(_ request: URLRequest) {
     guard let url = request.url else { return }
+    data[TorOnionLocationKey.self] = .init()
     if url.absoluteString == "about://newtab" {
       pendingRequest = nil
       initialURL = nil
@@ -467,14 +498,19 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
       if await decider.tab(self, shouldAllowResponse: response.response, responseInfo: .init(isForMainFrame: response.isForMainFrame)) == .cancel { return .cancel }
     }
     if response.isForMainFrame { contentsMimeType = mime }
+    receiveOnionLocationResponse(response.response, isMainFrame: response.isForMainFrame)
     return .allow
   }
-  public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { observers.forEach { $0.tabDidStartNavigation(self) } }
+  public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    data[TorOnionLocationKey.self] = .init()
+    observers.forEach { $0.tabDidStartNavigation(self) }
+  }
   public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
     guard webView.url?.absoluteString != "about:blank" else { return }
     clearVisuals()
     previousCommittedURL = lastCommittedURL
     lastCommittedURL = webView.url
+    commitOnionLocation(for: webView.url)
     observers.forEach { $0.tabDidCommitNavigation(self); $0.tabDidChangeVisibleSecurityState(self) }
   }
   public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -543,6 +579,16 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
 extension TabState {
   public var isTor: Bool { self is TorTabState }
+}
+
+private struct TorOnionLocationState {
+  var committed: URL?
+  var pending: URL?
+  var responseURL: URL?
+}
+
+private enum TorOnionLocationKey: TabDataKey {
+  static var defaultValue: TorOnionLocationState { .init() }
 }
 
 @MainActor

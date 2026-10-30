@@ -201,3 +201,24 @@ boundaries, proxy failover, blocked destinations and cleanup when the source
 closes. On-device validation is still required for
 long-press presentation, redirects and subresources through Tor, hide/show preview,
 preview tap, background-tab creation, dismissal and reconnect behavior.
+
+## Onion-Location
+
+Tor tabs inspect the main-frame HTTP response already received through Tor.
+Following Desktop's policy, successful HTTPS responses from non-onion sites
+can advertise an absolute HTTP(S) onion URL in the Onion-Location header.
+Credentials, whitespace, other schemes and non-onion destinations are rejected.
+The advertised URL is exposed only after a matching main-frame commit; new
+navigations and web-view deletion clear it. Subframes cannot set the action.
+
+The URL bar uses Desktop's Leo product Tor icon immediately before reload.
+Tapping opens and selects a new Tor tab through addTorTab; detection itself
+never resolves or fetches the onion destination. The action is Tor-mode-only.
+HTML meta tags are not scanned, matching Desktop's header implementation.
+A back-forward cache restore without response headers requires a reload to
+rediscover the advertised URL.
+
+Tests cover header validation, frame and commit boundaries, and cleanup.
+Device checks: visit an HTTPS site advertising Onion-Location, tap the icon,
+verify the new tab stays in Tor, navigate away, switch tab groups and confirm
+the icon disappears. Verify placement and VoiceOver on phone and iPad.

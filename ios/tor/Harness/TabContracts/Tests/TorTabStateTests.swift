@@ -10,6 +10,62 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testOnionLocationHeaderValidation() throws {
+    let onion = "http://" + String(repeating: "a", count: 56) + ".onion/path?q=1#section"
+    func response(_ source: String = "https://example.com", status: Int = 200,
+                  value: String? = nil) -> HTTPURLResponse {
+      HTTPURLResponse(url: URL(string: source)!, statusCode: status, httpVersion: nil,
+                      headerFields: ["oNiOn-LoCaTiOn": value ?? onion])!
+    }
+    XCTAssertEqual(TorTabState.onionLocation(from: response()), URL(string: onion))
+    let secureOnion = onion.replacingOccurrences(of: "http:", with: "https:")
+    XCTAssertEqual(TorTabState.onionLocation(from: response(value: secureOnion)), URL(string: secureOnion))
+    XCTAssertEqual(TorTabState.onionLocation(from: response(value: "  \(onion)  ")), URL(string: onion))
+    XCTAssertNil(TorTabState.onionLocation(from: response("http://example.com")))
+    XCTAssertNil(TorTabState.onionLocation(from: response("https://example.onion")))
+    for status in [301, 404, 500] {
+      XCTAssertNil(TorTabState.onionLocation(from: response(status: status)))
+    }
+    for value in ["", "/relative", "https://example.com", "https://example.onion.evil",
+                  "ftp://example.onion", "http://user:pass@example.onion", "http://a b.onion"] {
+      XCTAssertNil(TorTabState.onionLocation(from: response(value: value)), value)
+    }
+  }
+
+  func testOnionLocationRequiresMatchingMainFrameCommitAndClearsOnNavigation() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let source = URL(string: "https://example.com/page")!
+    let onion = URL(string: "http://" + String(repeating: "a", count: 56) + ".onion/page")!
+    let response = HTTPURLResponse(url: source, statusCode: 200, httpVersion: nil,
+                                   headerFields: ["Onion-Location": onion.absoluteString])!
+    tab.receiveOnionLocationResponse(response, isMainFrame: false)
+    tab.commitOnionLocation(for: source)
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    XCTAssertNil(tab.onionLocation)
+    tab.commitOnionLocation(for: URL(string: "https://other.example"))
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertEqual(tab.onionLocation, onion)
+    let noHeader = HTTPURLResponse(url: source, statusCode: 200, httpVersion: nil, headerFields: [:])!
+    tab.receiveOnionLocationResponse(noHeader, isMainFrame: false)
+    XCTAssertEqual(tab.onionLocation, onion)
+    tab.receiveOnionLocationResponse(noHeader, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    tab.loadRequest(URLRequest(url: URL(string: "about://newtab")!))
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    tab.close()
+    XCTAssertNil(tab.onionLocation)
+  }
+
   func testWebKitRecognizesTorContextMenuDelegateCallbacks() {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)

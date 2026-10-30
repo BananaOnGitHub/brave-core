@@ -57,6 +57,7 @@ final class BrowserToolbarState {
   /// This isn't actually used directly by toolbar UI, and instead `displayedURL` is exposed, but
   /// we still need a observation tracked version that the read-only var derives from
   private var visibleURL: URL?
+  private(set) var onionLocation: URL?
   /// The security state of the selected tab
   private(set) var secureContentState: SecureContentState = .unknown
   /// Whether or not the tab is loading
@@ -143,6 +144,7 @@ final class BrowserToolbarState {
 
     guard let tab else {
       visibleURL = nil
+      onionLocation = nil
       secureContentState = .unknown
       isLoading = false
       loadingProgress = nil
@@ -178,6 +180,7 @@ final class BrowserToolbarState {
   }
 
   private func updateNavigationState(from tab: some TabState) {
+    onionLocation = (tab as? TorTabState)?.onionLocation
     visibleURL = tab.visibleURL
     secureContentState = tab.visibleSecureContentState
     let isForwardItemReaderMode =
@@ -226,6 +229,7 @@ extension BrowserToolbarState: TabManagerDelegate {
 
 extension BrowserToolbarState: TabObserver {
   func tabDidStartNavigation(_ tab: some TabState) {
+    updateNavigationState(from: tab)
     // Hide the reader mode button until the new page has been checked for readability, unless
     // navigating to a reader mode page
     if let url = tab.visibleURL, !url.isInternalURL(for: .readermode) {

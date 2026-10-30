@@ -5,6 +5,11 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let openOnionLocation = NSLocalizedString(
+      "Tor.openOnionLocation", bundle: .module,
+      value: "Open Onion Site in New Private with Tor Tab",
+      comment: "URL bar action for an Onion-Location advertised by the current website"
+    )
     public static let openLinkInNewTab = NSLocalizedString(
       "Tor.openLinkInNewTab", bundle: .module, value: "Open in New Private with Tor Tab",
       comment: "Link context menu action that opens the link in a new Tor tab"
