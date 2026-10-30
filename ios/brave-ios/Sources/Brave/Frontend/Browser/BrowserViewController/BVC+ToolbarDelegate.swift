@@ -9,6 +9,7 @@ import BraveNews
 import BraveShared
 import BraveShields
 import BraveStrings
+import BraveTor
 import BraveUI
 import BraveWallet
 import BraveWidgetsModels
@@ -285,6 +286,11 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
     if let url = URL(string: text), url.scheme == "brave" || url.scheme == "chrome" {
       dismissSearchInput()
       finishEditingAndSubmit(url, isUserDefinedURLNavigation: isUserDefinedURLNavigation)
+      return true
+    }
+
+    if tabManager.selectedTab?.isTor == true, let onionURL = TorDestination.onionURL(from: text) {
+      finishEditingAndSubmit(onionURL, isUserDefinedURLNavigation: isUserDefinedURLNavigation)
       return true
     }
 

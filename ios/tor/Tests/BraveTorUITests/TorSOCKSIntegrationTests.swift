@@ -166,6 +166,34 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     webView.stopLoading()
   }
 
+  func testWebKitPassesOnionHostnameToSOCKSWithoutLocalResolution() async throws {
+    let hostname = String(repeating: "a", count: 56) + ".onion"
+    let ready = expectation(description: "Local SOCKS listener is ready")
+    let request = expectation(description: "Unresolved onion hostname reaches SOCKS")
+    let server = try SOCKSProbeServer(
+      serveScriptedPage: false,
+      ready: { ready.fulfill() },
+      destination: { destination in
+        XCTAssertEqual(destination, hostname)
+        request.fulfill()
+      }
+    )
+    defer { server.stop() }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    let endpoint = try TorEndpoint(listener: "127.0.0.1:\(try XCTUnwrap(server.port))")
+    let rules = try await TorWebPolicy.compileRules()
+    let configuration = try TorWebPolicy.configuration(
+      endpoint: endpoint, rules: rules, isolationID: "onion-test", javaScriptEnabled: false
+    )
+    let webView = WKWebView(frame: .zero, configuration: configuration)
+    defer { webView.stopLoading() }
+    let url = try XCTUnwrap(TorDestination.onionURL(from: hostname + "/"))
+    webView.load(URLRequest(url: url))
+    // The loopback stub rejects CONNECT; no onion service or public resolver is contacted.
+    await fulfillment(of: [request], timeout: 15)
+  }
+
   func testPageJavaScriptFetchAndRedirectUseUnresolvedSOCKSHostnames() async throws {
     let ready = expectation(description: "Local SOCKS listener is ready")
     let document = expectation(description: "Document hostname reaches SOCKS")
