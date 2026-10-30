@@ -9,6 +9,7 @@ import BraveShared
 import Data
 import DesignSystem
 import Foundation
+import LinkPresentation
 import Preferences
 import Shared
 import Strings
@@ -731,14 +732,16 @@ extension BrowserViewController {
       }
       return tab.makeLinkPreview(for: url)
     }
-    let preview = Preferences.General.enableLinkPreview.value ? previewProvider : nil
+    // Always supply a provider, including when previews are disabled.
+    let noPreview: UIContextMenuContentPreviewProvider = { nil }
+    let preview = Preferences.General.enableLinkPreview.value ? previewProvider : noPreview
     return UIContextMenuConfiguration(identifier: nil, previewProvider: preview) { [weak self, weak tab] _ in
       guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else {
         return nil
       }
       let open = UIAction(
         title: Strings.Tor.openLinkInNewTab,
-        image: UIImage(braveSystemNamed: "leo.browser.mobile-tab-new")
+        image: UIImage(braveSystemNamed: "leo.product.private-window")
       ) { [weak self, weak tab] _ in
         guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else { return }
         let newTab = self.tabManager.addTorTab(URLRequest(url: url), afterTab: tab)
@@ -757,12 +760,67 @@ extension BrowserViewController {
       let copy = UIAction(
         title: Strings.copyLinkActionTitle, image: UIImage(braveSystemNamed: "leo.copy")
       ) { _ in UIPasteboard.general.url = url }
+      copy.accessibilityLabel = "linkContextMenu.copyLink"
+      let copyClean = UIAction(
+        title: Strings.copyCleanLink, image: UIImage(braveSystemNamed: "leo.copy.clean")
+      ) { _ in
+        let service = URLSanitizerServiceFactory.get(privateMode: true)
+        UIPasteboard.general.url = service?.sanitize(url: url) ?? url
+      }
+      copyClean.accessibilityLabel = "linkContextMenu.copyCleanLink"
+      let share = UIAction(
+        title: Strings.shareLinkActionTitle, image: UIImage(braveSystemNamed: "leo.share.macos")
+      ) { [weak self, weak tab] _ in
+        guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else { return }
+        // Share text with supplied metadata so the sheet has no URL preview to fetch.
+        let controller = UIActivityViewController(
+          activityItems: [TorLinkShareItem(url: url)], applicationActivities: nil
+        )
+        controller.popoverPresentationController?.sourceView = tab.view
+        controller.popoverPresentationController?.sourceRect = CGRect(
+          x: tab.view.bounds.midX, y: tab.view.bounds.midY, width: 1, height: 1
+        )
+        self.present(controller, animated: true)
+      }
+      share.accessibilityLabel = "linkContextMenu.share"
       let showPreview = Preferences.General.enableLinkPreview.value
       let toggle = UIAction(
         title: showPreview ? Strings.hideLinkPreviewsActionTitle : Strings.showLinkPreviewsActionTitle,
         image: UIImage(braveSystemNamed: showPreview ? "leo.eye.off" : "leo.eye.on")
       ) { _ in Preferences.General.enableLinkPreview.value.toggle() }
-      return UIMenu(title: url.absoluteString, children: [open, copy, toggle])
+      let formattedURL = URLFormatter.formatURL(
+        url.absoluteString,
+        formatTypes: [.omitDefaults, .omitTrivialSubdomains],
+        unescapeOptions: .normal
+      )
+      return UIMenu(title: formattedURL, children: [open, copy, copyClean, share, toggle])
     }
+  }
+}
+
+@MainActor
+private final class TorLinkShareItem: NSObject, UIActivityItemSource {
+  private let text: String
+
+  init(url: URL) {
+    text = url.absoluteString
+    super.init()
+  }
+
+  func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+    text
+  }
+
+  func activityViewController(
+    _ activityViewController: UIActivityViewController,
+    itemForActivityType activityType: UIActivity.ActivityType?
+  ) -> Any? {
+    text
+  }
+
+  func activityViewControllerLinkMetadata(_ activityViewController: UIActivityViewController) -> LPLinkMetadata? {
+    let metadata = LPLinkMetadata()
+    metadata.title = text
+    return metadata
   }
 }

@@ -501,12 +501,32 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     return controller
   }
 
-  public func webView(_ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo) async -> UIContextMenuConfiguration? {
+  public func webView(
+    _ webView: WKWebView,
+    contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo,
+    completionHandler: @escaping @MainActor @Sendable (UIContextMenuConfiguration?) -> Void
+  ) {
+    // Use the Objective-C delegate entry point; the async import has a different label.
+    // A non-nil empty configuration prevents WebKit's unproxied default link preview.
+    let empty = UIContextMenuConfiguration(
+      identifier: nil, previewProvider: { nil }, actionProvider: { _ in UIMenu(children: []) }
+    )
     guard let url = elementInfo.linkURL, TorDestination.isAllowed(url), let delegate else {
-      return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: nil)
+      completionHandler(empty)
+      return
     }
-    return await delegate.tab(self, contextMenuConfigurationForLinkURL: url)
-      ?? UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: nil)
+    Task { [weak self, weak webView] in
+      guard let self, let webView, self.browser === webView, self.tabSession != nil else {
+        completionHandler(empty)
+        return
+      }
+      let configuration = await delegate.tab(self, contextMenuConfigurationForLinkURL: url)
+      guard self.browser === webView, self.tabSession != nil else {
+        completionHandler(empty)
+        return
+      }
+      completionHandler(configuration ?? empty)
+    }
   }
 
   public func webView(_ webView: WKWebView, contextMenuForElement elementInfo: WKContextMenuElementInfo, willCommitWithAnimator animator: any UIContextMenuInteractionCommitAnimating) {

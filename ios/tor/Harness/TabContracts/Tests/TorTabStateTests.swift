@@ -10,6 +10,23 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testWebKitRecognizesTorContextMenuDelegateCallbacks() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let delegate: any WKUIDelegate = tab
+    // An almost-matching async signature silently leaves WebKit's native loader active.
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuConfigurationForElement:completionHandler:)
+    )))
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuForElement:willCommitWithAnimator:)
+    )))
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuDidEndForElement:)
+    )))
+  }
+
   func testNativeNewTabMarkerSurvivesWebViewCreationAndRecreation() async throws {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)

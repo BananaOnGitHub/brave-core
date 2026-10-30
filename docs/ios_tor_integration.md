@@ -173,7 +173,10 @@ covers the new-tab URL surviving blank-document creation and web-view recreation
 ## Tor link menus and previews
 
 Tor link long-press menus use custom actions for opening a new Tor tab, copying
-the URL, and toggling Brave's existing link-preview preference. Tapping a preview
+the URL, copying a clean URL, sharing link text, and toggling Brave's existing
+link-preview preference. Sharing supplies text and local metadata without a
+URL item or metadata fetch. Selecting an external share destination hands the
+text to that app; its behavior is outside Tor's routing guarantees. Tapping a preview
 loads its link in the source Tor tab. New tabs are explicitly created as Tor tabs
 even if the active browsing group changes while a menu is open.
 
@@ -186,7 +189,15 @@ a Chromium preview, LinkPresentation fetch, Quick Look download, or native URL
 session. Dismissal, source web-view deletion, and source closure release its
 context and detach its Tor runtime client.
 
-The contract tests check storage boundaries, proxy failover, blocked destinations
-and cleanup when the source closes. On-device validation is still required for
+The WKUIDelegate implementation uses the completion-handler selector explicitly.
+The previous async method incorrectly used `contextMenuConfigurationForElement`
+instead of the SDK's async label `contextMenuConfigurationFor`; WebKit did not
+recognize it and could fall back to its native menu and unproxied preview loader.
+The corrected callback always returns a custom non-nil configuration, with an
+explicit preview provider even when previews are disabled or a link is rejected.
+
+The contract tests check the actual Objective-C delegate selectors, storage
+boundaries, proxy failover, blocked destinations and cleanup when the source
+closes. On-device validation is still required for
 long-press presentation, redirects and subresources through Tor, hide/show preview,
 preview tap, background-tab creation, dismissal and reconnect behavior.
