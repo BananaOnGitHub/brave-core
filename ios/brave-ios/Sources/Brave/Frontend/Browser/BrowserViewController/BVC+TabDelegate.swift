@@ -4,6 +4,7 @@
 // You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import BraveCore
+import BraveTor
 import BraveShared
 import Data
 import DesignSystem
@@ -31,6 +32,12 @@ extension BrowserViewController: TabDelegate {
     _ tab: some TabState,
     contextMenuConfigurationForLinkURL linkURL: URL?
   ) async -> UIContextMenuConfiguration? {
+    if let tor = tab as? TorTabState {
+      guard let url = linkURL, TorDestination.isAllowed(url) else {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: nil)
+      }
+      return torLinkContextMenu(for: tor, url: url)
+    }
     // Only show context menu for valid links such as `http`, `https`, `data`. Safari does not show it for anything else.
     // This is because you cannot open `javascript:something` URLs in a new page, or share it, or anything else.
     guard let url = linkURL, url.isWebPage() else {
@@ -712,5 +719,50 @@ extension BrowserViewController {
   public func tab(_ tab: some TabState, defaultUserAgentTypeForURL url: URL) -> UserAgentType {
     return profileController.defaultHostContentSettings.defaultPageMode == .desktop
       ? .desktop : .mobile
+  }
+}
+
+extension BrowserViewController {
+  @MainActor
+  private func torLinkContextMenu(for tab: TorTabState, url: URL) -> UIContextMenuConfiguration {
+    let previewProvider: UIContextMenuContentPreviewProvider = { [weak self, weak tab] in
+      guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else {
+        return nil
+      }
+      return tab.makeLinkPreview(for: url)
+    }
+    let preview = Preferences.General.enableLinkPreview.value ? previewProvider : nil
+    return UIContextMenuConfiguration(identifier: nil, previewProvider: preview) { [weak self, weak tab] _ in
+      guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else {
+        return nil
+      }
+      let open = UIAction(
+        title: Strings.Tor.openLinkInNewTab,
+        image: UIImage(braveSystemNamed: "leo.browser.mobile-tab-new")
+      ) { [weak self, weak tab] _ in
+        guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else { return }
+        let newTab = self.tabManager.addTorTab(URLRequest(url: url), afterTab: tab)
+        let toast = ButtonToast(
+          labelText: Strings.contextMenuButtonToastNewTabOpenedLabelText,
+          buttonText: Strings.contextMenuButtonToastNewTabOpenedButtonText,
+          completion: { [weak self, weak newTab] pressed in
+            guard pressed, let self, let newTab,
+              self.tabManager.allTabs.contains(where: { $0 === newTab }) else { return }
+            self.tabManager.selectTab(newTab)
+          }
+        )
+        self.show(toast: toast)
+      }
+      open.accessibilityLabel = "linkContextMenu.openInNewTorTab"
+      let copy = UIAction(
+        title: Strings.copyLinkActionTitle, image: UIImage(braveSystemNamed: "leo.copy")
+      ) { _ in UIPasteboard.general.url = url }
+      let showPreview = Preferences.General.enableLinkPreview.value
+      let toggle = UIAction(
+        title: showPreview ? Strings.hideLinkPreviewsActionTitle : Strings.showLinkPreviewsActionTitle,
+        image: UIImage(braveSystemNamed: showPreview ? "leo.eye.off" : "leo.eye.on")
+      ) { _ in Preferences.General.enableLinkPreview.value.toggle() }
+      return UIMenu(title: url.absoluteString, children: [open, copy, toggle])
+    }
   }
 }

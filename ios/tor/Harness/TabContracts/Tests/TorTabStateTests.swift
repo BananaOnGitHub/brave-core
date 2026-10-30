@@ -35,6 +35,43 @@ final class TorTabStateTests: XCTestCase {
     XCTAssertNil(tab.sessionData)
   }
 
+  func testLinkPreviewsUseTorStoragePolicyAndCloseWithTheirSource() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    for separate in [true, false] {
+      let source = TorTabState(
+        id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: separate
+      )
+      let url = URL(string: "https://preview.invalid/path")!
+      let controller = try XCTUnwrap(source.makeLinkPreview(for: url) as? TorLinkPreviewController)
+      defer { controller.close(); source.close() }
+      XCTAssertEqual(source.sharesBrowsingData(with: controller.previewTab), !separate)
+      controller.loadViewIfNeeded()
+      try await createViews([source, controller.previewTab])
+      let store = try XCTUnwrap(controller.previewTab.configuration?.websiteDataStore)
+      XCTAssertFalse(store.isPersistent)
+      XCTAssertEqual(store.proxyConfigurations.count, 1)
+      XCTAssertFalse(try XCTUnwrap(store.proxyConfigurations.first).allowFailover)
+      XCTAssertTrue(controller.previewTab.isPrivate)
+      XCTAssertNil(controller.previewTab.delegate)
+      XCTAssertNil(controller.previewTab.sessionData)
+      XCTAssertEqual(controller.previewTab.visibleURL, url)
+      source.close()
+      XCTAssertFalse(controller.previewTab.isWebViewCreated)
+      XCTAssertNil(controller.previewTab.torDataStore)
+      XCTAssertNil(source.makeLinkPreview(for: url))
+    }
+  }
+
+  func testLinkPreviewRejectsExternalSchemesAndLocalDestinations() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    for text in ["file:///secret", "data:text/html,hello", "javascript:alert(1)",
+                 "http://127.0.0.1", "http://localhost", "https://user:pass@example.com"] {
+      XCTAssertNil(tab.makeLinkPreview(for: URL(string: text)!))
+    }
+  }
+
   func testSnapshotRejectsInvalidBoundsAndClosedTab() async throws {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)

@@ -28,6 +28,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private var tabSession: TorTabSession?
   private var creationGeneration = 0
   private var browser: WKWebView?
+  private weak var activeLinkPreview: TorLinkPreviewController?
   private var creationTask: Task<Void, Never>?
   private var observations: [NSKeyValueObservation] = []
   private var observers: [AnyTabObserver] = []
@@ -125,7 +126,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         browser.navigationDelegate = self
         browser.uiDelegate = self
         browser.allowsBackForwardNavigationGestures = true
-        browser.allowsLinkPreview = false
+        browser.allowsLinkPreview = true
         browser.translatesAutoresizingMaskIntoConstraints = false
         browserContainer.addSubview(browser)
         NSLayoutConstraint.activate([
@@ -153,6 +154,8 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   public func deleteWebView() {
+    activeLinkPreview?.close()
+    activeLinkPreview = nil
     clearVisuals()
     creationGeneration += 1
     session.detach(id: id)
@@ -486,7 +489,35 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     if let tab = delegate?.tab(self, createTabForOpeningURL: url, inBackground: false), tab is TorTabState { tab.loadRequest(action.request) }
     return nil
   }
-  public func webView(_ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo) async -> UIContextMenuConfiguration? { nil }
+  public func makeLinkPreview(for url: URL) -> UIViewController? {
+    guard tabSession != nil, TorDestination.isAllowed(url) else { return nil }
+    activeLinkPreview?.close()
+    let controller = TorLinkPreviewController(
+      url: url, tab: TorTabState(
+        id: UUID(), profile: profile, session: session, keepTabsSeparate: keepTabsSeparate
+      )
+    )
+    activeLinkPreview = controller
+    return controller
+  }
+
+  public func webView(_ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo) async -> UIContextMenuConfiguration? {
+    guard let url = elementInfo.linkURL, TorDestination.isAllowed(url), let delegate else {
+      return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: nil)
+    }
+    return await delegate.tab(self, contextMenuConfigurationForLinkURL: url)
+      ?? UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: nil)
+  }
+
+  public func webView(_ webView: WKWebView, contextMenuForElement elementInfo: WKContextMenuElementInfo, willCommitWithAnimator animator: any UIContextMenuInteractionCommitAnimating) {
+    guard let url = elementInfo.linkURL, TorDestination.isAllowed(url) else { return }
+    delegate?.tab(self, contextMenuWithLinkURL: url, willCommitWithAnimator: animator)
+  }
+
+  public func webView(_ webView: WKWebView, contextMenuDidEndForElement elementInfo: WKContextMenuElementInfo) {
+    activeLinkPreview?.close()
+    activeLinkPreview = nil
+  }
   public func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision { .deny }
 }
 
@@ -523,4 +554,43 @@ private struct TorBackForwardList: BackForwardListProxy {
     var url: URL { item.url }
     var title: String? { item.title }
   }
+}
+
+@MainActor
+final class TorLinkPreviewController: UIViewController {
+  let previewTab: TorTabState
+  private let url: URL
+
+  init(url: URL, tab: TorTabState) {
+    self.url = url
+    self.previewTab = tab
+    super.init(nibName: nil, bundle: nil)
+    preferredContentSize = CGSize(width: 390, height: 500)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) { fatalError() }
+
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    view.backgroundColor = .systemBackground
+    previewTab.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(previewTab.view)
+    NSLayoutConstraint.activate([
+      previewTab.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      previewTab.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      previewTab.view.topAnchor.constraint(equalTo: view.topAnchor),
+      previewTab.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+    ])
+    previewTab.loadRequest(URLRequest(url: url))
+  }
+
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    close()
+  }
+
+  func close() { previewTab.close() }
+
+  isolated deinit { previewTab.close() }
 }

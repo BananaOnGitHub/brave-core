@@ -5,6 +5,10 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let openLinkInNewTab = NSLocalizedString(
+      "Tor.openLinkInNewTab", bundle: .module, value: "Open in New Private with Tor Tab",
+      comment: "Link context menu action that opens the link in a new Tor tab"
+    )
     public static let shortcutTitle = NSLocalizedString(
       "Tor.shortcutTitle", bundle: .module, value: "Open Private with Tor Tab",
       comment: "Siri shortcut to open a new private tab using Tor"
@@ -104,7 +108,7 @@ extension Strings {
     )
     public static let limitations = NSLocalizedString(
       "Tor.limitations", bundle: .module,
-      value: "Tor protects these tabs. Downloads, media, link previews, translation, and other browser services are unavailable in this build.",
+      value: "Tor protects these tabs. Downloads, media, translation, and other browser services are unavailable in this build.",
       comment: "Tor integration feature limitations"
     )
   }

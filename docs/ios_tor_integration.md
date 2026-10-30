@@ -23,7 +23,7 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
   Other browsing modes retain their own process configuration.
 - Tor tab sessions, URLs and screenshots are excluded from session persistence.
   Ordinary tab helpers, native metadata/favicons, translation, external schemes,
-  native link previews, sharing, voice search, and decentralized
+  native sharing, voice search, and decentralized
   address resolution are detached or blocked. Downloads and media remain blocked.
 
 ## Storage and circuit policy
@@ -169,3 +169,24 @@ Privacy Hub, background and favorites preferences; switch tab groups; open a
 favorite and verify the destination stays in Tor. Check there are no favicon,
 news or sponsored-ad requests when opening the page. The tab-contract test
 covers the new-tab URL surviving blank-document creation and web-view recreation.
+
+## Tor link menus and previews
+
+Tor link long-press menus use custom actions for opening a new Tor tab, copying
+the URL, and toggling Brave's existing link-preview preference. Tapping a preview
+loads its link in the source Tor tab. New tabs are explicitly created as Tor tabs
+even if the active browsing group changes while a menu is open.
+
+The preview is a separate TorTabState using the source tab's frozen isolation
+mode and TorBrowsingSession. It uses the same fail-closed SOCKS gate, nonpersistent
+store policy, UTC process pool, destination restrictions, and media/download
+blocks. With tab isolation ON it has a fresh storage context and SOCKS identity;
+with isolation OFF it joins that Tor session's shared store. It never creates
+a Chromium preview, LinkPresentation fetch, Quick Look download, or native URL
+session. Dismissal, source web-view deletion, and source closure release its
+context and detach its Tor runtime client.
+
+The contract tests check storage boundaries, proxy failover, blocked destinations
+and cleanup when the source closes. On-device validation is still required for
+long-press presentation, redirects and subresources through Tor, hide/show preview,
+preview tap, background-tab creation, dismissal and reconnect behavior.
