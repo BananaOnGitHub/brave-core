@@ -101,8 +101,6 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var configuration: WKWebViewConfiguration? { browser?.configuration }
   public var torDataStore: WKWebsiteDataStore? { tabSession?.websiteDataStore }
 
-  public var onionLocation: URL? { data[TorOnionLocationKey.self].committed }
-
   static func onionLocation(from response: URLResponse) -> URL? {
     guard let response = response as? HTTPURLResponse,
       (200..<300).contains(response.statusCode),
@@ -115,19 +113,6 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
       url.host?.lowercased().hasSuffix(".onion") == true
     else { return nil }
     return url
-  }
-
-  func receiveOnionLocationResponse(_ response: URLResponse, isMainFrame: Bool) {
-    guard isMainFrame else { return }
-    data[TorOnionLocationKey.self].pending = Self.onionLocation(from: response)
-    data[TorOnionLocationKey.self].responseURL = response.url
-  }
-
-  func commitOnionLocation(for url: URL?) {
-    let state = data[TorOnionLocationKey.self]
-    data[TorOnionLocationKey.self] = .init(
-      committed: url == state.responseURL ? state.pending : nil
-    )
   }
 
   public func sharesBrowsingData(with other: TorTabState) -> Bool {
@@ -579,6 +564,25 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
 extension TabState {
   public var isTor: Bool { self is TorTabState }
+
+  @MainActor public var onionLocation: URL? { data[TorOnionLocationKey.self].committed }
+
+  @MainActor public func receiveOnionLocationResponse(_ response: URLResponse, isMainFrame: Bool) {
+    guard isMainFrame else { return }
+    data[TorOnionLocationKey.self].pending = TorTabState.onionLocation(from: response)
+    data[TorOnionLocationKey.self].responseURL = response.url
+  }
+
+  @MainActor public func commitOnionLocation(for url: URL?) {
+    let state = data[TorOnionLocationKey.self]
+    data[TorOnionLocationKey.self] = .init(
+      committed: url == state.responseURL ? state.pending : nil
+    )
+  }
+
+  @MainActor public func clearOnionLocation() {
+    data[TorOnionLocationKey.self] = .init()
+  }
 }
 
 private struct TorOnionLocationState {

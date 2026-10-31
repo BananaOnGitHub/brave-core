@@ -26,6 +26,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabWillDeleteWebView(_ tab: some TabState) {
+    tab.clearOnionLocation()
     tab.browserData?.cancelQueuedAlerts()
     if let scrollView = tab.webViewProxy?.scrollView {
       toolbarVisibilityViewModel.endScrollViewObservation(scrollView)
@@ -34,6 +35,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidStartNavigation(_ tab: some TabState) {
+    if !tab.isTor { tab.clearOnionLocation() }
     if tab.isTor {
       if tab === tabManager.selectedTab { updateInContentHomePanel(tab.visibleURL) }
       return
@@ -94,6 +96,7 @@ extension BrowserViewController: TabObserver {
   }
 
   public func tabDidCommitNavigation(_ tab: some TabState) {
+    if !tab.isTor { tab.commitOnionLocation(for: tab.lastCommittedURL) }
     if tab.isTor {
       if tab === tabManager.selectedTab { updateInContentHomePanel(tab.visibleURL) }
       return

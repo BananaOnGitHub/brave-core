@@ -495,6 +495,10 @@ class TabLocationView: UIView {
       .init(pointSize: pointSize, weight: .regular, scale: .large),
       forImageIn: .normal
     )
+    onionButton.setPreferredSymbolConfiguration(
+      .init(pointSize: pointSize, weight: .regular, scale: .medium),
+      forImageIn: .normal
+    )
     voiceSearchButton.setPreferredSymbolConfiguration(
       .init(pointSize: pointSize, weight: .regular, scale: .large),
       forImageIn: .normal

@@ -24,6 +24,7 @@ extension BrowserViewController: TabPolicyDecider {
     shouldAllowResponse response: URLResponse,
     responseInfo: WebResponseInfo
   ) async -> WebPolicyDecision {
+    tab.receiveOnionLocationResponse(response, isMainFrame: responseInfo.isForMainFrame)
     let responseURL = response.url
 
     // Store the response in the tab

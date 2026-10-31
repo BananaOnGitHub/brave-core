@@ -204,7 +204,8 @@ preview tap, background-tab creation, dismissal and reconnect behavior.
 
 ## Onion-Location
 
-Tor tabs inspect the main-frame HTTP response already received through Tor.
+All tab modes inspect the main-frame HTTP response already received by their
+existing browsing session; Tor tabs receive that response through Tor.
 Following Desktop's policy, successful HTTPS responses from non-onion sites
 can advertise an absolute HTTP(S) onion URL in the Onion-Location header.
 Credentials, whitespace, other schemes and non-onion destinations are rejected.
@@ -213,7 +214,11 @@ navigations and web-view deletion clear it. Subframes cannot set the action.
 
 The URL bar uses Desktop's Leo product Tor icon immediately before reload.
 Tapping opens and selects a new Tor tab through addTorTab; detection itself
-never resolves or fetches the onion destination. The action is Tor-mode-only.
+never resolves or fetches the onion destination. The action is available in
+regular, private and Tor tabs. Entering Tor from a regular tab respects the
+private-browsing lock, and always creates a Tor tab with its own Tor storage
+policy rather than reusing the source tab's data store. The icon uses a small
+symbol size while preserving its full tap target.
 HTML meta tags are not scanned, matching Desktop's header implementation.
 A back-forward cache restore without response headers requires a reload to
 rediscover the advertised URL.
@@ -221,4 +226,5 @@ rediscover the advertised URL.
 Tests cover header validation, frame and commit boundaries, and cleanup.
 Device checks: visit an HTTPS site advertising Onion-Location, tap the icon,
 verify the new tab stays in Tor, navigate away, switch tab groups and confirm
-the icon disappears. Verify placement and VoiceOver on phone and iPad.
+the icon follows the selected tab. Verify placement and VoiceOver on phone and
+iPad, and test the private-browsing lock when opening from regular mode.

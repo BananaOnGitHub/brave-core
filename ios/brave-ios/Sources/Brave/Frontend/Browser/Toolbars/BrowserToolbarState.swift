@@ -180,7 +180,7 @@ final class BrowserToolbarState {
   }
 
   private func updateNavigationState(from tab: some TabState) {
-    onionLocation = (tab as? TorTabState)?.onionLocation
+    onionLocation = tab.onionLocation
     visibleURL = tab.visibleURL
     secureContentState = tab.visibleSecureContentState
     let isForwardItemReaderMode =
