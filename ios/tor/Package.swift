@@ -27,7 +27,12 @@ let package = Package(
       dependencies: ["tor"],
       linkerSettings: [.linkedLibrary("z")]
     ),
-    .target(name: "BraveTor", dependencies: ["EmbeddedTor", .product(name: "IPtProxy", package: "IPtProxy")]),
+    .target(
+      name: "BraveTor",
+      dependencies: ["EmbeddedTor", .product(name: "IPtProxy", package: "IPtProxy")],
+      // IPtProxy's Go runtime references Darwin's res_9_* resolver symbols.
+      linkerSettings: [.linkedLibrary("resolv")]
+    ),
     .target(name: "TorWebKit"),
     .target(
       name: "BraveTorUI",
