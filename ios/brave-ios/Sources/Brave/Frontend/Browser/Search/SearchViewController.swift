@@ -1140,7 +1140,7 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
       } else {
         // Assume that only the default search engine can provide search suggestions.
         let engine = dataSource.searchEngines?.defaultEngine(
-          forType: dataSource.isPrivate ? .privateMode : .standard
+          forType: dataSource.defaultEngineType
         )
         let suggestion = dataSource.suggestions[indexPath.row - 1]
 
@@ -1293,7 +1293,7 @@ extension SearchViewController {
         let isDefaultEngine =
           dataSource.searchEngines?.isEngineDefault(
             engine,
-            type: dataSource.isPrivate ? .privateMode : .standard
+            type: dataSource.defaultEngineType
           ) ?? false
         if isDefaultEngine {
           answer = .defaultEngine

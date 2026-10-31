@@ -1,7 +1,6 @@
 name: Propagate labels
 on:
-  pull_request:
-    types: [closed]
+  workflow_dispatch:
 
 env:
   GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

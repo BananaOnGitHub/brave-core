@@ -1,0 +1,306 @@
+import BraveCore
+import BraveTor
+import BraveTorUI
+import UIKit
+import WebKit
+import XCTest
+@testable import WebTabContracts
+
+private final class ContractProfile: Profile { let isOffTheRecord = true }
+
+@MainActor
+final class TorTabStateTests: XCTestCase {
+  func testBraveComOnionLocationBenchmark() throws {
+    // HTTPS response header captured from brave.com; no live request in this test.
+    let source = URL(string: "https://brave.com/")!
+    let destination = URL(string:
+      "https://brave4u7jddbv7cyviptqjc7jusxh72uik7zt6adtckl5f4nwy2v72qd.onion/index.html"
+    )!
+    let response = try XCTUnwrap(HTTPURLResponse(
+      url: source, statusCode: 200, httpVersion: "HTTP/2",
+      headerFields: ["onion-location": destination.absoluteString]
+    ))
+    XCTAssertEqual(TorTabState.onionLocation(from: response), destination)
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertEqual(tab.onionLocation, destination)
+  }
+
+  func testOnionLocationHeaderValidation() throws {
+    let onion = "http://" + String(repeating: "a", count: 56) + ".onion/path?q=1#section"
+    func response(_ source: String = "https://example.com", status: Int = 200,
+                  value: String? = nil) -> HTTPURLResponse {
+      HTTPURLResponse(url: URL(string: source)!, statusCode: status, httpVersion: nil,
+                      headerFields: ["oNiOn-LoCaTiOn": value ?? onion])!
+    }
+    XCTAssertEqual(TorTabState.onionLocation(from: response()), URL(string: onion))
+    let secureOnion = onion.replacingOccurrences(of: "http:", with: "https:")
+    XCTAssertEqual(TorTabState.onionLocation(from: response(value: secureOnion)), URL(string: secureOnion))
+    XCTAssertEqual(TorTabState.onionLocation(from: response(value: "  \(onion)  ")), URL(string: onion))
+    XCTAssertNil(TorTabState.onionLocation(from: response("http://example.com")))
+    XCTAssertNil(TorTabState.onionLocation(from: response("https://example.onion")))
+    for status in [301, 404, 500] {
+      XCTAssertNil(TorTabState.onionLocation(from: response(status: status)))
+    }
+    for value in ["", "/relative", "https://example.com", "https://example.onion.evil",
+                  "ftp://example.onion", "http://user:pass@example.onion", "http://a b.onion"] {
+      XCTAssertNil(TorTabState.onionLocation(from: response(value: value)), value)
+    }
+  }
+
+  func testOnionLocationRequiresMatchingMainFrameCommitAndClearsOnNavigation() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let source = URL(string: "https://example.com/page")!
+    let onion = URL(string: "http://" + String(repeating: "a", count: 56) + ".onion/page")!
+    let response = HTTPURLResponse(url: source, statusCode: 200, httpVersion: nil,
+                                   headerFields: ["Onion-Location": onion.absoluteString])!
+    tab.receiveOnionLocationResponse(response, isMainFrame: false)
+    tab.commitOnionLocation(for: source)
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    XCTAssertNil(tab.onionLocation)
+    tab.commitOnionLocation(for: URL(string: "https://other.example"))
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertEqual(tab.onionLocation, onion)
+    let noHeader = HTTPURLResponse(url: source, statusCode: 200, httpVersion: nil, headerFields: [:])!
+    tab.receiveOnionLocationResponse(noHeader, isMainFrame: false)
+    XCTAssertEqual(tab.onionLocation, onion)
+    tab.receiveOnionLocationResponse(noHeader, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    tab.loadRequest(URLRequest(url: URL(string: "about://newtab")!))
+    XCTAssertNil(tab.onionLocation)
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    tab.close()
+    XCTAssertNil(tab.onionLocation)
+  }
+
+  func testWebKitRecognizesTorContextMenuDelegateCallbacks() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let delegate: any WKUIDelegate = tab
+    // An almost-matching async signature silently leaves WebKit's native loader active.
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuConfigurationForElement:completionHandler:)
+    )))
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuForElement:willCommitWithAnimator:)
+    )))
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:contextMenuDidEndForElement:)
+    )))
+  }
+
+  func testNativeNewTabMarkerSurvivesWebViewCreationAndRecreation() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let newTabURL = URL(string: "about://newtab")!
+    let website = URL(string: "https://pending-tor-request.invalid/")!
+    tab.loadRequest(URLRequest(url: website))
+    tab.loadRequest(URLRequest(url: newTabURL))
+    try await createViews([tab])
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    XCTAssertNil(tab.lastCommittedURL)
+    let location = try await tab.callAsyncJavaScript(
+      "return location.href;", arguments: [:], in: nil, contentWorld: .page
+    )
+    XCTAssertEqual(location as? String, "about:blank")
+    tab.deleteWebView()
+    try await createViews([tab])
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    tab.loadRequest(URLRequest(url: URL(string: "chrome://settings")!))
+    XCTAssertEqual(tab.visibleURL, newTabURL)
+    tab.loadRequest(URLRequest(url: website))
+    XCTAssertEqual(tab.visibleURL, website)
+    XCTAssertNil(tab.sessionData)
+  }
+
+  func testLinkPreviewsUseTorStoragePolicyAndCloseWithTheirSource() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    for separate in [true, false] {
+      let source = TorTabState(
+        id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: separate
+      )
+      let url = URL(string: "https://preview.invalid/path")!
+      let controller = try XCTUnwrap(source.makeLinkPreview(for: url) as? TorLinkPreviewController)
+      defer { controller.close(); source.close() }
+      XCTAssertEqual(source.sharesBrowsingData(with: controller.previewTab), !separate)
+      controller.loadViewIfNeeded()
+      try await createViews([source, controller.previewTab])
+      let store = try XCTUnwrap(controller.previewTab.configuration?.websiteDataStore)
+      XCTAssertFalse(store.isPersistent)
+      XCTAssertEqual(store.proxyConfigurations.count, 1)
+      XCTAssertFalse(try XCTUnwrap(store.proxyConfigurations.first).allowFailover)
+      XCTAssertTrue(controller.previewTab.isPrivate)
+      XCTAssertNil(controller.previewTab.delegate)
+      XCTAssertNil(controller.previewTab.sessionData)
+      XCTAssertEqual(controller.previewTab.visibleURL, url)
+      source.close()
+      XCTAssertFalse(controller.previewTab.isWebViewCreated)
+      XCTAssertNil(controller.previewTab.torDataStore)
+      XCTAssertNil(source.makeLinkPreview(for: url))
+    }
+  }
+
+  func testLinkPreviewRejectsExternalSchemesAndLocalDestinations() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    for text in ["file:///secret", "data:text/html,hello", "javascript:alert(1)",
+                 "http://127.0.0.1", "http://localhost", "https://user:pass@example.com"] {
+      XCTAssertNil(tab.makeLinkPreview(for: URL(string: text)!))
+    }
+  }
+
+  func testSnapshotRejectsInvalidBoundsAndClosedTab() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    XCTAssertFalse(tab.canTakeSnapshot)
+    tab.takeSnapshot(rect: .null) { XCTAssertNil($0) }
+    try await createViews([tab])
+    tab.view.frame = CGRect(x: 0, y: 0, width: 320, height: 480)
+    tab.view.layoutIfNeeded()
+    XCTAssertTrue(tab.canTakeSnapshot)
+    tab.takeSnapshot(rect: CGRect(x: 10000, y: 10000, width: 10, height: 10)) {
+      XCTAssertNil($0)
+    }
+    tab.close()
+    XCTAssertFalse(tab.canTakeSnapshot)
+    XCTAssertNil(tab.previewImage)
+    XCTAssertNil(tab.faviconImage)
+    tab.takeSnapshot(rect: .null) { XCTAssertNil($0) }
+  }
+
+  func testModeSnapshotRecreationAndLastSharedTabClose() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    // Constructor values model OFF -> ON -> OFF while older tabs stay open.
+    let first = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: false
+    )
+    let isolated = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: true
+    )
+    let second = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: false
+    )
+    defer { [first, isolated, second].forEach { $0.close() } }
+    try await createViews([first, isolated, second])
+    let originalStore = try XCTUnwrap(first.configuration?.websiteDataStore)
+    XCTAssertTrue(originalStore === second.configuration?.websiteDataStore)
+    XCTAssertFalse(originalStore === isolated.configuration?.websiteDataStore)
+    let cookie = try XCTUnwrap(HTTPCookie(properties: [
+      .name: "tab_context", .value: "retained", .domain: "brave-tor-storage.invalid", .path: "/",
+    ]))
+    await originalStore.httpCookieStore.setCookie(cookie)
+    first.deleteWebView()
+    try await createViews([first])
+    XCTAssertTrue(originalStore === first.configuration?.websiteDataStore)
+    let recreatedCookies = await first.configuration?.websiteDataStore.httpCookieStore.allCookies()
+    XCTAssertEqual(recreatedCookies?.first { $0.name == "tab_context" }?.value, "retained")
+    first.close()
+    // Retain both closed tab objects and the old store, as an undo/UI callback
+    // can. They must not keep the retired session available to new tabs.
+    XCTAssertTrue(originalStore === second.configuration?.websiteDataStore)
+    second.close()
+    let fresh = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: false
+    )
+    defer { fresh.close() }
+    try await createViews([fresh])
+    let freshStore = try XCTUnwrap(fresh.configuration?.websiteDataStore)
+    XCTAssertFalse(originalStore === freshStore)
+    XCTAssertFalse(freshStore === isolated.configuration?.websiteDataStore)
+    let freshCookies = await freshStore.httpCookieStore.allCookies()
+    XCTAssertFalse(freshCookies.contains { $0.name == "tab_context" })
+    // Undo reopens under the tab's original mode, with the current fresh
+    // shared session, rather than restoring the closed session's data.
+    try await createViews([first])
+    XCTAssertTrue(freshStore === first.configuration?.websiteDataStore)
+    XCTAssertNil(first.sessionData)
+  }
+
+  func testCloseAndReopenWhileCreationIsQueuedUsesOnlyTheNewSession() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: false
+    )
+    let peer = TorTabState(
+      id: UUID(), profile: ContractProfile(), session: session, keepTabsSeparate: true
+    )
+    defer { tab.close(); peer.close() }
+    tab.createWebView()
+    tab.close()
+    try await createViews([tab, peer])
+    XCTAssertTrue(tab.isWebViewCreated)
+    XCTAssertFalse(tab.configuration?.websiteDataStore === peer.configuration?.websiteDataStore)
+    XCTAssertFalse(tab.configuration?.websiteDataStore.isPersistent ?? true)
+  }
+
+  private func createViews(_ tabs: [TorTabState]) async throws {
+    let created = expectation(description: "Tor tab documents created")
+    created.expectedFulfillmentCount = tabs.count
+    let observer = CreationObserver { created.fulfill() }
+    tabs.forEach { $0.addObserver(observer); $0.createWebView() }
+    await fulfillment(of: [created], timeout: 15)
+    tabs.forEach { $0.removeObserver(observer) }
+    XCTAssertTrue(tabs.allSatisfy(\.isWebViewCreated))
+  }
+
+  func testTwoTabsKeepIndependentPrivateStoresAndRetainDOMAcrossReconnect() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let first = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    let second = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    let created = expectation(description: "Both native tabs created")
+    created.expectedFulfillmentCount = 2
+    let observer = CreationObserver { created.fulfill() }
+    first.addObserver(observer)
+    second.addObserver(observer)
+    first.createWebView()
+    second.createWebView()
+    defer { first.deleteWebView(); second.deleteWebView() }
+    await fulfillment(of: [created], timeout: 15)
+    XCTAssertTrue(first.isTor)
+    XCTAssertTrue(first.isPrivate)
+    let firstStore = try XCTUnwrap(first.configuration?.websiteDataStore)
+    XCTAssertFalse(firstStore.isPersistent)
+    XCTAssertFalse(firstStore === second.configuration?.websiteDataStore)
+    XCTAssertFalse(try XCTUnwrap(firstStore.proxyConfigurations.first).allowFailover)
+    XCTAssertNil(first.sessionData)
+    let scrollView = try XCTUnwrap(first.webViewProxy?.scrollView)
+    let initial = try await first.callAsyncJavaScript("""
+      document.documentElement.innerHTML = '<body><input id="test" value="retained"></body>';
+      window.sessionMarker = 'same page';
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+      """, arguments: [:], in: nil, contentWorld: .page)
+    XCTAssertEqual(initial as? String, "UTC")
+    session.reconnect()
+    first.loadRequest(URLRequest(url: URL(string: "https://pending-tor-request.invalid/")!))
+    XCTAssertTrue(first.webViewProxy?.scrollView === scrollView)
+    let retained = try await first.callAsyncJavaScript(
+      "return [document.getElementById('test').value, window.sessionMarker].join('|');",
+      arguments: [:], in: nil, contentWorld: .page
+    )
+    XCTAssertEqual(retained as? String, "retained|same page")
+    XCTAssertEqual(session.state, .waiting)
+    XCTAssertNil(first.sessionData)
+  }
+
+  private final class CreationObserver: TabObserver {
+    let callback: () -> Void
+    init(callback: @escaping () -> Void) { self.callback = callback }
+    func tabDidFinishNavigation(_ tab: some TabState) { callback() }
+  }
+}

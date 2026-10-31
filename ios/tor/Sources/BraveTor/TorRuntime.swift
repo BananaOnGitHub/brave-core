@@ -4,6 +4,7 @@
 import Darwin
 import EmbeddedTor
 import Foundation
+import IPtProxy
 
 public struct TorSnapshot: Sendable {
   public let progress: Int
@@ -17,12 +18,17 @@ public actor TorRuntime {
   private var channel: TorControlChannel?
   private var networkEnabled = false
   private let dataDirectory: URL?
+  private var bridges = TorBridgeConfiguration()
+  private var bridgeSettingsApplied = false
+  private var transports: IPtProxyController?
+  private var activeTransports: Set<String> = []
 
   public init(dataDirectory: URL? = nil) {
     self.dataDirectory = dataDirectory
   }
 
   deinit {
+    for name in activeTransports { transports?.stop(name) }
     brave_tor_host_release(host)
   }
 
@@ -78,18 +84,59 @@ public actor TorRuntime {
   public func connect() throws {
     try prepare()
     guard let channel else { throw TorError.unavailable }
+    if bridges.useBridges || bridgeSettingsApplied {
+      // Always configure offline. A bridge failure must never fall back to public relays.
+      _ = try channel.command("SETCONF DisableNetwork=1")
+      networkEnabled = false
+      do {
+        let lines = try bridges.bridgeLines()
+        var ports: [String: Int] = [:]
+        let names = Set(lines.compactMap(TorBridgeLine.transport))
+        if !names.isEmpty, transports == nil {
+          let directory = try FileManager.default.url(
+            for: .applicationSupportDirectory, in: .userDomainMask,
+            appropriateFor: nil, create: true
+          ).appendingPathComponent("EmbeddedTor/transports", isDirectory: true)
+          try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
+                                                attributes: [.posixPermissions: 0o700])
+          var protectedDirectory = directory
+          var values = URLResourceValues()
+          values.isExcludedFromBackup = true
+          try protectedDirectory.setResourceValues(values)
+          transports = IPtProxyNewController(directory.path, false, false, "ERROR", nil)
+        }
+        for name in names {
+          guard let transports else { throw TorError.unavailable }
+          try transports.start(name, proxy: "")
+          activeTransports.insert(name)
+          ports[name] = transports.port(name)
+        }
+        _ = try channel.command("RESETCONF UseBridges Bridge ClientTransportPlugin")
+        _ = try channel.command(TorBridgeLine.controlCommand(lines: lines, ports: ports))
+      } catch {
+        for name in activeTransports { transports?.stop(name) }
+        activeTransports.removeAll()
+        throw error
+      }
+      bridgeSettingsApplied = bridges.useBridges
+    }
     _ = try channel.command("SETCONF DisableNetwork=0")
     networkEnabled = true
   }
 
   public func suspend() {
     networkEnabled = false
+    defer {
+      for name in activeTransports { transports?.stop(name) }
+      activeTransports.removeAll()
+    }
     guard let channel else { return }
     do {
       _ = try channel.command("SETCONF DisableNetwork=1")
     } catch {
       // A broken control channel must not leave an unmanageable Tor instance.
       self.channel = nil
+      bridgeSettingsApplied = false
       brave_tor_host_release(host)
       host = nil
     }
@@ -118,6 +165,11 @@ public actor TorRuntime {
       endpoint: endpoint,
       circuitEstablished: reply.value(for: "status/circuit-established") == "1"
     )
+  }
+
+  public func configureBridges(_ configuration: TorBridgeConfiguration) {
+    suspend()
+    bridges = configuration
   }
 
   func networkIsDisabled() throws -> Bool {

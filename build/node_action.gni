@@ -62,10 +62,11 @@ template("node_action") {
                              "visibility",
                            ])
 
-    response_file_contents = [
-      rebase_path(node_bin, root_build_dir),
-      rebase_path(_node_script, root_build_dir),
-    ]
+    response_file_contents = [ rebase_path(node_bin, root_build_dir) ]
+    if (defined(invoker.node_args)) {
+      response_file_contents += invoker.node_args
+    }
+    response_file_contents += [ rebase_path(_node_script, root_build_dir) ]
 
     if (defined(invoker.args)) {
       response_file_contents += invoker.args

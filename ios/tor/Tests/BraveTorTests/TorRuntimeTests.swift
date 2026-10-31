@@ -30,6 +30,17 @@ final class TorRuntimeTests: XCTestCase {
     }
     let stillRunningVersion = try await runtime.version()
     XCTAssertEqual(stillRunningVersion, version)
+    var invalid = TorBridgeConfiguration()
+    invalid.useBridges = true
+    invalid.source = .provide
+    invalid.provided = ["192.0.2.1:443\nDisableNetwork 0"]
+    await runtime.configureBridges(invalid)
+    do {
+      try await runtime.connect()
+      XCTFail("Invalid bridge settings must keep Tor offline")
+    } catch { }
+    let remainsDisabled = try await runtime.networkIsDisabled()
+    XCTAssertTrue(remainsDisabled)
     await runtime.suspend()
   }
 }

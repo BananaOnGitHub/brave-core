@@ -20,6 +20,7 @@ import os.log
 
 extension BrowserViewController: TabManagerDelegate {
   func attachTabHelpers(to tab: some TabState) {
+    guard !tab.isTor else { return }
     tab.browserData = .init(tab: tab, tabGeneratorAPI: profileController.tabGeneratorAPI)
     tab.pullToRefresh = .init(tab: tab)
     tab.renderProcessCrash = .init(tab: tab)
@@ -374,6 +375,12 @@ extension BrowserViewController: TabManagerDelegate {
   }
 
   func tabManager(_ tabManager: TabManager, didAddTab tab: some TabState) {
+    if tab.isTor {
+      tab.delegate = self
+      tab.addObserver(self)
+      updateTabsBarVisibility()
+      return
+    }
     tab.addObserver(self)
     tab.delegate = self
     tab.downloadDelegate = self

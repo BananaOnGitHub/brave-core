@@ -48,6 +48,7 @@ protocol TopToolbarDelegate: AnyObject {
   func topToolbarDidPressPasteAndGoButton(_ urlBar: TopToolbarView)
   func topToolbarDidPressStop(_ urlBar: TopToolbarView)
   func topToolbarDidPressReload(_ urlBar: TopToolbarView)
+  func topToolbarDidPressOnionLocation(_ urlBar: TopToolbarView)
   func topToolbarDidPressQrCodeButton(_ urlBar: TopToolbarView)
   func topToolbarDidTapWalletButton(_ urlBar: TopToolbarView)
   func topToolbarDidTapSecureContentState(_ urlBar: TopToolbarView)
@@ -478,6 +479,8 @@ class TopToolbarView: UIView, ToolbarProtocol {
   }
 
   func updateObservedProperties() {
+    locationView.onionLocation = !toolbarState.torAvailable || toolbarState.isDisplayingCrossOriginBasicAuthPrompt
+      ? nil : toolbarState.onionLocation
     backButton.isEnabled = toolbarState.canGoBack
     forwardButton.isEnabled = toolbarState.canGoForward
     shareButton.isEnabled = toolbarState.isWebPage
@@ -693,6 +696,10 @@ extension TopToolbarView: TabLocationViewDelegate {
 
   func tabLocationViewDidTapReload(_ tabLocationView: TabLocationView) {
     delegate?.topToolbarDidPressReload(self)
+  }
+
+  func tabLocationViewDidTapOnionLocation(_ tabLocationView: TabLocationView) {
+    delegate?.topToolbarDidPressOnionLocation(self)
   }
 
   func tabLocationViewDidTapStop(_ tabLocationView: TabLocationView) {

@@ -11,6 +11,133 @@ import XCTest
 
 @MainActor
 final class TorSOCKSIntegrationTests: XCTestCase {
+  func testAuthenticationOnTheWireMatchesTabAndSharedSessionBoundaries() async throws {
+    let gate = TorSOCKSGate()
+    let session = TorBrowsingSession(
+      runtime: TorRuntime(), automaticallyConnect: false, gate: gate
+    )
+    let tabs = [true, true, false, false].map { session.openTabSession(keepTabsSeparate: $0) }
+    let hosts = ["tab-one.invalid", "tab-two.invalid", "shared-one.invalid", "shared-two.invalid"]
+    var identities: [String: String] = [:]
+    var requests: [String: XCTestExpectation] = [:]
+    for (host, tab) in zip(hosts, tabs) {
+      identities[host] = try XCTUnwrap(tab.isolationID).uuidString
+      requests[host] = expectation(description: "Authenticated SOCKS request for \(host)")
+    }
+    XCTAssertNotEqual(identities[hosts[0]], identities[hosts[1]])
+    XCTAssertNotEqual(identities[hosts[0]], identities[hosts[2]])
+    XCTAssertEqual(identities[hosts[2]], identities[hosts[3]])
+    let expectedIdentities = identities
+    let expectedRequests = requests
+    let ready = expectation(description: "Authentication probe ready")
+    let server = try SOCKSProbeServer(
+      serveScriptedPage: false, ready: { ready.fulfill() }, destination: { _ in },
+      observedRequest: { hostname, username, password in
+        guard let hostname, let expected = expectedIdentities[hostname] else {
+          XCTFail("Unexpected SOCKS destination")
+          return
+        }
+        XCTAssertEqual(username, expected, "SOCKS username must identify the frozen browsing context")
+        XCTAssertEqual(password, expected, "SOCKS must not silently select unauthenticated mode")
+        expectedRequests[hostname]?.fulfill()
+      }
+    )
+    var views: [WKWebView] = []
+    defer {
+      views.forEach { $0.stopLoading() }
+      tabs.forEach { session.closeTabSession($0) }
+      gate.close()
+      server.stop()
+    }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    gate.forward(to: try TorEndpoint(listener: "127.0.0.1:\(try XCTUnwrap(server.port))"))
+    for (host, tab) in zip(hosts, tabs) {
+      let configuration = try await session.configuration(for: tab)
+      let view = WKWebView(frame: .zero, configuration: configuration)
+      views.append(view)
+      view.load(URLRequest(url: try XCTUnwrap(URL(string: "https://\(host)/"))))
+    }
+    await fulfillment(of: Array(expectedRequests.values), timeout: 20)
+  }
+
+  func testCookiesLocalStorageAndIndexedDBFollowStorageMode() async throws {
+    let ready = expectation(description: "Storage probe ready")
+    let server = try SOCKSProbeServer(
+      serveScriptedPage: false, serveStoragePage: true,
+      ready: { ready.fulfill() }, destination: { hostname in
+        XCTAssertEqual(hostname, "brave-tor-storage.invalid")
+      }
+    )
+    let gate = TorSOCKSGate()
+    let session = TorBrowsingSession(
+      runtime: TorRuntime(), automaticallyConnect: false, gate: gate
+    )
+    defer { gate.close(); server.stop() }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    gate.forward(to: try TorEndpoint(listener: "127.0.0.1:\(try XCTUnwrap(server.port))"))
+    for keepSeparate in [true, false] {
+      let first = session.openTabSession(keepTabsSeparate: keepSeparate)
+      let second = session.openTabSession(keepTabsSeparate: keepSeparate)
+      defer { session.closeTabSession(first); session.closeTabSession(second) }
+      let firstConfiguration = try await session.configuration(for: first)
+      let secondConfiguration = try await session.configuration(for: second)
+      let writer = WKWebView(frame: .zero, configuration: firstConfiguration)
+      let reader = WKWebView(frame: .zero, configuration: secondConfiguration)
+      defer { writer.stopLoading(); reader.stopLoading() }
+      try await loadStoragePage(in: writer)
+      try await loadStoragePage(in: reader)
+      let database = "tor_storage_" + UUID().uuidString
+      _ = try await writer.callAsyncJavaScript("""
+        document.cookie = 'tor_storage=written;path=/;SameSite=Lax';
+        localStorage.setItem('tor_storage', 'written');
+        await new Promise((resolve, reject) => {
+          const request = indexedDB.open(database, 1);
+          request.onupgradeneeded = () => request.result.createObjectStore('values');
+          request.onerror = () => reject(request.error);
+          request.onblocked = () => reject(new Error('database blocked'));
+          request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction('values', 'readwrite');
+            transaction.objectStore('values').put('written', 'marker');
+            transaction.oncomplete = () => { db.close(); resolve(); };
+            transaction.onabort = () => { db.close(); reject(transaction.error); };
+          };
+        });
+        return true;
+        """, arguments: ["database": database], in: nil, contentWorld: .page)
+      let result = try await reader.callAsyncJavaScript("""
+        const stored = await new Promise((resolve, reject) => {
+          const request = indexedDB.open(database, 1);
+          request.onupgradeneeded = () => request.result.createObjectStore('values');
+          request.onerror = () => reject(request.error);
+          request.onblocked = () => reject(new Error('database blocked'));
+          request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction('values', 'readonly');
+            const read = transaction.objectStore('values').get('marker');
+            transaction.oncomplete = () => { db.close(); resolve(read.result || ''); };
+            transaction.onabort = () => { db.close(); reject(transaction.error); };
+          };
+        });
+        const cookie = document.cookie.split(';').some(value => value.trim() === 'tor_storage=written');
+        return [cookie ? 'written' : '', localStorage.getItem('tor_storage') || '', stored].join('|');
+        """, arguments: ["database": database], in: nil, contentWorld: .page)
+      XCTAssertEqual(result as? String, keepSeparate ? "||" : "written|written|written")
+    }
+  }
+
+  private func loadStoragePage(in view: WKWebView) async throws {
+    let finished = expectation(description: "Storage document loaded through SOCKS")
+    let probe = PageLoadProbe { finished.fulfill() }
+    view.navigationDelegate = probe
+    view.load(URLRequest(url: try XCTUnwrap(URL(string: "http://brave-tor-storage.invalid/"))))
+    await fulfillment(of: [finished], timeout: 15)
+    withExtendedLifetime(probe) {}
+    XCTAssertEqual(view.url?.host, "brave-tor-storage.invalid")
+  }
+
   func testWebKitPassesDestinationHostnameToSOCKS() async throws {
     let ready = expectation(description: "Local SOCKS listener is ready")
     let request = expectation(description: "SOCKS receives the unresolved hostname")
@@ -28,7 +155,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let port = try XCTUnwrap(server.port)
     let endpoint = try TorEndpoint(listener: "127.0.0.1:\(port)")
     let rules = try await TorWebPolicy.compileRules()
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "test-isolation", javaScriptEnabled: false
     )
     let webView = WKWebView(frame: .zero, configuration: configuration)
@@ -37,6 +164,34 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     webView.load(URLRequest(url: URL(string: "https://brave-tor-probe.invalid/")!))
     await fulfillment(of: [request], timeout: 15)
     webView.stopLoading()
+  }
+
+  func testWebKitPassesOnionHostnameToSOCKSWithoutLocalResolution() async throws {
+    let hostname = String(repeating: "a", count: 56) + ".onion"
+    let ready = expectation(description: "Local SOCKS listener is ready")
+    let request = expectation(description: "Unresolved onion hostname reaches SOCKS")
+    let server = try SOCKSProbeServer(
+      serveScriptedPage: false,
+      ready: { ready.fulfill() },
+      destination: { destination in
+        XCTAssertEqual(destination, hostname)
+        request.fulfill()
+      }
+    )
+    defer { server.stop() }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    let endpoint = try TorEndpoint(listener: "127.0.0.1:\(try XCTUnwrap(server.port))")
+    let rules = try await TorWebPolicy.compileRules()
+    let configuration = try TorWebPolicy.configuration(
+      endpoint: endpoint, rules: rules, isolationID: "onion-test", javaScriptEnabled: false
+    )
+    let webView = WKWebView(frame: .zero, configuration: configuration)
+    defer { webView.stopLoading() }
+    let url = try XCTUnwrap(TorDestination.onionURL(from: hostname + "/"))
+    webView.load(URLRequest(url: url))
+    // The loopback stub rejects CONNECT; no onion service or public resolver is contacted.
+    await fulfillment(of: [request], timeout: 15)
   }
 
   func testPageJavaScriptFetchAndRedirectUseUnresolvedSOCKSHostnames() async throws {
@@ -63,7 +218,7 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let port = try XCTUnwrap(server.port)
     let endpoint = try TorEndpoint(listener: "127.0.0.1:\(port)")
     let rules = try await TorWebPolicy.compileRules()
-    let configuration = TorWebPolicy.configuration(
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "script-isolation", javaScriptEnabled: true
     )
     let probe = ScriptResultProbe { value in
@@ -82,9 +237,23 @@ final class TorSOCKSIntegrationTests: XCTestCase {
   }
 
   func testDisabledPageJavaScriptDoesNotExecute() async throws {
+    let ready = expectation(description: "Local SOCKS listener is ready")
+    let document = expectation(description: "Disabled-script document reaches SOCKS")
+    let server = try SOCKSProbeServer(
+      serveScriptedPage: true,
+      ready: { ready.fulfill() },
+      destination: { hostname in
+        XCTAssertEqual(hostname, "brave-tor-probe.invalid", "Disabled scripts must not fetch")
+        if hostname == "brave-tor-probe.invalid" { document.fulfill() }
+      }
+    )
+    defer { server.stop() }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    let port = try XCTUnwrap(server.port)
     let rules = try await TorWebPolicy.compileRules()
-    let endpoint = try TorEndpoint(listener: "127.0.0.1:9050")
-    let configuration = TorWebPolicy.configuration(
+    let endpoint = try TorEndpoint(listener: "127.0.0.1:\(port)")
+    let configuration = try TorWebPolicy.configuration(
       endpoint: endpoint, rules: rules, isolationID: "disabled-script", javaScriptEnabled: false
     )
     let finished = expectation(description: "Static page finished loading")
@@ -92,10 +261,13 @@ final class TorSOCKSIntegrationTests: XCTestCase {
     let webView = WKWebView(frame: .zero, configuration: configuration)
     webView.navigationDelegate = probe
     defer { webView.stopLoading() }
-    webView.loadHTMLString(
-      "<title>script-off</title><script>document.title = 'script-ran';</script>", baseURL: nil
+    // The navigation callback and title update arrive independently from WebKit.
+    let title = keyValueObservingExpectation(
+      for: webView, keyPath: "title", expectedValue: "script-off"
     )
-    await fulfillment(of: [finished], timeout: 10)
+    // Use the same scripted HTTP response as the enabled test, through SOCKS.
+    webView.load(URLRequest(url: URL(string: "http://brave-tor-probe.invalid/")!))
+    await fulfillment(of: [document, finished, title], timeout: 15)
     withExtendedLifetime(probe) {
       XCTAssertEqual(webView.title, "script-off")
     }
@@ -133,13 +305,16 @@ private final class SOCKSProbeServer: @unchecked Sendable {
   private let ready: () -> Void
   private let destination: (String?) -> Void
   private let serveScriptedPage: Bool
+  private let serveStoragePage: Bool
+  private let observedRequest: ((String?, String?, String?) -> Void)?
   private var connections: [NWConnection] = []
 
   var port: UInt16? { listener.port?.rawValue }
 
   init(
-    serveScriptedPage: Bool, ready: @escaping () -> Void,
-    destination: @escaping (String?) -> Void
+    serveScriptedPage: Bool, serveStoragePage: Bool = false, ready: @escaping () -> Void,
+    destination: @escaping (String?) -> Void,
+    observedRequest: ((String?, String?, String?) -> Void)? = nil
   ) throws {
     let parameters = NWParameters.tcp
     parameters.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback), port: .any)
@@ -147,6 +322,8 @@ private final class SOCKSProbeServer: @unchecked Sendable {
     self.ready = ready
     self.destination = destination
     self.serveScriptedPage = serveScriptedPage
+    self.serveStoragePage = serveStoragePage
+    self.observedRequest = observedRequest
   }
 
   func start() {
@@ -225,16 +402,20 @@ private final class SOCKSProbeServer: @unchecked Sendable {
           connection.cancel()
           return
         }
-        self.read(connection, count: Int(length)) { [weak self] _ in
+        let username = String(data: userAndLength.dropLast(), encoding: .utf8)
+        self.read(connection, count: Int(length)) { [weak self] passwordData in
+          let password = String(data: passwordData, encoding: .utf8)
           self?.send([1, 0], to: connection) { [weak self] in
-            self?.connectRequest(connection)
+            self?.connectRequest(connection, username: username, password: password)
           }
         }
       }
     }
   }
 
-  private func connectRequest(_ connection: NWConnection) {
+  private func connectRequest(
+    _ connection: NWConnection, username: String? = nil, password: String? = nil
+  ) {
     read(connection, count: 4) { [weak self] header in
       guard let self else { return }
       guard header[0] == 5, header[1] == 1, header[3] == 3 else {
@@ -250,8 +431,9 @@ private final class SOCKSProbeServer: @unchecked Sendable {
         self.read(connection, count: Int(length[0]) + 2) { [weak self] address in
           guard let self else { return }
           let hostname = String(data: address.dropLast(2), encoding: .utf8)
+          self.observedRequest?(hostname, username, password)
           self.destination(hostname)
-          if self.serveScriptedPage, let hostname {
+          if self.serveScriptedPage || self.serveStoragePage, let hostname {
             self.send([5, 0, 0, 1, 0, 0, 0, 0, 0, 0], to: connection) { [weak self] in
               self?.readHTTPRequest(connection, hostname: hostname, buffer: Data())
             }
@@ -292,6 +474,10 @@ private final class SOCKSProbeServer: @unchecked Sendable {
     let headers: String
     let body: String
     switch hostname {
+    case "brave-tor-storage.invalid" where serveStoragePage:
+      status = "200 OK"
+      headers = "Content-Type: text/html; charset=utf-8\r\n"
+      body = "<!doctype html><title>Storage probe</title><body>Tor storage probe</body>"
     case "brave-tor-probe.invalid":
       status = "200 OK"
       headers = "Content-Type: text/html; charset=utf-8\r\n"

@@ -31,6 +31,8 @@ class SearchSuggestionDataSource {
   }
 
   let isPrivate: Bool
+  let isTor: Bool
+  var defaultEngineType: DefaultEngineType { .init(isPrivate: isPrivate, isTor: isTor) }
   let isAIChatAvailable: Bool
   let isPlaylistAvailable: Bool
   let maxSearchSuggestions = 5
@@ -50,9 +52,9 @@ class SearchSuggestionDataSource {
   let searchEngines: SearchEngines?
 
   var quickSearchEngines: [OpenSearchEngine] {
-    guard let searchEngines else { return [] }
+    guard !isTor, let searchEngines else { return [] }
     var quickSearchEngines = searchEngines.quickSearchEngines
-    let searchEngineType: DefaultEngineType = isPrivate ? .privateMode : .standard
+    let searchEngineType = defaultEngineType
     if let defaultEngine = searchEngines.defaultEngine(forType: searchEngineType),
       !quickSearchEngines.contains(where: { $0.engineID == defaultEngine.engineID })
     {
@@ -66,7 +68,7 @@ class SearchSuggestionDataSource {
   // Unless Default Search Engine is different than Quick Search Engine
   var hasQuickSearchEngines: Bool {
     let isDefaultEngineQuickEngine =
-      searchEngines?.defaultEngine(forType: isPrivate ? .privateMode : .standard)?
+      searchEngines?.defaultEngine(forType: defaultEngineType)?
       .engineID
       == quickSearchEngines.first?.engineID
 
@@ -78,8 +80,8 @@ class SearchSuggestionDataSource {
   }
 
   var braveSearchPromotionAvailable: Bool {
-    guard Preferences.Review.launchCount.value > 1,
-      searchEngines?.defaultEngine(forType: isPrivate ? .privateMode : .standard)?
+    guard !isTor, Preferences.Review.launchCount.value > 1,
+      searchEngines?.defaultEngine(forType: defaultEngineType)?
         .shortName != OpenSearchEngine.EngineNames.brave,
       let braveSearchPromotionLaunchDate = Preferences.BraveSearch.braveSearchPromotionLaunchDate
         .value,
@@ -114,8 +116,10 @@ class SearchSuggestionDataSource {
     isPrivate: Bool,
     isAIChatAvailable: Bool,
     isPlaylistAvailable: Bool,
-    searchEngines: SearchEngines?
+    searchEngines: SearchEngines?,
+    isTor: Bool = false
   ) {
+    self.isTor = isTor
     self.isPrivate = isPrivate
     self.isAIChatAvailable = isAIChatAvailable
     self.isPlaylistAvailable = isPlaylistAvailable
@@ -183,7 +187,7 @@ class SearchSuggestionDataSource {
 
   func setupSearchClient() {
     // Show the default search engine first.
-    if !isPrivate,
+    if !isPrivate, !isTor,
       let userAgent = SearchViewController.userAgent,
       let engines = searchEngines?.defaultEngine(forType: .standard)
     {

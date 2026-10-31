@@ -9,8 +9,12 @@ let package = Package(
   defaultLocalization: "en",
   platforms: [.iOS("18.0"), .macOS(.v13)],
   products: [
+    .library(name: "TorWebKit", targets: ["TorWebKit"]),
     .library(name: "BraveTor", targets: ["BraveTor"]),
     .library(name: "BraveTorUI", targets: ["BraveTorUI"]),
+  ],
+  dependencies: [
+    .package(url: "https://github.com/tladesignz/IPtProxy.git", exact: "5.7.0"),
   ],
   targets: [
     .binaryTarget(
@@ -23,14 +27,20 @@ let package = Package(
       dependencies: ["tor"],
       linkerSettings: [.linkedLibrary("z")]
     ),
-    .target(name: "BraveTor", dependencies: ["EmbeddedTor"]),
+    .target(
+      name: "BraveTor",
+      dependencies: ["EmbeddedTor", .product(name: "IPtProxy", package: "IPtProxy")],
+      // IPtProxy's Go runtime references Darwin's res_9_* resolver symbols.
+      linkerSettings: [.linkedLibrary("resolv")]
+    ),
+    .target(name: "TorWebKit"),
     .target(
       name: "BraveTorUI",
-      dependencies: ["BraveTor"],
+      dependencies: ["BraveTor", .target(name: "TorWebKit", condition: .when(platforms: [.iOS]))],
       resources: [.process("Resources")]
     ),
     .testTarget(name: "BraveTorTests", dependencies: ["BraveTor"]),
-    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI", "BraveTor"]),
+    .testTarget(name: "BraveTorUITests", dependencies: ["BraveTorUI", "BraveTor", "TorWebKit"]),
   ],
   swiftLanguageVersions: [.v5]
 )

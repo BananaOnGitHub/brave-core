@@ -43,6 +43,27 @@ final class TorProtocolTests: XCTestCase {
     }
   }
 
+  func testOnionAddressBarInputPreservesTransportAndURLComponents() throws {
+    let host = String(repeating: "a", count: 56) + ".onion"
+    for input in [host, host + "?q=test", host + "#section", host + "/path?q=test#section"] {
+      let url = try XCTUnwrap(TorDestination.onionURL(from: input))
+      XCTAssertEqual(url.scheme, "http")
+      XCTAssertEqual(url.host, host)
+      XCTAssertEqual(try TorDestination.url(from: input), url)
+    }
+    let explicit = "https://" + host + ":8443/path?q=test#section"
+    XCTAssertEqual(TorDestination.onionURL(from: explicit)?.absoluteString, explicit)
+    XCTAssertEqual(TorDestination.onionURL(from: "  HTTP://" + host + "/  ")?.scheme?.lowercased(), "http")
+    XCTAssertEqual(TorDestination.onionURL(from: "sub." + host + ":8080/path")?.port, 8080)
+    for input in [
+      "example.com", "example.onion.evil.com", "https://example.com/path.onion",
+      "file://" + host, "http://user:password@" + host, "http://" + host + ".",
+      "search for " + host, host + "/hello world",
+    ] {
+      XCTAssertNil(TorDestination.onionURL(from: input), input)
+    }
+  }
+
   func testDestinationsCannotEscapeIntoOtherAppsOrLocalNetworking() throws {
     XCTAssertEqual(try TorDestination.url(from: "example.com/path").scheme, "https")
     XCTAssertEqual(try TorDestination.url(from: "example.onion/path").scheme, "http")

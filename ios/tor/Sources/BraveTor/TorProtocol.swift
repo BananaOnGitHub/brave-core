@@ -84,7 +84,19 @@ struct TorReplyParser {
 }
 
 public enum TorDestination {
+  /// Recognize onion input without a public-DNS URL classifier or HTTPS upgrade.
+  public static func onionURL(from text: String) -> URL? {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil else { return nil }
+    let input = trimmed.contains("://") ? trimmed : "http://" + trimmed
+    guard let url = URL(string: input),
+      url.host?.lowercased().hasSuffix(".onion") == true, isAllowed(url)
+    else { return nil }
+    return url
+  }
+
   public static func url(from text: String) throws -> URL {
+    if let onion = onionURL(from: text) { return onion }
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     let input: String
     if trimmed.contains("://") {

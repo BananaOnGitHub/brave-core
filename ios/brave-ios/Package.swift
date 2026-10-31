@@ -535,7 +535,7 @@ var package = Package(
     .testTarget(name: "DataTests", dependencies: ["Data", "TestHelpers", "BraveShields"]),
     .testTarget(
       name: "ClientTests",
-      dependencies: ["Brave", "BraveStrings", "TestHelpers", "Web"],
+      dependencies: ["Brave", "BraveStrings", "DesignSystem", "TestHelpers", "Web"],
       resources: [
         .copy("Resources/debouncing.json"),
         .copy("Resources/content-blocking.json"),
@@ -590,6 +590,8 @@ var package = Package(
     .target(
       name: "Web",
       dependencies: [
+        .product(name: "BraveTor", package: "BraveTor"),
+        .product(name: "BraveTorUI", package: "BraveTor"),
         "BraveCore", "FaviconModels", "BraveShared", "Shared", "CertificateUtilities",
         "BraveStrings", "Strings",
         .product(name: "OrderedCollections", package: "swift-collections"),

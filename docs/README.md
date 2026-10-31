@@ -26,6 +26,9 @@ resources outside this repository, go to:
 
 ### Security and Privacy
 
+- [Private with Tor integration](ios_tor_integration.md) - Native tab groups,
+  UTC enforcement, reconnection behavior and full app validation.
+
 - [Embedded Tor prototype for iOS](ios_tor_prototype.md) - Prototype design,
   build instructions, limitations, and device DNS validation.
 
