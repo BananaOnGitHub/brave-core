@@ -233,6 +233,30 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     try await TorOnionPolicy.install(on: FakeTabState())
   }
 
+  func testOnionRulesMatchOnlyOnionHostsAcrossPageProtocols() throws {
+    let rules = try XCTUnwrap(JSONSerialization.jsonObject(
+      with: Data(TorOnionPolicy.rulesJSON.utf8)
+    ) as? [[String: Any]])
+    let filters = try rules.map { rule in
+      let trigger = try XCTUnwrap(rule["trigger"] as? [String: Any])
+      return try XCTUnwrap(trigger["url-filter"] as? String)
+    }
+    // WebKit rejects disjunctions even though Foundation's regex engine accepts them.
+    XCTAssertTrue(filters.allSatisfy { !$0.contains("|") })
+    let expressions = try filters.map { try NSRegularExpression(pattern: $0, options: .caseInsensitive) }
+    func blocked(_ url: String) -> Bool {
+      expressions.contains { $0.firstMatch(in: url, range: NSRange(url.startIndex..., in: url)) != nil }
+    }
+    for url in ["https://example.com/", "http://brave.com/", "wss://example.com/",
+                "https://example.onion.evil/", "https://example.com/path.onion/"] {
+      XCTAssertFalse(blocked(url), url)
+    }
+    for url in ["https://site.onion/", "http://sub.site.onion:80/path",
+                "ws://site.onion/", "wss://SITE.ONION", "https://site.onion"] {
+      XCTAssertTrue(blocked(url), url)
+    }
+  }
+
   func testTorShredTargetsWebsiteAcrossModesAndPreservesUnrelatedTabs() {
     setPersistentPrivateMode(true)
     let regular = manager.addTestTab(isPrivate: false)

@@ -32,5 +32,13 @@ enum TorOnionPolicy {
     controller.remove(list)
     if Preferences.Privacy.onlyOnionInTor.value { controller.add(list) }
   }
-  static let rulesJSON = #"[{"trigger":{"url-filter":"^(https?|wss?)://[^/]*\\.onion([:/]|$)","url-filter-is-case-sensitive":false},"action":{"type":"block"}}]"#
+  // WebKit's URL-filter parser does not support regex alternation.
+  static let rulesJSON = """
+    [
+      {"trigger":{"url-filter":"^https?://[^/]*\\\\.onion[:/]","url-filter-is-case-sensitive":false},"action":{"type":"block"}},
+      {"trigger":{"url-filter":"^https?://[^/]*\\\\.onion$","url-filter-is-case-sensitive":false},"action":{"type":"block"}},
+      {"trigger":{"url-filter":"^wss?://[^/]*\\\\.onion[:/]","url-filter-is-case-sensitive":false},"action":{"type":"block"}},
+      {"trigger":{"url-filter":"^wss?://[^/]*\\\\.onion$","url-filter-is-case-sensitive":false},"action":{"type":"block"}}
+    ]
+    """
 }
