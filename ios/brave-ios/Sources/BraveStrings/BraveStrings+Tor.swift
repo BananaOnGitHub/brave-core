@@ -30,6 +30,11 @@ extension Strings {
       value: "Block onion requests in regular and private tabs. When off, resolution depends on your network configuration.",
       comment: "Tor settings: onionOnlyDescription"
     )
+    public static let bridges = NSLocalizedString(
+      "Tor.bridges", bundle: .module,
+      value: "Bridges",
+      comment: "Tor settings: bridges section heading"
+    )
     public static let useBridges = NSLocalizedString(
       "Tor.useBridges", bundle: .module,
       value: "Use Bridges",

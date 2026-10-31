@@ -18,6 +18,7 @@ struct TorSettingsView: View {
   @State private var bridgeText = ""
   @State private var showCaptcha = false
   @State private var invalidBridges = false
+  @ScaledMetric private var radioSize: CGFloat = 20
 
   var body: some View {
     Form {
@@ -44,21 +45,20 @@ struct TorSettingsView: View {
       Section {
         Toggle(Strings.Tor.useBridges, isOn: $draft.useBridges)
         if draft.useBridges {
-          Picker(Strings.Tor.bridgeSource, selection: $draft.source) {
-            Text(Strings.Tor.builtIn).tag(TorBridgeSource.builtIn)
-            Text(Strings.Tor.requestBridge).tag(TorBridgeSource.request)
-            Text(Strings.Tor.provideBridge).tag(TorBridgeSource.provide)
-          }
-          .pickerStyle(.inline)
-          switch draft.source {
-          case .builtIn:
+          Text(Strings.Tor.bridgeSource)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .accessibilityAddTraits(.isHeader)
+            .listRowSeparator(.hidden)
+          bridgeSourceOption(.builtIn, title: Strings.Tor.builtIn) {
             Picker(Strings.Tor.builtInType, selection: $draft.builtIn) {
               ForEach(TorBuiltInBridge.allCases, id: \.self) { kind in
                 Text(verbatim: kind.title).tag(kind)
               }
             }
             .pickerStyle(.menu)
-          case .request:
+          }
+          bridgeSourceOption(.request, title: Strings.Tor.requestBridge) {
             if !draft.requested.isEmpty {
               Text(draft.requested.joined(separator: "\n"))
                 .font(.footnote.monospaced())
@@ -67,7 +67,8 @@ struct TorSettingsView: View {
             Button(Strings.Tor.newBridge) { showCaptcha = true }
             Text(Strings.Tor.bridgeRequestDescription)
               .font(.footnote).foregroundStyle(.secondary)
-          case .provide:
+          }
+          bridgeSourceOption(.provide, title: Strings.Tor.provideBridge) {
             Text(Strings.Tor.provideDescription).font(.footnote).foregroundStyle(.secondary)
             TextEditor(text: $bridgeText)
               .font(.footnote.monospaced())
@@ -93,7 +94,7 @@ struct TorSettingsView: View {
         .disabled(draft == TorBridgeConfiguration.decode(savedBridges.value))
         Link(Strings.Tor.learnMore, destination: URL(string: "https://support.torproject.org/tor-browser/circumvention/getting-bridges/")!)
       } header: {
-        Text(Strings.Tor.useBridges)
+        Text(Strings.Tor.bridges)
       } footer: {
         Text(Strings.Tor.bridgesDescription + "\n\n" + Strings.Tor.bridgeApplyDescription)
       }
@@ -109,6 +110,44 @@ struct TorSettingsView: View {
         draft.requested = lines
         draft.source = .request
         invalidBridges = false
+      }
+    }
+  }
+
+  private func bridgeSourceOption<Content: View>(
+    _ source: TorBridgeSource,
+    title: String,
+    @ViewBuilder content: () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Button {
+        draft.source = source
+      } label: {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+          ZStack {
+            Circle().strokeBorder(lineWidth: 2)
+            if draft.source == source {
+              Circle().fill().padding(5)
+            }
+          }
+          .frame(width: radioSize, height: radioSize)
+          .foregroundStyle(
+            draft.source == source
+              ? Color(braveSystemName: .primitivePrimary40) : Color.secondary
+          )
+          .accessibilityHidden(true)
+          Text(title)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityAddTraits(draft.source == source ? .isSelected : [])
+      if draft.source == source {
+        VStack(alignment: .leading, spacing: 12, content: content)
+          .padding(.leading, radioSize + 12)
       }
     }
   }
