@@ -820,6 +820,7 @@ public class BrowserViewController: UIViewController {
     }
 
     updateUsingBottomBar(using: newCollection)
+    topToolbar.setTabSwipeGestureHost(view, bottomToolbar: toolbar)
     updateURLBar()
 
     toolbarVisibilityViewModel.toolbarState = .expanded
@@ -872,6 +873,10 @@ public class BrowserViewController: UIViewController {
 
   @objc func tappedTopArea() {
     toolbarVisibilityViewModel.toolbarState = .expanded
+  }
+
+  @objc private func tappedStatusBarArea() {
+    scrollSelectedTabToTop()
   }
 
   @objc func sceneWillResignActiveNotification(_ notification: NSNotification) {
@@ -1072,7 +1077,6 @@ public class BrowserViewController: UIViewController {
 
     view.addSubview(alertStackView)
     view.addSubview(bottomTouchArea)
-    view.addSubview(topTouchArea)
     if #available(iOS 26.0, *) {
       view.addSubview(bottomBarKeyboardBackground)
     }
@@ -1083,6 +1087,8 @@ public class BrowserViewController: UIViewController {
     if #available(iOS 26.0, *) {
       view.addSubview(topEdgeView)
     }
+    // Keep the status-bar tap target above the chrome's decorative overlays.
+    view.addSubview(topTouchArea)
 
     // For now we hide some elements so they are not visible
     header.isHidden = true
@@ -1171,7 +1177,7 @@ public class BrowserViewController: UIViewController {
     UNUserNotificationCenter.current().delegate = self
 
     // Add interactions
-    topTouchArea.addTarget(self, action: #selector(tappedTopArea), for: .touchUpInside)
+    topTouchArea.addTarget(self, action: #selector(tappedStatusBarArea), for: .touchUpInside)
     bottomTouchArea.addTarget(self, action: #selector(tappedTopArea), for: .touchUpInside)
     header.collapsedBarContainerView.addTarget(
       self,
@@ -1432,7 +1438,7 @@ public class BrowserViewController: UIViewController {
 
     topTouchArea.snp.makeConstraints { make in
       make.top.left.right.equalTo(self.view)
-      make.height.equalTo(32)
+      make.bottom.equalTo(self.view.safeAreaLayoutGuide.snp.top)
     }
 
     bottomTouchArea.snp.makeConstraints { make in

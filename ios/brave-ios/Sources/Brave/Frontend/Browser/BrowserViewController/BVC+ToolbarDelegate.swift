@@ -238,10 +238,19 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
   }
 
   func topToolbarDidPressScrollToTop(_ topToolbar: TopToolbarView) {
-    if let selectedTab = tabManager.selectedTab, searchContainer == nil {
-      // Only scroll to top if we are not showing the home view controller
-      selectedTab.webViewProxy?.scrollView?.setContentOffset(CGPoint.zero, animated: true)
-    }
+    scrollSelectedTabToTop()
+  }
+
+  func scrollSelectedTabToTop() {
+    guard searchContainer == nil,
+      let scrollView = tabManager.selectedTab?.webViewProxy?.scrollView
+    else { return }
+    toolbarVisibilityViewModel.toolbarState = .expanded
+    view.layoutIfNeeded()
+    scrollView.setContentOffset(
+      CGPoint(x: scrollView.contentOffset.x, y: -scrollView.adjustedContentInset.top),
+      animated: true
+    )
   }
 
   func topToolbarDidRequestSearchInput(

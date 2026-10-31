@@ -3,11 +3,37 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import UIKit
 import XCTest
 
 @testable import Brave
 
 @MainActor class TopBarToolbarVisibilityViewModelTests: XCTestCase {
+
+  func testStatusBarTapExpandsAndAllowsScrollOnFirstTap() {
+    let viewModel = ToolbarVisibilityViewModel(estimatedTransitionDistance: 32)
+    let scrollView = UIScrollView()
+    viewModel.beginObservingScrollView(scrollView)
+    viewModel.toolbarState = .collapsed
+
+    XCTAssertEqual(scrollView.delegate?.scrollViewShouldScrollToTop?(scrollView), true)
+    XCTAssertEqual(viewModel.toolbarState, .expanded)
+    viewModel.endScrollViewObservation(scrollView)
+  }
+
+  func testOnlyObservedPageParticipatesInStatusBarScrolling() {
+    let viewModel = ToolbarVisibilityViewModel(estimatedTransitionDistance: 32)
+    let previous = UIScrollView()
+    let selected = UIScrollView()
+    selected.scrollsToTop = false
+    viewModel.beginObservingScrollView(previous)
+    viewModel.endScrollViewObservation(previous)
+    viewModel.beginObservingScrollView(selected)
+
+    XCTAssertFalse(previous.scrollsToTop)
+    XCTAssertTrue(selected.scrollsToTop)
+    viewModel.endScrollViewObservation(selected)
+  }
 
   func testDefaultState() {
     let viewModel = ToolbarVisibilityViewModel(estimatedTransitionDistance: 32)

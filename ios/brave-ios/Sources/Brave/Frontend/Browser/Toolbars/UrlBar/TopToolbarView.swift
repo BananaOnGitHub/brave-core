@@ -91,6 +91,7 @@ class TopToolbarView: UIView, ToolbarProtocol {
 
   private(set) var displayTabTraySwipeGestureRecognizer: UISwipeGestureRecognizer?
   private var changeTabsPanGestureRecognizer: UIPanGestureRecognizer?
+  private weak var tabSwipeBottomToolbar: UIView?
   private var previousPanX: CGFloat = 0.0
 
   // MARK: State
@@ -456,6 +457,15 @@ class TopToolbarView: UIView, ToolbarProtocol {
   // Ideally we'd split this implementation in two, one TopToolbarView with a toolbar and one without
   // However, switching views dynamically at runtime is a difficult. For now, we just use one view
   // that can show in either mode.
+  func setTabSwipeGestureHost(_ host: UIView, bottomToolbar: UIView?) {
+    tabSwipeBottomToolbar = bottomToolbar
+    guard let pan = changeTabsPanGestureRecognizer else { return }
+    // Reuse Brave's tab-switch pan across both toolbar surfaces.
+    if pan.view !== host {
+      host.addGestureRecognizer(pan)
+    }
+  }
+
   func setShowToolbar(_ shouldShow: Bool) {
     toolbarIsShowing = shouldShow
     changeTabsPanGestureRecognizer?.isEnabled = shouldShow
@@ -747,6 +757,11 @@ extension TopToolbarView: UIGestureRecognizerDelegate {
     guard let pan = gestureRecognizer as? UIPanGestureRecognizer,
       pan === changeTabsPanGestureRecognizer
     else { return true }
+    let isOnAddressBar = locationView.bounds.contains(pan.location(in: locationView))
+    let isOnBottomToolbar = tabSwipeBottomToolbar.map {
+      !$0.isHidden && $0.bounds.contains(pan.location(in: $0))
+    } ?? false
+    guard isOnAddressBar || isOnBottomToolbar else { return false }
     let velocity = pan.velocity(in: locationView)
     return abs(velocity.x) > abs(velocity.y)
   }

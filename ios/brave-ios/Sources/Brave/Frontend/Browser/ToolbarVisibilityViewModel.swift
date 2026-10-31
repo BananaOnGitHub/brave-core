@@ -296,6 +296,7 @@ import UIKit
       }
     )
     scrollView.delegate = coordinator
+    scrollView.scrollsToTop = true
   }
 
   func endScrollViewObservation(_ scrollView: UIScrollView) {
@@ -303,6 +304,7 @@ import UIKit
     scrollViewObservation?.invalidate()
     scrollViewObservation = nil
     scrollView.delegate = nil
+    scrollView.scrollsToTop = false
   }
 }
 
@@ -333,9 +335,8 @@ extension ToolbarVisibilityViewModel {
       guard let viewModel = viewModel else {
         return true
       }
-      let isScrollToTopAllowed = viewModel.isScrollToTopAllowed
       viewModel.send(action: .tappedStatusBar)
-      return isScrollToTopAllowed
+      return viewModel.isScrollToTopAllowed
     }
   }
 
