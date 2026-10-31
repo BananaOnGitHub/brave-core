@@ -18,6 +18,8 @@ import re
 import urllib.request
 import zipfile
 
+from generate_credit_entries import write_entries
+
 IPTPROXY = '46552b8422a200e3e69aa3686b6278be945138a5'  # 5.7.0
 DNSTT = 'f1b9b97a269f83bad41d2ceef291b4d2c161cd11'
 GO = 'go1.27.1'  # Verified in the pinned ios-arm64 IPtProxy binary.
@@ -89,4 +91,5 @@ if __name__ == '__main__':
         'Sources/BraveTorUI/Resources/TransportNotices.txt')
     # Generate fully before replacing the existing notice inventory.
     output.write_text(generate(), encoding='utf-8')
+    write_entries(Path(__file__).resolve().parents[1])
     print(f'Updated {output}')
