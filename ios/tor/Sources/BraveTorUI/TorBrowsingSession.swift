@@ -49,6 +49,8 @@ public final class TorBrowsingSession: NSObject {
   private var sharedContext: TorBrowsingContext?
   private var sharedTabSessions: Set<UUID> = []
   private let automaticallyConnect: Bool
+  private var enabled = true
+  private var bridgeConfiguration = TorBridgeConfiguration()
   private let gate: TorSOCKSGate
   private let monitor = NWPathMonitor()
   private var policy = TorNetworkPolicy()
@@ -172,11 +174,24 @@ public final class TorBrowsingSession: NSObject {
     connectIfNeeded()
   }
 
+  public func applyConfiguration(enabled: Bool, bridges: TorBridgeConfiguration) {
+    guard enabled != self.enabled || bridges != bridgeConfiguration else { return }
+    self.enabled = enabled
+    bridgeConfiguration = bridges
+    pause()
+    let previous = transition
+    transition = Task { [runtime] in
+      await previous?.value
+      await runtime.configureBridges(bridges)
+    }
+    connectIfNeeded()
+  }
+
   @objc private func suspend() { appActive = false; pause() }
   @objc private func resume() { appActive = true; connectIfNeeded() }
 
   private func connectIfNeeded() {
-    guard automaticallyConnect, sessionTask == nil, !clients.isEmpty, appActive, policy.canConnect else { return }
+    guard enabled, automaticallyConnect, sessionTask == nil, !clients.isEmpty, appActive, policy.canConnect else { return }
     let expected = generation
     let previous = transition
     publish(.connecting(0))

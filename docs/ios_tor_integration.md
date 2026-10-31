@@ -1,5 +1,66 @@
 # Private with Tor integration
 
+## Tor settings and bridges
+
+Private Tabs settings now links to a dedicated Tor page. The existing isolation
+preference is reused there and stays ON by default. Tor availability defaults
+ON for existing installations. Disabling it immediately closes the forwarding
+gate, closes Tor tabs, hides Tor entry controls, and prevents stale shortcuts
+or menu actions from loading an onion request into regular/private browsing.
+The independent onion-only preference defaults ON and is not reset by the master
+switch. Navigation policy and a WebKit content rule block onion frame/resource
+requests outside Tor. Turning it OFF leaves resolution to the existing network
+configuration; it does not give regular/private tabs a Tor route.
+
+The bridge editor follows Desktop's built-in/request/provide choices and Apply
+Changes behavior. Desktop uses obfs4, not obfs2. Built-in bridge lines are copied
+from components/tor/tor_utils.cc at c5768996bee5d2fd5f4c30a421f9c9cc517558d0.
+They are a bundled snapshot rather than automatically refreshed network data.
+meek-azure is retained for Desktop compatibility; service reachability is not
+guaranteed. User-provided numeric IPv4/IPv6 bridges and the obfs4, snowflake and
+meek_lite transports are accepted. Other transports and hostname bridge addresses
+are rejected. Bridge count/length, IP/port, fingerprint and argument validation
+exclude control characters, quotes and backslashes before constructing commands.
+
+IPtProxy 5.7.0 supplies in-process client transports on iOS, simulator and macOS.
+Its package currently requires Swift tools 6.3. It is pinned to revision
+46552b8422a200e3e69aa3686b6278be945138a5. Only its transport Controller is used;
+the Snowflake volunteer proxy is never instantiated. Snowflake's own WebRTC/STUN
+connections belong to Tor bootstrap, while website WebRTC remains blocked.
+
+Applying bridges closes the SOCKS forwarding gate and suspends Tor first. The
+runtime validates lines, starts the required loopback transports and installs
+UseBridges/Bridge/ClientTransportPlugin while DisableNetwork remains 1. It only
+enables networking after configuration succeeds. Invalid settings or transport
+failures leave the gate closed, without reverting to public relays. Suspension
+stops active transports; route recovery restarts them using the saved settings.
+Changing bridge configuration preserves existing nonpersistent website contexts
+and SOCKS identities; the isolation toggle still applies only to new tabs.
+
+The native CAPTCHA sheet ports Desktop's JSON Moat fetch/check requests and shim
+header from browser/ui/webui/settings/brave_tor_handler.cc. Only an explicit user
+request contacts bridges.torproject.org over direct HTTPS, using an ephemeral
+URLSession without cookies/cache and with redirects refused. This bootstrap
+connection is intentionally outside Tor so requesting bridges does not depend
+on Tor already working. Captcha tokens/images remain in memory; only validated
+returned bridge lines can be saved. Responses have a 256 KiB limit, images a
+192 KiB limit, and returned transports are restricted to obfs4. Failed/wrong
+CAPTCHAs allow refresh; cancellation cancels the request. No HTML scraping or
+automatic CAPTCHA solving is used. A live fetch from this environment returned
+HTTP 405 and the GET endpoint displayed Site Unavailable, so successful live
+CAPTCHA retrieval/submission still requires on-device verification.
+
+Validation added: built-in and custom bridge grammar; command-injection rejection;
+required transport ports; corrupt preferences and empty lists failing closed;
+Moat decoding/bounds; a real offline embedded-Tor check that invalid bridges never
+enable networking; master-switch tab cleanup and stale-entry behavior; and native
+WebKit rule compilation. Native tests cannot run in the Linux editing environment.
+On device, check every built-in transport, manual/requested bridges, bridge changes
+with existing tabs, reconnect/background behavior, CAPTCHA success/error/cancel,
+the private-browsing lock, both master states and the independent onion switch.
+Test iframe, fetch/XHR and WebSocket onion requests outside Tor as well as typed
+onion navigations. Confirm no website request leaves through a direct connection.
+
 Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prototype.
 
 ## Behavior

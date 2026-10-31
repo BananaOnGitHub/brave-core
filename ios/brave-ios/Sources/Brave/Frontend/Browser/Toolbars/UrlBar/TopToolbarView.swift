@@ -479,7 +479,7 @@ class TopToolbarView: UIView, ToolbarProtocol {
   }
 
   func updateObservedProperties() {
-    locationView.onionLocation = toolbarState.isDisplayingCrossOriginBasicAuthPrompt
+    locationView.onionLocation = !toolbarState.torAvailable || toolbarState.isDisplayingCrossOriginBasicAuthPrompt
       ? nil : toolbarState.onionLocation
     backButton.isEnabled = toolbarState.canGoBack
     forwardButton.isEnabled = toolbarState.canGoForward

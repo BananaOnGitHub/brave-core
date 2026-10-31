@@ -137,6 +137,10 @@ class TabManager: NSObject {
     super.init()
 
     Preferences.Chromium.syncOpenTabsEnabled.observe(from: self)
+    Preferences.Privacy.torEnabled.observe(from: self)
+    Preferences.Privacy.torBridgeConfiguration.observe(from: self)
+    Preferences.Privacy.onlyOnionInTor.observe(from: self)
+    MainActor.assumeIsolated { applyTorPreferences() }
 
     domainFrc.delegate = self
     do {
@@ -543,6 +547,11 @@ class TabManager: NSObject {
 
   @discardableResult
   @MainActor func addTorTab(_ request: URLRequest? = nil, afterTab: (any TabState)? = nil) -> any TabState {
+    guard Preferences.Privacy.torEnabled.value else {
+      // A stale shortcut/menu must never load its onion request in another mode.
+      privateBrowsingManager.isTorBrowsing = false
+      return addTab(isPrivate: true)
+    }
     let tab = TorTabState(
       id: UUID(), profile: profile.offTheRecordProfile, session: .shared,
       keepTabsSeparate: Preferences.Privacy.keepTorTabsSeparate.value
@@ -1799,12 +1808,39 @@ extension TabManagerDelegate {
 extension TabManager: PreferencesObserver {
   func preferencesDidChange(for key: String) {
     switch key {
+    case Preferences.Privacy.torEnabled.key, Preferences.Privacy.torBridgeConfiguration.key,
+         Preferences.Privacy.onlyOnionInTor.key:
+      MainActor.assumeIsolated { applyTorPreferences() }
     case Preferences.Chromium.syncOpenTabsEnabled.key:
       if Preferences.Chromium.syncOpenTabsEnabled.value {
         addRegularTabsToSyncChain()
       }
     default:
       break
+    }
+  }
+}
+
+extension TabManager {
+  @MainActor private func applyTorPreferences() {
+    let enabled = Preferences.Privacy.torEnabled.value
+    TorBrowsingSession.shared.applyConfiguration(
+      enabled: enabled,
+      bridges: .decode(Preferences.Privacy.torBridgeConfiguration.value)
+    )
+    if !enabled {
+      let wasTor = privateBrowsingManager.isTorBrowsing
+      let previousBulk = isBulkDeleting
+      isBulkDeleting = true
+      removeTabs(allTabs.filter(\.isTor))
+      isBulkDeleting = previousBulk
+      privateBrowsingManager.isTorBrowsing = false
+      if wasTor {
+        selectTab(allTabs.last(where: { $0.isPrivate && !$0.isTor }) ?? addTab(isPrivate: true))
+      }
+    }
+    for tab in allTabs where !tab.isTor {
+      Task { try? await TorOnionPolicy.install(on: tab) }
     }
   }
 }

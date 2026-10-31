@@ -255,6 +255,12 @@ extension Preferences {
   }
 
   final public class Privacy {
+    public static let torEnabled = Option<Bool>(key: "privacy.tor-enabled", default: true)
+    public static let onlyOnionInTor = Option<Bool>(key: "privacy.only-onion-in-tor", default: true)
+    public static let torBridgeConfiguration = Option<String>(
+      key: "privacy.tor-bridges",
+      default: "{\"useBridges\":false,\"source\":\"builtIn\",\"builtIn\":\"obfs4\",\"requested\":[],\"provided\":[]}"
+    )
     /// Keep each new Tor tab's website data and circuits separate.
     public static let keepTorTabsSeparate = Option<Bool>(
       key: "privacy.keep-tor-tabs-separate",

@@ -88,6 +88,12 @@ extension BrowserViewController: TabPolicyDecider {
     guard let requestURL = request.url else {
       return .cancel
     }
+    if !tab.isTor {
+      if Preferences.Privacy.onlyOnionInTor.value,
+        requestURL.host?.lowercased().hasSuffix(".onion") == true { return .cancel }
+      do { try await TorOnionPolicy.install(on: tab) }
+      catch { return .cancel }
+    }
     let isPrivateBrowsing = privateBrowsingManager.isPrivateBrowsing
 
     // Handle internal:// urls

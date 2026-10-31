@@ -9,6 +9,7 @@ import Combine
 import Data
 import Foundation
 import Observation
+import Preferences
 import Shared
 import Web
 
@@ -25,9 +26,14 @@ import Web
 final class BrowserToolbarState {
   @ObservationIgnored private let tabManager: TabManager
   @ObservationIgnored private weak var observedTab: (any TabState)?
+  @ObservationIgnored private var torPreferenceObserver: AnyCancellable?
+  private(set) var torAvailable = Preferences.Privacy.torEnabled.value
 
   init(tabManager: TabManager) {
     self.tabManager = tabManager
+    torPreferenceObserver = Preferences.Privacy.torEnabled.$value
+      .receive(on: RunLoop.main)
+      .sink { [weak self] value in self?.torAvailable = value }
 
     tabManager.addDelegate(self)
     observeSelectedTab(tabManager.selectedTab, previous: nil)

@@ -17,7 +17,9 @@ class TabGridViewModel {
   private var _isPrivateBrowsing: Bool = false
   private var _isTorBrowsing = false
   var availableModes: [TabBrowsingMode] {
-    Preferences.Privacy.privateBrowsingOnly.value ? [.private, .tor] : [.regular, .private, .tor]
+    var modes: [TabBrowsingMode] = Preferences.Privacy.privateBrowsingOnly.value ? [.private] : [.regular, .private]
+    if Preferences.Privacy.torEnabled.value { modes.append(.tor) }
+    return modes
   }
 
   var mode: TabBrowsingMode {

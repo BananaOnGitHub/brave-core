@@ -69,6 +69,7 @@ struct TabGridView: View {
   @State private var selectedTabs: Set<TabState.ID> = []
 
   @ObservedObject private var privateBrowsingOnly = Preferences.Privacy.privateBrowsingOnly
+  @ObservedObject private var torEnabled = Preferences.Privacy.torEnabled
 
   private enum DestinationSheet: Int, Identifiable, Hashable {
     case syncedTabs
@@ -532,7 +533,7 @@ struct TabGridView: View {
         modes: viewModel.availableModes,
         regularTabCount: viewModel.regularTabCount
       )
-      .id(privateBrowsingOnly.value)
+      .id("\(privateBrowsingOnly.value)-\(torEnabled.value)")
       .scaledToFit()
       .dynamicTypeSize(.xSmall..<DynamicTypeSize.xxxLarge)
       Spacer()

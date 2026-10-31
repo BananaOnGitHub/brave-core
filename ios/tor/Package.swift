@@ -13,6 +13,9 @@ let package = Package(
     .library(name: "BraveTor", targets: ["BraveTor"]),
     .library(name: "BraveTorUI", targets: ["BraveTorUI"]),
   ],
+  dependencies: [
+    .package(url: "https://github.com/tladesignz/IPtProxy.git", exact: "5.7.0"),
+  ],
   targets: [
     .binaryTarget(
       name: "tor",
@@ -24,7 +27,7 @@ let package = Package(
       dependencies: ["tor"],
       linkerSettings: [.linkedLibrary("z")]
     ),
-    .target(name: "BraveTor", dependencies: ["EmbeddedTor"]),
+    .target(name: "BraveTor", dependencies: ["EmbeddedTor", .product(name: "IPtProxy", package: "IPtProxy")]),
     .target(name: "TorWebKit"),
     .target(
       name: "BraveTorUI",

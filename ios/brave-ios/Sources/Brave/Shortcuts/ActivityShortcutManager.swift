@@ -159,6 +159,7 @@ public class ActivityShortcutManager: NSObject {
 
   @MainActor
   private func handleActivityDetails(type: ActivityType, using bvc: BrowserViewController) {
+    guard type != .newPrivateTorTab || Preferences.Privacy.torEnabled.value else { return }
     let openExternalNewTab: (Bool, Bool) -> Void = { isPrivate, attemptLocationFieldFocus in
       bvc.openBlankNewTab(
         attemptLocationFieldFocus: attemptLocationFieldFocus,
@@ -177,6 +178,7 @@ public class ActivityShortcutManager: NSObject {
     case .newPrivateTab, .newPrivateTorTab:
       let openPrivateTab = {
         if type == .newPrivateTorTab {
+          guard Preferences.Privacy.torEnabled.value else { return }
           bvc.privateBrowsingManager.isPrivateBrowsing = true
           bvc.privateBrowsingManager.isTorBrowsing = true
         }

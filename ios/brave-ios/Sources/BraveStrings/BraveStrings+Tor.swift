@@ -5,6 +5,136 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let settings = NSLocalizedString(
+      "Tor.settings", bundle: .module,
+      value: "Tor",
+      comment: "Tor settings: settings"
+    )
+    public static let enabled = NSLocalizedString(
+      "Tor.enabled", bundle: .module,
+      value: "Private Tabs with Tor",
+      comment: "Tor settings: enabled"
+    )
+    public static let enabledDescription = NSLocalizedString(
+      "Tor.enabledDescription", bundle: .module,
+      value: "Tor hides your IP address from the sites you visit. Turning this off closes all Tor tabs.",
+      comment: "Tor settings: enabledDescription"
+    )
+    public static let onionOnly = NSLocalizedString(
+      "Tor.onionOnly", bundle: .module,
+      value: "Only Resolve .onion Addresses in Tor Tabs",
+      comment: "Tor settings: onionOnly"
+    )
+    public static let onionOnlyDescription = NSLocalizedString(
+      "Tor.onionOnlyDescription", bundle: .module,
+      value: "Block onion requests in regular and private tabs. When off, resolution depends on your network configuration.",
+      comment: "Tor settings: onionOnlyDescription"
+    )
+    public static let useBridges = NSLocalizedString(
+      "Tor.useBridges", bundle: .module,
+      value: "Use Bridges",
+      comment: "Tor settings: useBridges"
+    )
+    public static let bridgesDescription = NSLocalizedString(
+      "Tor.bridgesDescription", bundle: .module,
+      value: "Bridges help you access the Tor network in places where Tor is blocked. Depending on your location, one bridge may work better than another.",
+      comment: "Tor settings: bridgesDescription"
+    )
+    public static let bridgeSource = NSLocalizedString(
+      "Tor.bridgeSource", bundle: .module,
+      value: "Bridge Source",
+      comment: "Tor settings: bridgeSource"
+    )
+    public static let builtIn = NSLocalizedString(
+      "Tor.builtIn", bundle: .module,
+      value: "Select a Built-in Bridge",
+      comment: "Tor settings: builtIn"
+    )
+    public static let builtInType = NSLocalizedString(
+      "Tor.builtInType", bundle: .module,
+      value: "Built-in Bridge",
+      comment: "Tor settings: builtInType"
+    )
+    public static let requestBridge = NSLocalizedString(
+      "Tor.requestBridge", bundle: .module,
+      value: "Request a Bridge from torproject.org",
+      comment: "Tor settings: requestBridge"
+    )
+    public static let provideBridge = NSLocalizedString(
+      "Tor.provideBridge", bundle: .module,
+      value: "Provide a Bridge",
+      comment: "Tor settings: provideBridge"
+    )
+    public static let provideDescription = NSLocalizedString(
+      "Tor.provideDescription", bundle: .module,
+      value: "Enter bridge information from a trusted source, one bridge per line.",
+      comment: "Tor settings: provideDescription"
+    )
+    public static let requestedBridges = NSLocalizedString(
+      "Tor.requestedBridges", bundle: .module,
+      value: "Requested Bridges",
+      comment: "Tor settings: requestedBridges"
+    )
+    public static let newBridge = NSLocalizedString(
+      "Tor.newBridge", bundle: .module,
+      value: "Request a New Bridge…",
+      comment: "Tor settings: newBridge"
+    )
+    public static let applyBridges = NSLocalizedString(
+      "Tor.applyBridges", bundle: .module,
+      value: "Apply Changes",
+      comment: "Tor settings: applyBridges"
+    )
+    public static let bridgeApplyDescription = NSLocalizedString(
+      "Tor.bridgeApplyDescription", bundle: .module,
+      value: "Apply changes to reconnect Tor using this bridge configuration.",
+      comment: "Tor settings: bridgeApplyDescription"
+    )
+    public static let bridgeInvalid = NSLocalizedString(
+      "Tor.bridgeInvalid", bundle: .module,
+      value: "Enter valid bridge lines with numeric IP addresses and ports. Supported transports are obfs4, Snowflake, and meek_lite.",
+      comment: "Tor settings: bridgeInvalid"
+    )
+    public static let bridgeRequestDescription = NSLocalizedString(
+      "Tor.bridgeRequestDescription", bundle: .module,
+      value: "This contacts Tor Project directly so you can request bridges while Tor is blocked.",
+      comment: "Tor settings: bridgeRequestDescription"
+    )
+    public static let captchaTitle = NSLocalizedString(
+      "Tor.captchaTitle", bundle: .module,
+      value: "Request Tor Bridges",
+      comment: "Tor settings: captchaTitle"
+    )
+    public static let captchaPrompt = NSLocalizedString(
+      "Tor.captchaPrompt", bundle: .module,
+      value: "Enter the characters shown in the image.",
+      comment: "Tor settings: captchaPrompt"
+    )
+    public static let captchaSolution = NSLocalizedString(
+      "Tor.captchaSolution", bundle: .module,
+      value: "CAPTCHA Solution",
+      comment: "Tor settings: captchaSolution"
+    )
+    public static let captchaRefresh = NSLocalizedString(
+      "Tor.captchaRefresh", bundle: .module,
+      value: "New CAPTCHA",
+      comment: "Tor settings: captchaRefresh"
+    )
+    public static let captchaSubmit = NSLocalizedString(
+      "Tor.captchaSubmit", bundle: .module,
+      value: "Submit",
+      comment: "Tor settings: captchaSubmit"
+    )
+    public static let captchaError = NSLocalizedString(
+      "Tor.captchaError", bundle: .module,
+      value: "Tor Project could not complete the request. Try a new CAPTCHA or provide a bridge from a trusted source.",
+      comment: "Tor settings: captchaError"
+    )
+    public static let learnMore = NSLocalizedString(
+      "Tor.learnMore", bundle: .module,
+      value: "Learn More",
+      comment: "Tor settings: learnMore"
+    )
     public static let openOnionLocation = NSLocalizedString(
       "Tor.openOnionLocation", bundle: .module,
       value: "Open Onion Site in New Private with Tor Tab",

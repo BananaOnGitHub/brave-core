@@ -6,6 +6,7 @@
 import BraveStrings
 import BraveUI
 import Data
+import DesignSystem
 import LocalAuthentication
 import Preferences
 import SwiftUI
@@ -19,7 +20,6 @@ struct PrivateTabsView: View {
   @ObservedObject var privateBrowsingOnly = Preferences.Privacy.privateBrowsingOnly
   @ObservedObject var persistentPrivateBrowsing = Preferences.Privacy.persistentPrivateBrowsing
   @ObservedObject var privateBrowsingLock = Preferences.Privacy.privateBrowsingLock
-  @ObservedObject private var keepTorTabsSeparate = Preferences.Privacy.keepTorTabsSeparate
 
   var tabManager: TabManager?
   var askForAuthentication: (AuthViewType, ((Bool, LAError.Code?) -> Void)?) -> Void
@@ -118,28 +118,15 @@ struct PrivateTabsView: View {
       }
 
       Section {
-        Picker(selection: $keepTorTabsSeparate.value) {
-          LabelView(
-            title: Strings.Tor.keepTabsSeparateOn,
-            subtitle: Strings.Tor.keepTabsSeparateOnDescription
-          )
-          .tag(true)
-          LabelView(
-            title: Strings.Tor.keepTabsSeparateOff,
-            subtitle: Strings.Tor.keepTabsSeparateOffDescription
-          )
-          .tag(false)
+        NavigationLink {
+          TorSettingsView()
         } label: {
-          EmptyView()
+          Label {
+            Text(Strings.Tor.settings)
+          } icon: {
+            Image(braveSystemName: "leo.product.tor")
+          }
         }
-        .pickerStyle(.inline)
-        .tint(Color(braveSystemName: .primitivePrimary40))
-        .accessibilityLabel(Strings.Tor.keepTabsSeparate)
-        .accessibilityIdentifier("Tor.keepTabsSeparate")
-      } header: {
-        Text(Strings.Tor.keepTabsSeparate)
-      } footer: {
-        Text(Strings.Tor.keepTabsSeparateFooter)
       }
     }
     .navigationBarTitle(Strings.TabsSettings.privateTabsSettingsTitle)

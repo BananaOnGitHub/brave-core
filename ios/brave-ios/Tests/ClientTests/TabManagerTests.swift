@@ -201,6 +201,38 @@ open class MockTabManagerDelegate: TabManagerDelegate {
     return tab
   }
 
+  func testDisablingTorClosesOnlyTorTabsAndKeepsOnionPreferenceIndependent() {
+    let wasEnabled = Preferences.Privacy.torEnabled.value
+    let onionOnly = Preferences.Privacy.onlyOnionInTor.value
+    defer {
+      Preferences.Privacy.torEnabled.value = wasEnabled
+      Preferences.Privacy.onlyOnionInTor.value = onionOnly
+    }
+    Preferences.Privacy.torEnabled.value = true
+    Preferences.Privacy.onlyOnionInTor.value = false
+    let regular = manager.addTestTab(isPrivate: false)
+    let privateTab = manager.addTestTab(isPrivate: true)
+    let tor = addOfflineTorTab()
+    manager.selectTab(tor)
+    Preferences.Privacy.torEnabled.value = false
+    XCTAssertFalse(manager.allTabs.contains(where: \.isTor))
+    XCTAssertTrue(manager.allTabs.contains(where: { $0 === regular }))
+    XCTAssertTrue(manager.allTabs.contains(where: { $0 === privateTab }))
+    XCTAssertFalse(privateBrowsingManager.isTorBrowsing)
+    XCTAssertNil(tor.torDataStore)
+    XCTAssertFalse(Preferences.Privacy.onlyOnionInTor.value)
+    let staleActionTab = manager.addTorTab(URLRequest(url: URL(string: "http://example.onion/")!))
+    XCTAssertFalse(staleActionTab.isTor)
+    XCTAssertNotEqual(staleActionTab.visibleURL?.host, "example.onion")
+  }
+
+  func testOnionResourceRuleCompilesBeforeRegularNavigation() async throws {
+    let previous = Preferences.Privacy.onlyOnionInTor.value
+    defer { Preferences.Privacy.onlyOnionInTor.value = previous }
+    Preferences.Privacy.onlyOnionInTor.value = true
+    try await TorOnionPolicy.install(on: FakeTabState())
+  }
+
   func testTorShredTargetsWebsiteAcrossModesAndPreservesUnrelatedTabs() {
     setPersistentPrivateMode(true)
     let regular = manager.addTestTab(isPrivate: false)

@@ -107,12 +107,13 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
   }
 
   func topToolbarDidPressOnionLocation(_ topToolbar: TopToolbarView) {
+    guard Preferences.Privacy.torEnabled.value else { return }
     guard let tab = tabManager.selectedTab,
       let url = tab.onionLocation
     else { return }
     let open = { [weak self, weak tab] in
       guard let self, let tab, self.tabManager.selectedTab === tab,
-        tab.onionLocation == url
+        tab.onionLocation == url, Preferences.Privacy.torEnabled.value
       else { return }
       let onionTab = self.tabManager.addTorTab(URLRequest(url: url), afterTab: tab)
       self.tabManager.selectTab(onionTab)
