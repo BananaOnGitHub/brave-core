@@ -1,0 +1,11 @@
+Name: Embedded Tor, Tor.framework, OpenSSL, libevent and liblzma
+URL: https://github.com/iCepa/Tor.framework
+Version: 409.14.1 (Tor 0.4.9.14)
+License: BSD-3-Clause, MIT, Apache-2.0, BSD-2-Clause
+License File: //brave/ios/tor/Sources/BraveTorUI/Resources/ThirdPartyNotices.txt
+Shipped: yes
+Security Critical: yes
+
+Description:
+Embedded Tor XCFramework and its bundled native dependencies. Full upstream
+copyright and license notices are maintained in the referenced resource.

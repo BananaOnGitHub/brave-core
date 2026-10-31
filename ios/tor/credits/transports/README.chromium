@@ -1,0 +1,12 @@
+Name: IPtProxy, Lyrebird, Snowflake and Go transport dependencies
+URL: https://github.com/tladesignz/IPtProxy
+Version: 5.7.0
+License: MIT, BSD-3-Clause, Apache-2.0, GPL-3.0, CC0-1.0
+License File: //brave/ios/tor/Sources/BraveTorUI/Resources/TransportNotices.txt
+Shipped: yes
+Security Critical: yes
+
+Description:
+IPtProxy binary transport library, Go runtime and dependencies from its pinned
+module manifest, including modules not enabled by the Brave transport UI.
+Regenerate the notices with ../generate_transport_notices.py when updating it.

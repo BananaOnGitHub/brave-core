@@ -12,6 +12,9 @@ ios_enable_share_extension = false
 ios_enable_credential_provider_extension = true
 ios_enable_widget_kit_extension = false
 
+# Include third-party licenses in brave://credits in local builds too.
+generate_about_credits = true
+
 # The app currently crashes on launch without disabling these 2 args:
 # https://github.com/brave/brave-browser/issues/49595
 # When this is fixed in Chromium we can remove these 2 arguments

@@ -1,8 +1,8 @@
-BraveTor prototype third-party notices
+Brave iOS Tor third-party notices
 
 IPtProxy 5.7.0 (Lyrebird/obfs4, meek_lite and Snowflake client transports)
 https://github.com/tladesignz/IPtProxy/tree/5.7.0
-+MIT License
+MIT License
 
 Copyright (c) 2020 - 2026 Guardian Project
 
