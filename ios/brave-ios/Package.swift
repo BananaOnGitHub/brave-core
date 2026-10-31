@@ -535,7 +535,7 @@ var package = Package(
     .testTarget(name: "DataTests", dependencies: ["Data", "TestHelpers", "BraveShields"]),
     .testTarget(
       name: "ClientTests",
-      dependencies: ["Brave", "BraveStrings", "TestHelpers", "Web"],
+      dependencies: ["Brave", "BraveStrings", "DesignSystem", "TestHelpers", "Web"],
       resources: [
         .copy("Resources/debouncing.json"),
         .copy("Resources/content-blocking.json"),

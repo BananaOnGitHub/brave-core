@@ -10,6 +10,25 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testBraveComOnionLocationBenchmark() throws {
+    // HTTPS response header captured from brave.com; no live request in this test.
+    let source = URL(string: "https://brave.com/")!
+    let destination = URL(string:
+      "https://brave4u7jddbv7cyviptqjc7jusxh72uik7zt6adtckl5f4nwy2v72qd.onion/index.html"
+    )!
+    let response = try XCTUnwrap(HTTPURLResponse(
+      url: source, statusCode: 200, httpVersion: "HTTP/2",
+      headerFields: ["onion-location": destination.absoluteString]
+    ))
+    XCTAssertEqual(TorTabState.onionLocation(from: response), destination)
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    tab.receiveOnionLocationResponse(response, isMainFrame: true)
+    tab.commitOnionLocation(for: source)
+    XCTAssertEqual(tab.onionLocation, destination)
+  }
+
   func testOnionLocationHeaderValidation() throws {
     let onion = "http://" + String(repeating: "a", count: 56) + ".onion/path?q=1#section"
     func response(_ source: String = "https://example.com", status: Int = 200,
