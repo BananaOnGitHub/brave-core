@@ -274,24 +274,27 @@ import UIKit
 
   private lazy var coordinator: ScrollViewCoordinator = .init(viewModel: self)
   private var scrollViewObservation: NSKeyValueObservation?
+  private weak var observedScrollView: UIScrollView?
 
   /// Sets up the `delegate` on the passed in `UIScrollView` to automatically handle scrolling behaviours
   /// from users.
   ///
   /// If you need to control the delegate yourself, consider calling actions yourself instead
   func beginObservingScrollView(_ scrollView: UIScrollView) {
-    if scrollViewObservation != nil {
-      // Already observing
-      return
+    guard observedScrollView !== scrollView else { return }
+    if let previous = observedScrollView {
+      endScrollViewObservation(previous)
     }
+    observedScrollView = scrollView
     scrollView.panGestureRecognizer.addTarget(self, action: #selector(pannedScrollView(_:)))
     scrollViewObservation = scrollView.observe(
       \.contentSize,
       options: [.old, .new],
       changeHandler: { [weak self] scrollView, change in
         guard change.oldValue != change.newValue else { return }
-        DispatchQueue.main.async { [self] in
-          self?.send(action: .contentSizeChanged(snapshot: Self.snapshotData(from: scrollView)))
+        DispatchQueue.main.async { [weak self, weak scrollView] in
+          guard let self, let scrollView, self.observedScrollView === scrollView else { return }
+          self.send(action: .contentSizeChanged(snapshot: Self.snapshotData(from: scrollView)))
         }
       }
     )
@@ -300,11 +303,14 @@ import UIKit
   }
 
   func endScrollViewObservation(_ scrollView: UIScrollView) {
+    guard observedScrollView === scrollView else { return }
     scrollView.panGestureRecognizer.removeTarget(self, action: nil)
     scrollViewObservation?.invalidate()
     scrollViewObservation = nil
     scrollView.delegate = nil
     scrollView.scrollsToTop = false
+    observedScrollView = nil
+    initialSnapshot = nil
   }
 }
 

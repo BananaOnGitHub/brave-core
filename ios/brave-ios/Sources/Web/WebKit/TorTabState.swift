@@ -91,6 +91,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var view: UIView { container }
   public var isVisible = false {
     didSet {
+      browser?.scrollView.scrollsToTop = isVisible
       if isVisible { lastActiveTime = Date() }
       if !isVisible { refreshPreview() }
       observers.forEach { isVisible ? $0.tabWasShown(self) : $0.tabWasHidden(self) }
@@ -141,6 +142,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         browser.uiDelegate = self
         browser.allowsBackForwardNavigationGestures = true
         browser.allowsLinkPreview = true
+        browser.scrollView.scrollsToTop = isVisible
         browser.translatesAutoresizingMaskIntoConstraints = false
         browserContainer.addSubview(browser)
         NSLayoutConstraint.activate([

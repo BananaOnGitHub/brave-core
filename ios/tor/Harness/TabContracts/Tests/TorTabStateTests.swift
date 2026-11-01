@@ -10,6 +10,29 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testStatusBarScrollingFollowsVisibilityAcrossWebViewReplacement() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let selected = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    let background = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { selected.close(); background.close() }
+    selected.isVisible = true
+    try await createViews([selected, background])
+    let original = try XCTUnwrap(selected.webViewProxy?.scrollView)
+    XCTAssertTrue(original.scrollsToTop)
+    XCTAssertFalse(try XCTUnwrap(background.webViewProxy?.scrollView).scrollsToTop)
+
+    selected.isVisible = false
+    XCTAssertFalse(original.scrollsToTop)
+    selected.isVisible = true
+    XCTAssertTrue(original.scrollsToTop)
+
+    selected.deleteWebView()
+    try await createViews([selected])
+    let replacement = try XCTUnwrap(selected.webViewProxy?.scrollView)
+    XCTAssertFalse(original === replacement)
+    XCTAssertTrue(replacement.scrollsToTop)
+  }
+
   func testBraveComOnionLocationBenchmark() throws {
     // HTTPS response header captured from brave.com; no live request in this test.
     let source = URL(string: "https://brave.com/")!
