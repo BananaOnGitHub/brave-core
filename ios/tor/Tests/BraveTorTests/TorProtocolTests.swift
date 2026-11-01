@@ -5,6 +5,17 @@ import XCTest
 @testable import BraveTor
 
 final class TorProtocolTests: XCTestCase {
+  func testBootstrapSummaryUsesCompleteQuotedStageDescription() {
+    XCTAssertEqual(TorSnapshot.summary(from:
+      "NOTICE BOOTSTRAP PROGRESS=80 TAG=ap_conn SUMMARY=\"Connecting to the Tor network\""),
+      "Connecting to the Tor network")
+    XCTAssertEqual(TorSnapshot.summary(from:
+      "NOTICE BOOTSTRAP PROGRESS=14 SUMMARY=\"Handshaking with a relay\" COUNT=1"),
+      "Handshaking with a relay")
+    XCTAssertEqual(TorSnapshot.summary(from: "NOTICE BOOTSTRAP PROGRESS=0"), "")
+    XCTAssertEqual(TorSnapshot.summary(from: "SUMMARY=\"unterminated"), "")
+  }
+
   func testMultilineControlReply() throws {
     var parser = TorReplyParser()
     XCTAssertNil(try parser.consume("250-status/circuit-established=1"))

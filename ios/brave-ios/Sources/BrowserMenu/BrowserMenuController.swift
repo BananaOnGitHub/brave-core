@@ -15,6 +15,7 @@ public enum BrowserMenuPresentation {
 public class BrowserMenuController: UIHostingController<BrowserMenu> {
   public init(
     actions: [Action],
+    connectionSection: AnyView? = nil,
     handlePresentation: @escaping (BrowserMenuPresentation) -> Void
   ) {
     super.init(
@@ -24,7 +25,8 @@ public class BrowserMenuController: UIHostingController<BrowserMenu> {
           vpnStatus: .liveVPNStatus,
           vpnStatusPublisher: .liveVPNStatus
         ),
-        handlePresentation: handlePresentation
+        handlePresentation: handlePresentation,
+        connectionSection: connectionSection
       )
     )
     rootView.onShowAllActions = { [weak self] in

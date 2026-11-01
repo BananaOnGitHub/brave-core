@@ -211,6 +211,9 @@ public class BrowserViewController: UIViewController {
   private var toolbarTopConstraint: Constraint?
   private var toolbarBottomConstraint: Constraint?
   var toolbarVisibilityCancellable: AnyCancellable?
+  var torMenuCancellable: AnyCancellable?
+  var torMenuPopupTask: Task<Void, Never>?
+  var torMenuAttemptActive = false
 
   var keyboardState: KeyboardState?
 

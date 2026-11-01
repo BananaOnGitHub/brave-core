@@ -14,6 +14,7 @@ import SwiftUI
 public struct BrowserMenu: View {
   @ObservedObject var model: BrowserMenuModel
   var handlePresentation: (BrowserMenuPresentation) -> Void
+  var connectionSection: AnyView? = nil
   var onShowAllActions: (() -> Void)?
 
   @ObservedObject private var numberOfQuickActions = Preferences.BrowserMenu.numberOfQuickActions
@@ -59,6 +60,7 @@ public struct BrowserMenu: View {
   public var body: some View {
     ScrollView {
       VStack(spacing: 16) {
+        if let connectionSection { connectionSection }
         VStack(alignment: .leading) {
           HStack {
             Text(Strings.BrowserMenu.myActions)

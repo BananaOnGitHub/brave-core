@@ -5,6 +5,18 @@ import Foundation
 
 extension Strings {
   public enum Tor {
+    public static let connectionStatus = NSLocalizedString(
+      "Tor.connectionStatus", bundle: .module, value: "Tor Status",
+      comment: "Tor connection status menu: connectionStatus"
+    )
+    public static let reloadConnection = NSLocalizedString(
+      "Tor.reloadConnection", bundle: .module, value: "Reload Tor",
+      comment: "Tor connection status menu: reloadConnection"
+    )
+    public static let disableAutomaticPopup = NSLocalizedString(
+      "Tor.disableAutomaticPopup", bundle: .module, value: "Disable automatic popup",
+      comment: "Tor connection status menu: disableAutomaticPopup"
+    )
     public static let settings = NSLocalizedString(
       "Tor.settings", bundle: .module,
       value: "Tor",

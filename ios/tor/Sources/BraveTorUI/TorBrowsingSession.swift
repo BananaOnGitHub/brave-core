@@ -3,6 +3,7 @@
 // License, v. 2.0. See https://mozilla.org/MPL/2.0/.
 #if os(iOS)
 import BraveTor
+import Combine
 import Network
 import UIKit
 import WebKit
@@ -44,6 +45,10 @@ public final class TorBrowsingSession: NSObject {
   public static let shared = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: true)
   public enum State: Equatable { case waiting, connecting(Int), connected, unavailable }
   public private(set) var state: State = .waiting
+  private let stateSubject = CurrentValueSubject<State, Never>(.waiting)
+  public var statePublisher: AnyPublisher<State, Never> { stateSubject.eraseToAnyPublisher() }
+  public private(set) var bootstrapTag = ""
+  public private(set) var bootstrapSummary = ""
   private let runtime: TorRuntime
   private let ownerID = UUID()
   private var sharedContext: TorBrowsingContext?
@@ -153,6 +158,7 @@ public final class TorBrowsingSession: NSObject {
 
   private func publish(_ state: State) {
     self.state = state
+    stateSubject.send(state)
     for callback in Array(clients.values) { callback(state) }
   }
 
@@ -194,6 +200,8 @@ public final class TorBrowsingSession: NSObject {
     guard enabled, automaticallyConnect, sessionTask == nil, !clients.isEmpty, appActive, policy.canConnect else { return }
     let expected = generation
     let previous = transition
+    bootstrapTag = ""
+    bootstrapSummary = ""
     publish(.connecting(0))
     sessionTask = Task { [weak self] in
       await previous?.value
@@ -203,6 +211,8 @@ public final class TorBrowsingSession: NSObject {
         while !Task.isCancelled, expected == generation {
           let snapshot = try await runtime.snapshot()
           guard expected == generation, !Task.isCancelled else { return }
+          bootstrapTag = snapshot.bootstrapTag
+          bootstrapSummary = snapshot.bootstrapSummary
           if snapshot.progress == 100, snapshot.circuitEstablished, let endpoint = snapshot.endpoint {
             gate.forward(to: endpoint)
             publish(.connected)

@@ -10,6 +10,29 @@ public struct TorSnapshot: Sendable {
   public let progress: Int
   public let endpoint: TorEndpoint?
   public let circuitEstablished: Bool
+  public var bootstrapTag: String = ""
+  public var bootstrapSummary: String = ""
+
+  static func summary(from phase: String) -> String {
+    guard let start = phase.range(of: "SUMMARY=\"")?.upperBound else { return "" }
+    var result = ""
+    var escaped = false
+    for character in phase[start...] {
+      if escaped {
+        if character == "n" { result.append("\n") }
+        else if character == "r" { result.append("\r") }
+        else { result.append(character) }
+        escaped = false
+      } else if character == "\\" {
+        escaped = true
+      } else if character == "\"" {
+        return result
+      } else {
+        result.append(character)
+      }
+    }
+    return ""
+  }
 }
 
 /// Owns one embedded C Tor instance. Calls are serialized away from the UI actor.
@@ -150,6 +173,8 @@ public actor TorRuntime {
       "GETINFO status/bootstrap-phase status/circuit-established net/listeners/socks"
     )
     let phase = reply.value(for: "status/bootstrap-phase") ?? ""
+    let tag = phase.split(separator: " ").first(where: { $0.hasPrefix("TAG=") })
+      .map { String($0.dropFirst(4)) } ?? ""
     let progress = phase.split(separator: " ").first(where: {
       $0.hasPrefix("PROGRESS=")
     }).flatMap { Int($0.dropFirst("PROGRESS=".count)) } ?? 0
@@ -163,7 +188,9 @@ public actor TorRuntime {
     return TorSnapshot(
       progress: min(100, max(0, progress)),
       endpoint: endpoint,
-      circuitEstablished: reply.value(for: "status/circuit-established") == "1"
+      circuitEstablished: reply.value(for: "status/circuit-established") == "1",
+      bootstrapTag: tag,
+      bootstrapSummary: TorSnapshot.summary(from: phase)
     )
   }
 

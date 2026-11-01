@@ -4,6 +4,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import BraveCore
+import BraveTorUI
 import BraveShared
 import BraveUI
 import BraveVPN
@@ -129,7 +130,8 @@ extension BrowserViewController {
     pageURL: URL?
   ) {
     var actions: [Action] = []
-    if profileController.profile.prefs.isBraveVPNAvailable {
+    let isTor = tab?.isTor == true
+    if !isTor && profileController.profile.prefs.isBraveVPNAvailable {
       actions.append(vpnMenuAction)
     }
     actions.append(contentsOf: destinationMenuActions(for: pageURL))
@@ -187,8 +189,18 @@ extension BrowserViewController {
       .map { .init(id: $0, attributes: .disabled) }
     actions.append(contentsOf: pageActivities)
     actions.append(contentsOf: remainingPageActivities)
+    if isTor {
+      // Native page services are not routed through the Tor website data store.
+      let allowed: Set<Action.Identifier> = [.bookmarks, .history, .downloads, .addBookmark]
+      actions = actions.map { action in
+        var action = action
+        if !allowed.contains(action.id) { action.attributes.insert(.disabled) }
+        return action
+      }
+    }
     let browserMenu = BrowserMenuController(
       actions: actions,
+      connectionSection: isTor ? AnyView(TorMenuStatusView()) : nil,
       handlePresentation: { [unowned self] action in
         switch action {
         case .settings:

@@ -376,6 +376,7 @@ extension BrowserViewController: TabManagerDelegate {
 
   func tabManager(_ tabManager: TabManager, didAddTab tab: some TabState) {
     if tab.isTor {
+      observeTorMenuStatus()
       tab.delegate = self
       tab.addObserver(self)
       updateTabsBarVisibility()

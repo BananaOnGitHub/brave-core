@@ -256,6 +256,7 @@ extension Preferences {
 
   final public class Privacy {
     public static let torEnabled = Option<Bool>(key: "privacy.tor-enabled", default: true)
+    public static let disableTorAutomaticPopup = Option<Bool>(key: "privacy.tor-disable-automatic-popup", default: false)
     public static let onlyOnionInTor = Option<Bool>(key: "privacy.only-onion-in-tor", default: true)
     public static let torBridgeConfiguration = Option<String>(
       key: "privacy.tor-bridges",
