@@ -49,6 +49,11 @@ public final class TorBrowsingSession: NSObject {
   public var statePublisher: AnyPublisher<State, Never> { stateSubject.eraseToAnyPublisher() }
   public private(set) var bootstrapTag = ""
   public private(set) var bootstrapSummary = ""
+  private var hasConnected = false
+  public var isReconnecting: Bool {
+    if case .connecting = state { return hasConnected }
+    return false
+  }
   private let runtime: TorRuntime
   private let ownerID = UUID()
   private var sharedContext: TorBrowsingContext?
@@ -102,7 +107,10 @@ public final class TorBrowsingSession: NSObject {
 
   public func detach(id: UUID) {
     clients.removeValue(forKey: id)
-    if clients.isEmpty { pause() }
+    if clients.isEmpty {
+      hasConnected = false
+      pause()
+    }
   }
 
   public func openTabSession(keepTabsSeparate: Bool) -> TorTabSession {
@@ -158,6 +166,7 @@ public final class TorBrowsingSession: NSObject {
 
   private func publish(_ state: State) {
     self.state = state
+    if state == .connected { hasConnected = true }
     stateSubject.send(state)
     for callback in Array(clients.values) { callback(state) }
   }

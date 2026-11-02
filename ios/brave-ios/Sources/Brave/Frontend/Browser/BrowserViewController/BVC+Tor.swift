@@ -4,6 +4,7 @@
 import BraveStrings
 import BraveTorUI
 import BrowserMenu
+import DesignSystem
 import Preferences
 import SwiftUI
 import UIKit
@@ -51,23 +52,44 @@ extension BrowserViewController {
 struct TorMenuStatusView: View {
   @State private var state = TorBrowsingSession.shared.state
   @State private var stage = TorBrowsingSession.shared.bootstrapSummary
+  @State private var isReconnecting = TorBrowsingSession.shared.isReconnecting
   @ObservedObject private var disablePopup = Preferences.Privacy.disableTorAutomaticPopup
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text(Strings.Tor.connectionStatus).font(.headline)
+      HStack(spacing: 6) {
+        Image(braveSystemName: "leo.product.tor")
+          .font(.subheadline)
+          .accessibilityHidden(true)
+        Text(Strings.Tor.connectionStatus).font(.headline)
+      }
       HStack(spacing: 12) {
         statusGlyph.frame(width: 44, height: 44).accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 4) {
           Text(statusText).font(.subheadline)
           if case .connecting(let progress) = state {
-            Text("\(progress)/100%").font(.caption.monospacedDigit())
+            Text("\(min(progress, 99))%").font(.caption.monospacedDigit())
           }
         }
       }
       Button(Strings.Tor.reloadConnection) { TorBrowsingSession.shared.reconnect() }
-      Toggle(Strings.Tor.disableAutomaticPopup, isOn: $disablePopup.value)
-        .font(.subheadline)
+      Button {
+        disablePopup.value.toggle()
+      } label: {
+        HStack(spacing: 4) {
+          Text(Strings.Tor.disableAutomaticPopup)
+          Image(braveSystemName: "leo.check.normal")
+            .font(.caption2)
+            .opacity(disablePopup.value ? 1 : 0)
+            .accessibilityHidden(true)
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.vertical, 8)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .accessibilityAddTraits(disablePopup.value ? .isSelected : [])
     }
     .padding()
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -75,6 +97,7 @@ struct TorMenuStatusView: View {
     .onReceive(TorBrowsingSession.shared.statePublisher) {
       state = $0
       stage = TorBrowsingSession.shared.bootstrapSummary
+      isReconnecting = TorBrowsingSession.shared.isReconnecting
     }
   }
 
@@ -89,7 +112,7 @@ struct TorMenuStatusView: View {
     case .connecting(let progress):
       ZStack {
         Circle().stroke(.secondary.opacity(0.2), lineWidth: 4)
-        Circle().trim(from: 0, to: CGFloat(progress) / 100)
+        Circle().trim(from: 0, to: CGFloat(min(progress, 99)) / 100)
           .stroke(.tint, style: StrokeStyle(lineWidth: 4, lineCap: .round))
           .rotationEffect(.degrees(-90))
         ProgressView().controlSize(.mini)
@@ -102,8 +125,14 @@ struct TorMenuStatusView: View {
     case .connected: Strings.Tor.connected
     case .unavailable: Strings.Tor.unavailable
     case .waiting: Strings.Tor.waiting
-    // Desktop's private NTP likewise displays Tor's bootstrap message as its subtitle.
-    case .connecting: stage.isEmpty ? Strings.Tor.connecting : stage
+    case .connecting(let progress):
+      if isReconnecting {
+        Strings.Tor.reconnecting
+      } else if progress >= 100 {
+        Strings.Tor.finishingConnection
+      } else {
+        stage.isEmpty ? Strings.Tor.connecting : stage
+      }
     }
   }
 }

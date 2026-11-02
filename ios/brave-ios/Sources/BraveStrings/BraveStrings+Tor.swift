@@ -233,6 +233,16 @@ extension Strings {
       value: "Connecting through Tor…",
       comment: "Tor connecting"
     )
+    public static let finishingConnection = NSLocalizedString(
+      "Tor.finishingConnection", bundle: .module,
+      value: "Finishing up…",
+      comment: "Tor bootstrap has completed but the first connection is not ready yet"
+    )
+    public static let reconnecting = NSLocalizedString(
+      "Tor.reconnecting", bundle: .module,
+      value: "Reconnecting…",
+      comment: "Tor is restoring a previously established connection"
+    )
     public static let connected = NSLocalizedString(
       "Tor.connected", bundle: .module,
       value: "Connected through Tor",
