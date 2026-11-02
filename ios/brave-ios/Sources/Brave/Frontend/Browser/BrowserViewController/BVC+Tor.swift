@@ -11,40 +11,52 @@ import UIKit
 import Web
 
 extension BrowserViewController {
-  func presentTorMenu(from sourceView: UIView) {
+  func presentTorMenu(from sourceView: UIView, automaticallyPresented: Bool = false) {
     presentBrowserMenu(from: sourceView, activities: [], tab: tabManager.selectedTab,
-                       pageURL: tabManager.selectedTab?.visibleURL)
+                       pageURL: tabManager.selectedTab?.visibleURL,
+                       initiallyShowsConnectionSection: automaticallyPresented)
   }
 
   func observeTorMenuStatus() {
     guard torMenuCancellable == nil else { return }
     torMenuCancellable = TorBrowsingSession.shared.statePublisher.sink { [weak self] state in
       guard let self else { return }
-      switch state {
-      case .waiting, .connected:
-        self.torMenuAttemptActive = false
-        self.torMenuPopupTask?.cancel()
-        self.torMenuPopupTask = nil
-      case .unavailable:
-        break
-      case .connecting:
-        guard !self.torMenuAttemptActive else { return }
-        self.torMenuAttemptActive = true
-        self.torMenuPopupTask = Task { [weak self] in
-          // Only prompt for a slow attempt; progress updates must not restart this delay.
-          do { try await Task.sleep(nanoseconds: 5_000_000_000) } catch { return }
-          guard let self, !Task.isCancelled,
-            !Preferences.Privacy.disableTorAutomaticPopup.value,
-            self.tabManager.selectedTab?.isTor == true,
-            self.viewIfLoaded?.window != nil,
-            self.currentScene?.activationState == .foregroundActive,
-            self.presentedViewController == nil
-          else { return }
-          guard case .connecting = TorBrowsingSession.shared.state else { return }
-          self.presentTorMenu(from: self.toolbar?.menuButton ?? self.topToolbar.menuButton)
-        }
+      guard case .connecting = state,
+        let tab = self.tabManager.selectedTab, tab.isTor, tab.isLoading,
+        let url = tab.visibleURL, ["http", "https"].contains(url.scheme?.lowercased() ?? "")
+      else {
+        self.cancelTorMenuPopup()
+        return
+      }
+      // Polling bootstrap updates also catches a page requested after opening a blank tab.
+      guard self.torMenuPopupTabID != tab.id || self.torMenuPopupURL != url else { return }
+      self.cancelTorMenuPopup()
+      self.torMenuPopupTabID = tab.id
+      self.torMenuPopupURL = url
+      self.torMenuPopupTask = Task { [weak self, weak tab] in
+        // Give this page five seconds to obtain a Tor connection.
+        do { try await Task.sleep(nanoseconds: 5_000_000_000) } catch { return }
+        guard let self, let tab, !Task.isCancelled,
+          !Preferences.Privacy.disableTorAutomaticPopup.value,
+          self.tabManager.selectedTab === tab, tab.isLoading, tab.visibleURL == url,
+          self.viewIfLoaded?.window != nil,
+          self.currentScene?.activationState == .foregroundActive,
+          self.presentedViewController == nil
+        else { return }
+        guard case .connecting = TorBrowsingSession.shared.state else { return }
+        self.presentTorMenu(
+          from: self.toolbar?.menuButton ?? self.topToolbar.menuButton,
+          automaticallyPresented: true
+        )
       }
     }
+  }
+
+  private func cancelTorMenuPopup() {
+    torMenuPopupTask?.cancel()
+    torMenuPopupTask = nil
+    torMenuPopupTabID = nil
+    torMenuPopupURL = nil
   }
 }
 

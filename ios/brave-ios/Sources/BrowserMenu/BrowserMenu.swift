@@ -15,6 +15,7 @@ public struct BrowserMenu: View {
   @ObservedObject var model: BrowserMenuModel
   var handlePresentation: (BrowserMenuPresentation) -> Void
   var connectionSection: AnyView? = nil
+  var onConnectionSectionHeightChange: ((CGFloat) -> Void)?
   var onShowAllActions: (() -> Void)?
 
   @ObservedObject private var numberOfQuickActions = Preferences.BrowserMenu.numberOfQuickActions
@@ -60,7 +61,14 @@ public struct BrowserMenu: View {
   public var body: some View {
     ScrollView {
       VStack(spacing: 16) {
-        if let connectionSection { connectionSection }
+        if let connectionSection {
+          connectionSection
+            .onGeometryChange(for: CGFloat.self) { proxy in
+              proxy.size.height
+            } action: { height in
+              onConnectionSectionHeightChange?(height)
+            }
+        }
         VStack(alignment: .leading) {
           HStack {
             Text(Strings.BrowserMenu.myActions)

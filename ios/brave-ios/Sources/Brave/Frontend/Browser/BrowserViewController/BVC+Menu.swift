@@ -127,7 +127,8 @@ extension BrowserViewController {
     from sourceView: UIView,
     activities: [UIActivity],
     tab: (any TabState)?,
-    pageURL: URL?
+    pageURL: URL?,
+    initiallyShowsConnectionSection: Bool = false
   ) {
     var actions: [Action] = []
     let isTor = tab?.isTor == true
@@ -201,6 +202,7 @@ extension BrowserViewController {
     let browserMenu = BrowserMenuController(
       actions: actions,
       connectionSection: isTor ? AnyView(TorMenuStatusView()) : nil,
+      initiallyShowsConnectionSection: initiallyShowsConnectionSection,
       handlePresentation: { [unowned self] action in
         switch action {
         case .settings:
@@ -219,7 +221,7 @@ extension BrowserViewController {
         }
       }
     )
-    if UIDevice.current.userInterfaceIdiom == .pad {
+    if UIDevice.current.userInterfaceIdiom == .pad && !initiallyShowsConnectionSection {
       browserMenu.modalPresentationStyle = .popover
     }
     browserMenu.popoverPresentationController?.sourceView = sourceView

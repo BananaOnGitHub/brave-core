@@ -213,7 +213,8 @@ public class BrowserViewController: UIViewController {
   var toolbarVisibilityCancellable: AnyCancellable?
   var torMenuCancellable: AnyCancellable?
   var torMenuPopupTask: Task<Void, Never>?
-  var torMenuAttemptActive = false
+  var torMenuPopupTabID: UUID?
+  var torMenuPopupURL: URL?
 
   var keyboardState: KeyboardState?
 
