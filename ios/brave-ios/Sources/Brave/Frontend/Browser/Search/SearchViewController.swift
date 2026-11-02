@@ -1055,7 +1055,7 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
       cell.isPrivateBrowsing = dataSource.isPrivate
       let onYourDeviceItem = availableOnYourDeviceItems[indexPath.row]
       if let site = onYourDeviceItem.site {
-        cell.setSite(site)
+        cell.setSite(site, cachedIconsOnly: dataSource.isTor)
       } else if let playlistItem = onYourDeviceItem.playlistItem {
         cell.setPlaylistItem(playlistItem)
       }

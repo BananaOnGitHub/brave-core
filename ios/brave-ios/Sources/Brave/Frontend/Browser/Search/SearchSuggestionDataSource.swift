@@ -52,7 +52,7 @@ class SearchSuggestionDataSource {
   let searchEngines: SearchEngines?
 
   var quickSearchEngines: [OpenSearchEngine] {
-    guard !isTor, let searchEngines else { return [] }
+    guard let searchEngines else { return [] }
     var quickSearchEngines = searchEngines.quickSearchEngines
     let searchEngineType = defaultEngineType
     if let defaultEngine = searchEngines.defaultEngine(forType: searchEngineType),
@@ -127,6 +127,7 @@ class SearchSuggestionDataSource {
   }
 
   func querySuggestClient() {
+    guard !isTor else { return }
     // Do not query suggestions if user is not opt_ed in
     if !Preferences.Search.showSuggestions.value {
       Logger.module.info("Suggestions are not enabled")

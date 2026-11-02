@@ -31,6 +31,7 @@ class SearchContainerViewController: UIViewController {
   let inputBar: SearchURLBarInputView
   private let topSitesController: UIViewController
   private let isTor: Bool
+  private let browserColors: any BrowserColors
   private let searchController: SearchViewController
   private let searchLoader: SearchLoader
 
@@ -59,6 +60,7 @@ class SearchContainerViewController: UIViewController {
   ) {
     self.delegate = delegate
     self.isTor = privateBrowsingManager.isTorBrowsing
+    self.browserColors = privateBrowsingManager.browserColors
 
     let searchController = SearchViewController(
       with: .init(
@@ -113,7 +115,7 @@ class SearchContainerViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    view.backgroundColor = .clear
+    view.backgroundColor = browserColors.favoritesAndSearchScreenBackground
 
     // Track the view's bottom edge (not the safe area) when the keyboard is down so the bottom-bar
     // input field's background extends to the bottom of the screen behind the home indicator.
@@ -126,6 +128,9 @@ class SearchContainerViewController: UIViewController {
 
     addChild(topSitesController)
     view.addSubview(topSitesController.view)
+    if isTor {
+      topSitesController.view.backgroundColor = browserColors.favoritesAndSearchScreenBackground
+    }
     topSitesController.view.snp.makeConstraints { $0.edges.equalTo(view) }
     topSitesController.didMove(toParent: self)
 
@@ -137,7 +142,7 @@ class SearchContainerViewController: UIViewController {
 
     searchController.isUsingBottomBar = isUsingBottomBar
     // Called after the search view is in the hierarchy so its engine row can be laid out.
-    if !isTor { searchController.setupSearchEngineList() }
+    searchController.setupSearchEngineList()
     updateInputBarLayout()
   }
 
@@ -211,7 +216,6 @@ class SearchContainerViewController: UIViewController {
 
   /// The delegate for the quick-search-engines settings screen.
   func presentQuickSearchEnginesViewController(profile: LegacyBrowserProfile) {
-    guard !isTor else { return }
     let quickSearchEnginesViewController = SearchQuickEnginesViewController(profile: profile)
     quickSearchEnginesViewController.navigationItem.leftBarButtonItem =
       UIBarButtonItem(
@@ -243,6 +247,7 @@ class SearchContainerViewController: UIViewController {
   private func updateSearchResults(for text: String) {
     guard !isTor else {
       searchController.setSearchQuery(query: text, showSearchSuggestions: false)
+      searchLoader.query = text.lowercased()
       return
     }
     if text.isEmpty {

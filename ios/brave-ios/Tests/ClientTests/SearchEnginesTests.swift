@@ -65,16 +65,28 @@ class SearchEnginesTests: XCTestCase {
     )
   }
 
-  func testTorModeSelectsItsOwnEngineAndKeepsSuggestionsLocal() {
+  @MainActor func testTorModeSelectsItsOwnEngineAndKeepsSuggestionsLocal() async throws {
     XCTAssertEqual(DefaultEngineType(isPrivate: false, isTor: false), .standard)
     XCTAssertEqual(DefaultEngineType(isPrivate: true, isTor: false), .privateMode)
     XCTAssertEqual(DefaultEngineType(isPrivate: true, isTor: true), .tor)
+    let engines = SearchEngines()
+    await engines.loadSearchEngines()
+    let standardEngine = try XCTUnwrap(engines.defaultEngine(forType: .standard))
+    let torEngine = try XCTUnwrap(engines.orderedEngines.first {
+      $0.engineID != standardEngine.engineID
+    })
+    engines.updateDefaultEngine(torEngine.shortName, forType: .tor)
+    // The Tor default must remain available even when disabled in the shared quick list.
+    engines.disableEngine(torEngine, type: .standard)
+    defer { engines.enableEngine(torEngine) }
     let source = SearchSuggestionDataSource(
       isPrivate: true, isAIChatAvailable: false, isPlaylistAvailable: false,
-      searchEngines: SearchEngines(), isTor: true
+      searchEngines: engines, isTor: true
     )
     XCTAssertEqual(source.defaultEngineType, .tor)
-    XCTAssertTrue(source.quickSearchEngines.isEmpty)
+    XCTAssertTrue(source.hasQuickSearchEngines)
+    XCTAssertTrue(source.quickSearchEngines.contains { $0.engineID == torEngine.engineID })
+    XCTAssertEqual(source.quickSearchEngines.first?.engineID, torEngine.engineID)
     XCTAssertFalse(source.braveSearchPromotionAvailable)
   }
 
