@@ -10,10 +10,35 @@ import SwiftUI
 import UIKit
 import Web
 
+enum TorMenuPolicy {
+  static let allowedActions: Set<Action.Identifier> = [
+    .bookmarks, .history, .downloads, .addBookmark,
+    .share, .findInPage, .shredData, .displaySecurityCertificate, .addFavourites,
+    .copyCleanLink, .toggleReaderMode, .pageZoom, .print, .createPDF,
+    .toggleNightMode, .requestDesktopSite,
+  ]
+}
+
 extension BrowserViewController {
   func presentTorMenu(from sourceView: UIView, automaticallyPresented: Bool = false) {
-    presentBrowserMenu(from: sourceView, activities: [], tab: tabManager.selectedTab,
-                       pageURL: tabManager.selectedTab?.visibleURL,
+    guard let tab = tabManager.selectedTab as? TorTabState else { return }
+    clearPageZoomDialog()
+    let url = tab.visibleURL.flatMap { ["http", "https"].contains($0.scheme ?? "") ? $0 : nil }
+    let activities = url.map { url in
+      makeShareActivities(
+        url: url, tab: tab,
+        syncAPI: profileController.syncAPI, sendTabAPI: profileController.sendTabAPI,
+        feedDataSource: nil, isBraveNewsAvailable: false,
+        source: .init(view: sourceView, rect: sourceView.bounds, arrowDirection: [.up, .down]),
+        callbacks: .init(
+          onToggleReaderMode: { [weak tab] in tab?.torPageTools?.toggleReaderMode() },
+          onDisplayPageZoom: { [weak self] in self?.displayPageZoomDialog() },
+          onDisplayCertificate: { [weak self] in self?.displayPageCertificateInfo() }
+        )
+      )
+    } ?? []
+    presentBrowserMenu(from: sourceView, activities: activities, tab: tab,
+                       pageURL: url,
                        initiallyShowsConnectionSection: automaticallyPresented)
   }
 

@@ -103,7 +103,7 @@ extension UIViewController {
 
     // Toogle Reader Mode Activity
     if let tab,
-      tab.readerModeAvailableOrActive == true,
+      (tab.readerModeAvailableOrActive == true || tab.torPageTools?.readerAvailableOrActive == true),
       let onToggleReaderMode = callbacks.onToggleReaderMode
     {
       activities.append(
@@ -351,6 +351,12 @@ extension UIViewController {
       )
     }
 
+    if tab?.isTor == true {
+      return activities.filter {
+        guard let activity = $0 as? MenuActivity else { return false }
+        return TorMenuPolicy.allowedActions.contains { $0.id == activity.id }
+      }
+    }
     return activities
   }
 

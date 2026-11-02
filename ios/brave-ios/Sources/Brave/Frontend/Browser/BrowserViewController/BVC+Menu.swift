@@ -191,8 +191,8 @@ extension BrowserViewController {
     actions.append(contentsOf: pageActivities)
     actions.append(contentsOf: remainingPageActivities)
     if isTor {
-      // Native page services are not routed through the Tor website data store.
-      let allowed: Set<Action.Identifier> = [.bookmarks, .history, .downloads, .addBookmark]
+      // Restrict Tor to local tools and operations on its proxied web view.
+      let allowed = TorMenuPolicy.allowedActions
       actions = actions.map { action in
         var action = action
         if !allowed.contains(action.id) { action.attributes.insert(.disabled) }
@@ -295,7 +295,7 @@ extension BrowserViewController {
         }
       )
     }
-    if BraveCore.FeatureList.kBraveShredFeature.enabled {
+    if BraveCore.FeatureList.kBraveShredFeature.enabled || tab?.isTor == true {
       let isShredAvailable = tabManager.selectedTab?.visibleURL?.isShredAvailable ?? false
       actions.append(
         .init(id: .shredData, attributes: isShredAvailable ? [] : [.disabled]) {
@@ -311,7 +311,7 @@ extension BrowserViewController {
         }
       )
     }
-    let printFormatter = tab?.view.viewPrintFormatter()
+    let printFormatter = (tab as? TorTabState)?.pagePrintFormatter ?? tab?.view.viewPrintFormatter()
     actions.append(
       .init(id: .print) {
         @MainActor [unowned self] _ in

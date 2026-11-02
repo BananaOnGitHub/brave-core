@@ -376,6 +376,10 @@ extension BrowserViewController: TabManagerDelegate {
 
   func tabManager(_ tabManager: TabManager, didAddTab tab: some TabState) {
     if tab.isTor {
+      if let tab = tab as? TorTabState {
+        tab.torPageTools = TorPageToolsTabHelper(tab: tab)
+        tab.nightMode = NightModeTabHelper(tab: tab)
+      }
       observeTorMenuStatus()
       tab.delegate = self
       tab.addObserver(self)

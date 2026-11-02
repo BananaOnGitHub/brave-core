@@ -135,6 +135,7 @@ var package = Package(
         .copy("Assets/MainFrameAtDocumentEndSandboxed.js"),
         .copy("Assets/MainFrameAtDocumentStart.js"),
         .copy("Assets/MainFrameAtDocumentStartSandboxed.js"),
+        .copy("Assets/TorPageTools.js"),
         .copy("Assets/Fonts/FiraSans-Bold.ttf"),
         .copy("Assets/Fonts/FiraSans-BoldItalic.ttf"),
         .copy("Assets/Fonts/FiraSans-Book.ttf"),

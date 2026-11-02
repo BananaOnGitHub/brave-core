@@ -1156,7 +1156,15 @@ extension BrowserViewController: ToolbarDelegate {
   }
 
   func tabToolbarDidPressShare() {
-    guard tabManager.selectedTab?.isTor != true else { return }
+    if let tab = tabManager.selectedTab, tab.isTor, let url = tab.visibleURL {
+      presentActivityViewController(
+        url, tab: tab,
+        source: .init(view: toolbar?.menuButton ?? topToolbar.menuButton,
+                      rect: (toolbar?.menuButton ?? topToolbar.menuButton).bounds,
+                      arrowDirection: [.up, .down])
+      )
+      return
+    }
     navigationHelper.openShareSheet()
   }
 

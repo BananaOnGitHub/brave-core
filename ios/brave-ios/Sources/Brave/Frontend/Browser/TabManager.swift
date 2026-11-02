@@ -1039,6 +1039,10 @@ class TabManager: NSObject {
   }
 
   @MainActor func shredData(for url: URL, in tab: some TabState) {
+    if tab.isTor {
+      _ = shredTorTabs([tab])
+      return
+    }
     guard let url = url.urlToShred,
       let baseDomain = url.baseDomain
     else { return }

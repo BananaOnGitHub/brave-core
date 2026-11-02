@@ -37,6 +37,9 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private var virtualURL: URL?
   private var initialURL: URL?
   private var proxy: TorWebViewProxy?
+  public var userAgentProvider: ((UserAgentType) -> String)?
+  public private(set) var currentUserAgentType: UserAgentType = .mobile
+  public var pagePrintFormatter: UIViewPrintFormatter? { browser?.viewPrintFormatter() }
   private var registered = false
   private var protectionsUnavailable = false
   public private(set) var previewImage: UIImage?
@@ -137,6 +140,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
         let configuration = try await session.configuration(for: tabSession)
         guard let self, !Task.isCancelled, creationGeneration == generation else { return }
         let browser = WKWebView(frame: .zero, configuration: configuration)
+        browser.customUserAgent = userAgentProvider?(currentUserAgentType)
         browser.tintColor = .systemBlue
         browser.navigationDelegate = self
         browser.uiDelegate = self
@@ -227,7 +231,6 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public var canGoForward: Bool { browser?.canGoForward == true }
   public var backForwardList: (any BackForwardListProxy)? { browser.map { TorBackForwardList($0.backForwardList) } }
   public var currentInitialURL: URL? { initialURL }
-  public var currentUserAgentType: UserAgentType { .mobile }
   // Tor tab URLs and sessions are never written to Brave's session database.
   public var sessionData: Data? { nil }
   public var isRestoring: Bool { false }
@@ -265,7 +268,11 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     if browser == nil { createWebView(); return }
     if let browser, browser.url != nil { browser.reload() } else { flushPendingRequest() }
   }
-  public func reloadWithUserAgentType(_ userAgentType: UserAgentType) { reload() }
+  public func reloadWithUserAgentType(_ userAgentType: UserAgentType) {
+    currentUserAgentType = userAgentType == .desktop ? .desktop : .mobile
+    browser?.customUserAgent = userAgentProvider?(currentUserAgentType)
+    reload()
+  }
   public func stopLoading() { pendingRequest = nil; browser?.stopLoading() }
   public func goBack() { browser?.goBack() }
   public func goForward() { browser?.goForward() }
@@ -388,7 +395,12 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     }
     return null;
     """
-  public func createFullPagePDF() async throws -> Data? { nil }
+  public func createFullPagePDF() async throws -> Data? {
+    guard let browser else { return nil }
+    let configuration = WKPDFConfiguration()
+    configuration.rect = CGRect(origin: .zero, size: browser.scrollView.contentSize)
+    return try await browser.pdf(configuration: configuration)
+  }
   public func downloadCurrentPage(to fileURL: URL) async throws { throw URLError(.unsupportedURL) }
   public func suggestedFilenameForCurrentPage(contentDisposition: String?) -> String { "document" }
   public var isFindNavigatorVisible: Bool { browser?.findInteraction?.isFindNavigatorVisible == true }
@@ -461,6 +473,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
 
   public func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
     TorWebPolicy.applyPagePreferences(preferences, javaScriptEnabled: true)
+    preferences.preferredContentMode = currentUserAgentType == .desktop ? .desktop : .mobile
     guard !action.shouldPerformDownload, let url = action.request.url else { return (.cancel, preferences) }
     if url.absoluteString == "about:blank" || (url.absoluteString == "about:srcdoc" && action.targetFrame?.isMainFrame == false) {
       return (.allow, preferences)

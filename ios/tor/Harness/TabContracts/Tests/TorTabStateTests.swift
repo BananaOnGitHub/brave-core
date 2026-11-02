@@ -10,6 +10,44 @@ private final class ContractProfile: Profile { let isOffTheRecord = true }
 
 @MainActor
 final class TorTabStateTests: XCTestCase {
+  func testTorPagePrintPDFAndDesktopModeUseTheExistingIsolatedWebView() async throws {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    tab.userAgentProvider = { $0 == .desktop ? "Tor desktop test" : "Tor mobile test" }
+    tab.view.frame = CGRect(x: 0, y: 0, width: 390, height: 800)
+    defer { tab.close() }
+    try await createViews([tab])
+    tab.view.layoutIfNeeded()
+    let store = try XCTUnwrap(tab.configuration?.websiteDataStore)
+    let scrollView = try XCTUnwrap(tab.webViewProxy?.scrollView)
+    _ = try await tab.callAsyncJavaScript(
+      "document.body.innerHTML = '<article><h1>Tor PDF</h1><p>Local document</p></article>';",
+      arguments: [:], in: nil, contentWorld: .defaultClient
+    )
+    XCTAssertNotNil(tab.pagePrintFormatter)
+    tab.viewScale = 1.25
+    XCTAssertEqual(tab.viewScale, 1.25)
+    let pdfData = try await tab.createFullPagePDF()
+    let pdf = try XCTUnwrap(pdfData)
+    XCTAssertEqual(String(data: pdf.prefix(5), encoding: .utf8), "%PDF-")
+
+    let loaded = expectation(description: "Desktop reload finished")
+    let observer = CreationObserver { loaded.fulfill() }
+    tab.addObserver(observer)
+    tab.reloadWithUserAgentType(.desktop)
+    await fulfillment(of: [loaded], timeout: 15)
+    tab.removeObserver(observer)
+    XCTAssertEqual(tab.currentUserAgentType, .desktop)
+    let userAgent = try await tab.callAsyncJavaScript(
+      "return navigator.userAgent;", arguments: [:], in: nil, contentWorld: .defaultClient
+    )
+    XCTAssertEqual(userAgent as? String, "Tor desktop test")
+    XCTAssertTrue(store === tab.configuration?.websiteDataStore)
+    XCTAssertTrue(scrollView === tab.webViewProxy?.scrollView)
+    XCTAssertFalse(store.isPersistent)
+    XCTAssertFalse(try XCTUnwrap(store.proxyConfigurations.first).allowFailover)
+  }
+
   func testStatusBarScrollingFollowsVisibilityAcrossWebViewReplacement() async throws {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let selected = TorTabState(id: UUID(), profile: ContractProfile(), session: session)

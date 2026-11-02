@@ -45,7 +45,9 @@ class ShareExtensionHelper {
     if let title = selectedTab?.title {
       // Makes sure the share sheet shows the same title as the tab
       // Also adds a title to several places, such as the Subject field in Mail
-      activityItems.append(URLActivityItemProvider(title: title, url: selectedURL))
+      activityItems.append(URLActivityItemProvider(
+        title: title, url: selectedURL, includeLocalMetadata: selectedTab?.isTor == true
+      ))
     } else {
       activityItems.append(selectedURL)
     }
