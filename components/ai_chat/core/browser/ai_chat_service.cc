@@ -1130,6 +1130,7 @@ mojom::ServiceStatePtr AIChatService::BuildState() {
   state->is_storage_pref_enabled = is_storage_enabled;
   state->is_storage_notice_dismissed = has_user_dismissed_storage_notice;
   state->can_show_premium_prompt = can_show_premium_prompt;
+  state->is_content_agent_user_selectable = content_agent_user_selectable_;
   return state;
 }
 
@@ -1493,14 +1494,6 @@ void AIChatService::BindObserver(
 void AIChatService::BindUntrustedService(
     mojo::PendingReceiver<mojom::UntrustedService> receiver) {
   untrusted_service_receivers_.Add(this, std::move(receiver));
-}
-
-bool AIChatService::GetIsContentAgentAllowed() const {
-  return is_content_agent_allowed_;
-}
-
-void AIChatService::SetIsContentAgentAllowed(bool is_allowed) {
-  is_content_agent_allowed_ = is_allowed;
 }
 
 bool AIChatService::HasUserOptedIn() {

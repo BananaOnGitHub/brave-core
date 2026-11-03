@@ -1007,6 +1007,55 @@ IN_PROC_BROWSER_TEST_F(TreeTabsBrowserTest,
   ExpectAddTabWithCrossStripOpenerSucceeds(app_browser, tab_strip_model());
 }
 
+// Duplicating an inactive parent tab while its last child tab is active used
+// to crash.
+// https://github.com/brave/brave-browser/issues/60165
+IN_PROC_BROWSER_TEST_F(TreeTabsBrowserTest,
+                       DuplicateInactiveParentTab_DoesNotCrash) {
+  SetTreeTabsEnabled(true);
+
+  // Add two child tabs of the tab at index 0.
+  tabs::TabInterface* const parent = tab_strip_model().GetTabAtIndex(0);
+  for (int i = 0; i < 2; ++i) {
+    auto child = std::make_unique<tabs::TabModel>(CreateWebContents(),
+                                                  &tab_strip_model());
+    child->set_opener(parent);
+    tab_strip_model().AddTab(std::move(child), -1,
+                             ui::PAGE_TRANSITION_AUTO_BOOKMARK, ADD_NONE);
+  }
+  ASSERT_EQ(3, tab_strip_model().count());
+  ASSERT_EQ(3u, parent->GetParentCollection()->ChildCount());
+
+  // Activate the last child and duplicate the parent.
+  tab_strip_model().ActivateTabAt(2);
+  ASSERT_TRUE(chrome::DuplicateTabAt(browser(), 0));
+  EXPECT_EQ(4, tab_strip_model().count());
+
+  // The tab being duplicated, not the active tab, is the opener.
+  EXPECT_EQ(parent,
+            static_cast<tabs::TabModel*>(tab_strip_model().GetTabAtIndex(1))
+                ->opener());
+}
+
+// Outside of tree tab mode, duplicating an inactive tab keeps the upstream
+// behavior: the active tab is the opener of the duplicated tab.
+IN_PROC_BROWSER_TEST_F(
+    TreeTabsBrowserTest,
+    DuplicateInactiveTab_InheritsActiveTabAsOpenerWithoutTreeTabs) {
+  SetTreeTabsEnabled(false);
+  AddTab();
+  AddTab();
+  tab_strip_model().ActivateTabAt(2);
+  tabs::TabInterface* const active_tab = tab_strip_model().GetTabAtIndex(2);
+
+  ASSERT_TRUE(chrome::DuplicateTabAt(browser(), 0));
+  ASSERT_EQ(4, tab_strip_model().count());
+
+  EXPECT_EQ(active_tab,
+            static_cast<tabs::TabModel*>(tab_strip_model().GetTabAtIndex(1))
+                ->opener());
+}
+
 // Mock observer for testing OnTreeTabChanged callback.
 class MockTabStripModelObserver : public TabStripModelObserver {
  public:
@@ -4006,6 +4055,35 @@ IN_PROC_BROWSER_TEST_F(TreeTabsBrowserTest,
 
   tab_strip()->EndDrag(EndDragReason::kComplete);
   EXPECT_FALSE(TabDragController::IsActive());
+}
+
+// Detaching pinned tabs should not cause crash.
+// https://github.com/brave/brave-browser/issues/60340
+IN_PROC_BROWSER_TEST_F(TreeTabsBrowserTest,
+                       DetachPinnedTab_PreservesPinnedState) {
+  SetTreeTabsEnabled(true);
+  AddTab();
+  tab_strip_model().SetTabPinned(0, true);
+  auto* pinned_tab = tab_strip_model().GetTabAtIndex(0);
+  auto* remaining_tab = tab_strip_model().GetTabAtIndex(1);
+  const auto remaining_node_id = GetTreeTabNodeIdForTab(remaining_tab);
+  tab_strip_model().ActivateTabAt(1);
+
+  auto detached = tab_strip_model().DetachTabsAndCollectionsForInsertion({0});
+  ASSERT_EQ(1u, detached.size());
+  auto* tab = std::get_if<std::unique_ptr<DetachedTab>>(&detached[0]);
+  ASSERT_TRUE(tab);
+  ASSERT_TRUE(*tab);
+  ASSERT_EQ(1, tab_strip_model().count());
+  EXPECT_EQ(remaining_tab, tab_strip_model().GetTabAtIndex(0));
+  EXPECT_EQ(remaining_node_id, GetTreeTabNodeIdForTab(remaining_tab));
+
+  tab_strip_model().InsertDetachedTabAt(0, std::move((*tab)->tab), ADD_PINNED);
+
+  EXPECT_EQ(2, tab_strip_model().count());
+  EXPECT_EQ(pinned_tab, tab_strip_model().GetTabAtIndex(0));
+  EXPECT_TRUE(tab_strip_model().IsTabPinned(0));
+  EXPECT_EQ(&pinned_collection(), pinned_tab->GetParentCollection());
 }
 
 // When detaching a parent tab together with its child into a new window, the

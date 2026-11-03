@@ -23,6 +23,7 @@
 #include "brave/components/brave_perf_predictor/common/pref_names.h"
 #include "brave/components/brave_search/common/brave_search_utils.h"
 #include "brave/components/brave_search_conversion/pref_names.h"
+#include "brave/components/brave_shields/core/common/pref_names.h"
 #include "brave/components/brave_talk/buildflags/buildflags.h"
 #include "brave/components/constants/pref_names.h"
 #include "brave/components/constants/url_constants.h"
@@ -146,14 +147,14 @@ void NewTabPageHandler::SetBackgroundsEnabled(
   std::move(callback).Run();
 }
 
-void NewTabPageHandler::GetSponsoredImagesEnabled(
-    GetSponsoredImagesEnabledCallback callback) {
+void NewTabPageHandler::GetNewTabTakeoversEnabled(
+    GetNewTabTakeoversEnabledCallback callback) {
   std::move(callback).Run(IsSponsoredAdsEnabled(*pref_service_));
 }
 
-void NewTabPageHandler::SetSponsoredImagesEnabled(
+void NewTabPageHandler::SetNewTabTakeoversEnabled(
     bool enabled,
-    SetSponsoredImagesEnabledCallback callback) {
+    SetNewTabTakeoversEnabledCallback callback) {
   SetSponsoredAdsEnabled(*pref_service_, enabled);
   std::move(callback).Run();
 }
@@ -173,9 +174,9 @@ void NewTabPageHandler::GetSelectedBackground(
   std::move(callback).Run(background_facade_->GetSelectedBackground());
 }
 
-void NewTabPageHandler::GetSponsoredImageBackground(
-    GetSponsoredImageBackgroundCallback callback) {
-  // Do not show sponsored backgrounds for restored tabs.
+void NewTabPageHandler::GetNewTabTakeoverBackground(
+    GetNewTabTakeoverBackgroundCallback callback) {
+  // Do not show New Tab Takeovers for restored tabs.
   // TODO(https://github.com/brave/brave-browser/issues/51359): Use tab
   // visibility instead of `was_restored_` flag.
   if (was_restored_) {
@@ -185,20 +186,20 @@ void NewTabPageHandler::GetSponsoredImageBackground(
     return std::move(callback).Run(nullptr);
   }
 
-  background_facade_->GetSponsoredImageBackground(
-      base::BindOnce(&NewTabPageHandler::OnGetSponsoredImageBackground,
+  background_facade_->GetNewTabTakeoverBackground(
+      base::BindOnce(&NewTabPageHandler::OnGetNewTabTakeoverBackground,
                      weak_factory_.GetWeakPtr(), std::move(callback)));
 }
 
-void NewTabPageHandler::OnGetSponsoredImageBackground(
-    GetSponsoredImageBackgroundCallback callback,
-    mojom::SponsoredImageBackgroundPtr sponsored_background) {
-  if (sponsored_background) {
+void NewTabPageHandler::OnGetNewTabTakeoverBackground(
+    GetNewTabTakeoverBackgroundCallback callback,
+    mojom::NewTabTakeoverBackgroundPtr new_tab_takeover_background) {
+  if (new_tab_takeover_background) {
     ntp_background_images::NewTabTakeoverInfoBarDelegate::
         MaybeDisplayAndIncrementCounter(base::to_address(web_contents_),
                                         &pref_service_.get());
   }
-  std::move(callback).Run(std::move(sponsored_background));
+  std::move(callback).Run(std::move(new_tab_takeover_background));
 }
 
 void NewTabPageHandler::SelectBackground(
@@ -222,13 +223,13 @@ void NewTabPageHandler::RemoveCustomBackground(
                                              std::move(callback));
 }
 
-void NewTabPageHandler::NotifySponsoredImageLogoClicked(
+void NewTabPageHandler::NotifyNewTabTakeoverLogoClicked(
     const std::string& wallpaper_id,
     const std::string& creative_instance_id,
     const std::string& destination_url,
     brave_ads::mojom::NewTabPageAdMetricType mojom_ad_metric_type,
-    NotifySponsoredImageLogoClickedCallback callback) {
-  background_facade_->NotifySponsoredImageLogoClicked(
+    NotifyNewTabTakeoverLogoClickedCallback callback) {
+  background_facade_->NotifyNewTabTakeoverLogoClicked(
       wallpaper_id, creative_instance_id, destination_url,
       mojom_ad_metric_type);
   std::move(callback).Run();
@@ -588,8 +589,9 @@ void NewTabPageHandler::SetShowShieldsStats(
 
 void NewTabPageHandler::GetShieldsStats(GetShieldsStatsCallback callback) {
   auto stats = mojom::ShieldsStats::New();
-  stats->ads_blocked = pref_service_->GetUint64(kAdsBlocked) +
-                       pref_service_->GetUint64(kTrackersBlocked);
+  stats->ads_blocked =
+      pref_service_->GetUint64(brave_shields::prefs::kAdsBlocked) +
+      pref_service_->GetUint64(brave_shields::prefs::kTrackersBlocked);
   stats->bandwidth_saved_bytes = pref_service_->GetUint64(
       brave_perf_predictor::prefs::kBandwidthSavedBytes);
   std::move(callback).Run(std::move(stats));

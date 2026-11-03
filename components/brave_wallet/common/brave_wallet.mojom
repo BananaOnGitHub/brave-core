@@ -995,6 +995,14 @@ enum AccountKind {
   kHardware,
 };
 
+enum RecoverWalletResult {
+  kSuccess = 0,
+  kInvalidMnemonic = 1,
+  kMnemonicMismatch = 2,
+  kImportedAccountsPresent = 3,
+  kInternalError = 4,
+};
+
 struct AccountId {
   CoinType coin;
   // TODO(apaymyshev): that should be different keyrings for different kinds.
@@ -1050,6 +1058,7 @@ struct WalletInfo {
   bool is_cardano_dapp_support_enabled;
   bool is_polkadot_enabled;
   bool is_polkadot_dapp_support_enabled;
+  bool is_card_stack_ui_enabled;
 };
 
 // Browser-side handler for common panel / page things
@@ -1200,6 +1209,17 @@ interface KeyringService {
   RestoreWallet(
       string mnemonic, string password, bool is_legacy_eth_seed_format)
       => (bool is_valid_mnemonic);
+
+  // Recovers access to an existing locked wallet using its mnemonic and a new
+  // password. Imported accounts cannot be recovered from the mnemonic, so if
+  // any exist this returns kImportedAccountsPresent unless
+  // `allow_imported_account_removal` is true, in which case they are removed.
+  // If `new_password` is the current password, the wallet is just unlocked.
+  RecoverWallet(string mnemonic,
+                string new_password,
+                bool is_legacy_eth_seed_format,
+                bool allow_imported_account_removal)
+      => (RecoverWalletResult result);
 
   // Locks the keyring.
   Lock();
@@ -1504,6 +1524,18 @@ const string kPolkadotMainnet = "polkadot_mainnet";
 
 const string kPolkadotMainnetAssetHub = "polkadot_asset_hub";
 
+const string kPolkadotAcala = "polkadot_acala";
+
+const string kPolkadotBifrost = "polkadot_bifrost";
+
+const string kPolkadotHydration = "polkadot_hydration";
+
+const string kPolkadotNeuroWeb = "polkadot_neuroweb";
+
+const string kPolkadotJamton = "polkadot_jamton";
+
+const string kPolkadotKusamaHub = "kusama_asset_hub";
+
 const string kPolkadotTestnet = "polkadot_testnet";
 
 const string kPolkadotTestnetAssetHub = "westend_asset_hub";
@@ -1640,31 +1672,38 @@ struct NetworkInfo {
   array<KeyringId> supported_keyrings;
 };
 
+// Origin details for dApp-related requests. Always derived from an origin
+// satisfying `IsValidDappOrigin`, e.g. non-opaque and http/https.
+struct DappOriginInfo {
+  string origin_spec;
+  string e_tld_plus_one;
+};
+
 struct OriginInfo {
   string origin_spec;
   string e_tld_plus_one;
 };
 
 struct AddChainRequest {
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   NetworkInfo network_info;
 };
 
 struct SwitchChainRequest {
   string request_id;
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   string chain_id;
 };
 
 struct GetEncryptionPublicKeyRequest {
   string request_id;
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   AccountId account_id;
 };
 
 struct DecryptRequest {
   string request_id;
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   AccountId account_id;
   string unsafe_message;
 };
@@ -2227,6 +2266,16 @@ enum PolkadotValidationStatus {
   kFailedToFetchMetadata = 3,
 };
 
+struct OptionalUint16 {
+  uint16 val;
+};
+
+struct PolkadotChainProperties {
+  OptionalUint16? ss58_format;
+  array<uint32> token_decimals;
+  array<string> token_symbol;
+};
+
 interface PolkadotWalletService {
   GetCompatibleNetworks(AccountId account) => (array<NetworkInfo>? networks);
 
@@ -2438,7 +2487,7 @@ struct TransactionInfo {
   mojo_base.mojom.JSTime created_time;
   mojo_base.mojom.JSTime submitted_time;
   mojo_base.mojom.JSTime confirmed_time;
-  OriginInfo? origin_info;
+  DappOriginInfo? dapp_origin_info;
   string chain_id;
   // Currently only available for ETH and FIL
   // Represent effective recipient of the transaction
@@ -2860,7 +2909,7 @@ union SignDataUnion {
 };
 
 struct SignMessageRequest {
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   int32 id;
   AccountId account_id;
   SignDataUnion sign_data;
@@ -2876,7 +2925,7 @@ enum SignMessageErrorType {
 
 struct SignMessageError {
   string id;
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   SignMessageErrorType type;
   // Localized error message for UI display
   string localized_err_msg;
@@ -2885,7 +2934,7 @@ struct SignMessageError {
 };
 
 struct SignSolTransactionsRequest {
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   int32 id;
   AccountId from_account_id;
   array<SolanaTxData> tx_datas;
@@ -2897,7 +2946,7 @@ struct SignCardanoTransactionRequest {
   int32 id;
 
   AccountId account_id;
-  OriginInfo origin_info;
+  DappOriginInfo dapp_origin_info;
   ChainId chain_id;
 
   string raw_tx_data;
@@ -2911,7 +2960,7 @@ enum ExternalWalletType {
 };
 
 struct AddSuggestTokenRequest {
-  OriginInfo origin;
+  DappOriginInfo dapp_origin_info;
   BlockchainToken token;
 };
 

@@ -493,7 +493,7 @@ class TopToolbarView: UIView, ToolbarProtocol {
       ? nil : toolbarState.onionLocation
     backButton.isEnabled = toolbarState.canGoBack
     forwardButton.isEnabled = toolbarState.canGoForward
-    shareButton.isEnabled = toolbarState.isWebPage
+    shareButton.isEnabled = toolbarState.isPageSharable
     tabsButton.updateTabCount(toolbarState.tabCount)
     let displayURL = toolbarState.displayedURL
     let needsShieldsStatusRefresh = displayURL == nil || locationView.url != displayURL

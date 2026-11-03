@@ -285,7 +285,6 @@ extension BrowserViewController {
       DarkReaderScriptHandler(),
       BraveGetUA(),
       BraveSearchScriptHandler(profile: profile, rewards: rewards),
-      ResourceDownloadScriptHandler(),
       AdsMediaReportingScriptHandler(),
       DeAmpScriptHandler(),
       SiteStateListenerScriptHandler(),

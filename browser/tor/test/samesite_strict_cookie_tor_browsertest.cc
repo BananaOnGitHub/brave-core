@@ -14,6 +14,7 @@
 #include "chrome/browser/ui/views/page_action/test_support/page_action_test_accessor.h"
 #include "chrome/test/base/in_process_browser_test.h"
 #include "chrome/test/base/ui_test_utils.h"
+#include "components/tabs/public/tab_interface.h"
 #include "content/public/test/browser_test.h"
 #include "content/public/test/browser_test_utils.h"
 #include "content/public/test/test_navigation_observer.h"
@@ -23,8 +24,6 @@
 #include "net/test/embedded_test_server/http_request.h"
 #include "net/test/embedded_test_server/http_response.h"
 #include "third_party/abseil-cpp/absl/strings/str_format.h"
-#include "ui/events/base_event_utils.h"
-#include "ui/views/test/button_test_api.h"
 #include "url/gurl.h"
 
 namespace {
@@ -65,22 +64,9 @@ std::unique_ptr<net::test_server::HttpResponse> HandleSetStrictCookie(
   return response;
 }
 
-IconLabelBubbleView* GetOnionLocationView(BrowserWindowInterface* browser) {
-  return page_actions::PageActionTestAccessor(browser, kActionShowOnionLocation)
-      .view();
-}
-
 void ClickOnionLocationIcon(BrowserWindowInterface* browser) {
-  auto* onion_location_view = GetOnionLocationView(browser);
-  ASSERT_TRUE(onion_location_view);
-  ui::MouseEvent pressed(ui::EventType::kMousePressed, gfx::Point(),
-                         gfx::Point(), ui::EventTimeForNow(),
-                         ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
-  ui::MouseEvent released(ui::EventType::kMouseReleased, gfx::Point(),
-                          gfx::Point(), ui::EventTimeForNow(),
-                          ui::EF_LEFT_MOUSE_BUTTON, ui::EF_LEFT_MOUSE_BUTTON);
-  views::test::ButtonTestApi(onion_location_view).NotifyClick(pressed);
-  views::test::ButtonTestApi(onion_location_view).NotifyClick(released);
+  page_actions::PageActionTestAccessor(browser, kActionShowOnionLocation)
+      .Click();
 }
 
 std::vector<std::string> GetEchoedHeaders(content::WebContents* web_contents) {
@@ -226,8 +212,8 @@ IN_PROC_BROWSER_TEST_F(
   EXPECT_EQ(nav_observer.last_net_error_code(), net::ERR_BLOCKED_BY_CLIENT);
   EXPECT_TRUE(web_contents->GetPrimaryMainFrame()->IsErrorDocument());
 
-  tor::OnionLocationTabHelper* helper =
-      tor::OnionLocationTabHelper::FromWebContents(web_contents);
+  tor::OnionLocationTabHelper* helper = tor::OnionLocationTabHelper::From(
+      tabs::TabInterface::MaybeGetFromContents(web_contents));
   ASSERT_TRUE(helper);
   EXPECT_TRUE(helper->should_show_icon());
   EXPECT_EQ(helper->onion_location(), onion_echo_url);

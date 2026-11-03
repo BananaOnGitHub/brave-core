@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "chrome/browser/android/tab_features.h"
 
 class Profile;
@@ -48,6 +49,26 @@ class BraveTabFeatures : public TabFeatures_Chromium {
 
   // Records searches. Null when SERP metrics are disabled or off the record.
   std::unique_ptr<ContentsObservingTabFeature> serp_metrics_tab_helper_;
+  // Notifies the ads service of tab events. Null without Brave Ads.
+  std::unique_ptr<ContentsObservingTabFeature> ads_tab_helper_;
+  // Handles search result ads. Null without Brave Ads or off the record.
+  std::unique_ptr<ContentsObservingTabFeature>
+      creative_search_result_ad_tab_helper_;
+  // Offers and runs Web Discovery. Null without it or outside regular profiles.
+  std::unique_ptr<ContentsObservingTabFeature> web_discovery_tab_helper_;
+  // Detects the Rewards creator of the page. Null without Brave Rewards.
+  std::unique_ptr<ContentsObservingTabFeature> rewards_tab_helper_;
+  // Offers to enable Widevine when the page asks for it. Null without it.
+  std::unique_ptr<ContentsObservingTabFeature> drm_tab_helper_;
+  // Finds the page's Brave News feeds. Null without Brave News or off the
+  // record.
+  std::unique_ptr<ContentsObservingTabFeature> brave_news_tab_helper_;
+#if BUILDFLAG(ENABLE_BRAVE_WALLET)
+  // Serves the wallet providers of the tab's frames.
+  std::unique_ptr<ContentsObservingTabFeature> brave_wallet_tab_helper_;
+#endif
+  // Enters fullscreen and Picture-in-Picture for YouTube videos.
+  std::unique_ptr<ContentsObservingTabFeature> youtube_script_injector_;
 
   std::unique_ptr<ai_chat::TabDataWebContentsObserver> tab_data_observer_;
   std::unique_ptr<ai_chat::WebMcpInjector> web_mcp_injector_;

@@ -20,16 +20,9 @@
 #include "brave/browser/ephemeral_storage/ephemeral_storage_tab_helper.h"
 #include "brave/components/ai_chat/core/common/buildflags/buildflags.h"
 #include "brave/components/brave_ads/buildflags/buildflags.h"
-#include "brave/components/brave_news/common/buildflags/buildflags.h"
 #include "brave/components/brave_perf_predictor/browser/perf_predictor_tab_helper.h"
-#include "brave/components/brave_rewards/core/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/common/buildflags/buildflags.h"
 #include "brave/components/brave_wayback_machine/buildflags/buildflags.h"
 #include "brave/components/playlist/core/common/buildflags/buildflags.h"
-#include "brave/components/speedreader/common/buildflags/buildflags.h"
-#include "brave/components/tor/buildflags/buildflags.h"
-#include "brave/components/web_discovery/buildflags/buildflags.h"
-#include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
@@ -41,7 +34,6 @@
 #include "extensions/buildflags/buildflags.h"
 #include "net/base/features.h"
 #include "printing/buildflags/buildflags.h"
-#include "third_party/widevine/cdm/buildflags.h"
 
 #if BUILDFLAG(ENABLE_AI_CHAT)
 #include "brave/browser/ai_chat/ai_chat_service_factory.h"
@@ -49,28 +41,10 @@
 #include "brave/components/ai_chat/content/browser/ai_chat_tab_helper.h"
 #endif
 
-#if BUILDFLAG(ENABLE_BRAVE_ADS)
-#include "brave/browser/brave_ads/creatives/search_result_ad/creative_search_result_ad_tab_helper.h"
-#include "brave/browser/brave_ads/tabs/ads_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_REWARDS)
-#include "brave/browser/brave_rewards/rewards_tab_helper.h"
-#endif
-
 #if BUILDFLAG(ENABLE_PLAYLIST)
 #include "brave/browser/playlist/playlist_service_factory.h"
 #include "brave/components/playlist/content/browser/playlist_tab_helper.h"
 #include "brave/components/playlist/core/browser/utils.h"
-#endif
-
-#if BUILDFLAG(IS_ANDROID)
-#include "brave/browser/android/youtube_script_injector/youtube_script_injector_tab_helper.h"
-#endif
-
-#if !BUILDFLAG(IS_ANDROID)
-#include "brave/browser/brave_shields/brave_shields_tab_helper.h"
-#include "brave/browser/ui/geolocation/brave_geolocation_permission_tab_helper.h"
 #endif
 
 #if BUILDFLAG(ENABLE_PRINT_PREVIEW)
@@ -81,33 +55,8 @@
 #endif  // BUILDFLAG(ENABLE_AI_CHAT)
 #endif  // BUILDFLAG(ENABLE_PRINT_PREVIEW)
 
-#if BUILDFLAG(ENABLE_WIDEVINE)
-#include "brave/browser/brave_drm_tab_helper.h"
-#endif
-
 #if BUILDFLAG(ENABLE_BRAVE_WAYBACK_MACHINE)
 #include "brave/components/brave_wayback_machine/brave_wayback_machine_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_SPEEDREADER)
-#include "brave/browser/ui/speedreader/speedreader_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_TOR)
-#include "brave/components/tor/onion_location_tab_helper.h"
-#include "brave/components/tor/tor_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_WEB_DISCOVERY)
-#include "brave/browser/web_discovery/web_discovery_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_WALLET)
-#include "brave/browser/brave_wallet/brave_wallet_tab_helper.h"
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_NEWS)
-#include "brave/browser/brave_news/brave_news_tab_helper.h"
 #endif
 
 namespace brave {
@@ -116,18 +65,6 @@ void AttachTabHelpers(content::WebContents* web_contents) {
   // If your TabHelper is related to privacy consider whether it belongs in this
   // method, so it can also be attached to background WebContents.
   AttachPrivacySensitiveTabHelpers(web_contents);
-
-#if BUILDFLAG(IS_ANDROID)
-  YouTubeScriptInjectorTabHelper::CreateForWebContents(web_contents);
-#else
-  // Add tab helpers here unless they are intended for android too
-  brave_shields::BraveShieldsTabHelper::CreateForWebContents(web_contents);
-  BraveGeolocationPermissionTabHelper::CreateForWebContents(web_contents);
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_REWARDS)
-  brave_rewards::RewardsTabHelper::CreateForWebContents(web_contents);
-#endif
 
 #if BUILDFLAG(ENABLE_AI_CHAT)
   content::BrowserContext* context = web_contents->GetBrowserContext();
@@ -149,43 +86,12 @@ void AttachTabHelpers(content::WebContents* web_contents) {
   }
 #endif
 
-#if BUILDFLAG(ENABLE_WIDEVINE)
-  BraveDrmTabHelper::CreateForWebContents(web_contents);
-#endif
-
 #if BUILDFLAG(ENABLE_BRAVE_WAYBACK_MACHINE)
   BraveWaybackMachineTabHelper::CreateIfNeeded(web_contents);
 #endif
 
   brave_perf_predictor::PerfPredictorTabHelper::CreateForWebContents(
       web_contents);
-
-#if BUILDFLAG(ENABLE_BRAVE_ADS)
-  brave_ads::AdsTabHelper::CreateForWebContents(web_contents);
-  brave_ads::CreativeSearchResultAdTabHelper::MaybeCreateForWebContents(
-      web_contents);
-#endif  // BUILDFLAG(ENABLE_BRAVE_ADS)
-
-#if BUILDFLAG(ENABLE_WEB_DISCOVERY)
-  web_discovery::WebDiscoveryTabHelper::MaybeCreateForWebContents(web_contents);
-#endif
-
-#if BUILDFLAG(ENABLE_SPEEDREADER)
-  speedreader::SpeedreaderTabHelper::MaybeCreateForWebContents(web_contents);
-#endif
-
-#if BUILDFLAG(ENABLE_TOR)
-  tor::TorTabHelper::MaybeCreateForWebContents(web_contents);
-  tor::OnionLocationTabHelper::CreateForWebContents(web_contents);
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_NEWS)
-  BraveNewsTabHelper::MaybeCreateForWebContents(web_contents);
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_WALLET)
-  brave_wallet::BraveWalletTabHelper::CreateForWebContents(web_contents);
-#endif
 
 #if BUILDFLAG(ENABLE_PLAYLIST)
   if (playlist::IsPlaylistAllowed(

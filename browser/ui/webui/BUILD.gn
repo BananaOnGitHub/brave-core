@@ -8,6 +8,14 @@ import("//brave/build/config.gni")
 import("//brave/components/ai_chat/core/common/buildflags/buildflags.gni")
 import("//brave/ui/webui/custom_profile_image/buildflags/buildflags.gni")
 
+source_set("favicon_source_chromium_impl") {
+  sources = [ "favicon_source.cc" ]
+  deps = [
+    "//base",
+    "//brave/components/constants",
+  ]
+}
+
 source_set("browser_tests") {
   testonly = true
 
@@ -19,7 +27,6 @@ source_set("browser_tests") {
     "//base",
     "//chrome/browser/profiles",
     "//chrome/browser/search_engines",
-    "//chrome/browser/ui",
     "//chrome/browser/ui/navigator",
     "//chrome/test",
     "//chrome/test:test_support",
@@ -60,11 +67,15 @@ source_set("browser_tests") {
 source_set("unit_tests") {
   testonly = true
 
-  sources = [ "brave_sanitized_image_source_unittest.cc" ]
+  sources = [
+    "brave_sanitized_image_source_unittest.cc",
+    "untrusted_sanitized_image_source_unittest.cc",
+  ]
   deps = [
     "//base",
     "//base/test:test_support",
-    "//chrome/browser/ui",
+    "//brave/browser/ui",
+    "//brave/components/brave_wallet/common/buildflags",
     "//chrome/test:test_support",
     "//content/test:test_support",
     "//services/data_decoder/public/cpp:test_support",

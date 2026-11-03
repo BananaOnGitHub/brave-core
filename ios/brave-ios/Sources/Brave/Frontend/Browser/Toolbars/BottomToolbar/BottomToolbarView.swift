@@ -93,6 +93,7 @@ class BottomToolbarView: UIView, ToolbarProtocol {
   private var privateModeCancellable: AnyCancellable?
   private func updateColors() {
     backgroundColor = privateBrowsingManager.browserColors.chromeBackground
+    line.backgroundColor = privateBrowsingManager.browserColors.dividerStrong
   }
 
   @available(iOS 26.0, *)
@@ -103,7 +104,7 @@ class BottomToolbarView: UIView, ToolbarProtocol {
 
   func updateObservedProperties() {
     backButton.isEnabled = toolbarState.canGoBack
-    shareButton.isEnabled = toolbarState.isWebPage
+    shareButton.isEnabled = toolbarState.isPageSharable
     tabsButton.updateTabCount(toolbarState.tabCount)
 
     // The forward button replaces the share button when available

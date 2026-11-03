@@ -224,6 +224,13 @@ extension BrowserViewController: TopToolbarDelegate, SearchContainerViewControll
   func topToolbarDisplayTextForURL(_ topToolbar: URL?) -> (String?, Bool) {
     // use the initial value for the URL so we can do proper pattern matching with search URLs
     let searchURL = self.tabManager.selectedTab?.currentInitialURL
+    // Tor keeps its independent engine preference in both search architectures.
+    if FeatureList.kUseChromiumSearchEngines.enabled && !privateBrowsingManager.isTorBrowsing {
+      if let searchURL, let query = templateURLSearchTerms(from: searchURL) {
+        return (query, true)
+      }
+      return (topToolbar?.absoluteString, false)
+    }
     if let query = profile.searchEngines.queryForSearchURL(
       searchURL as URL?,
       forType: .init(

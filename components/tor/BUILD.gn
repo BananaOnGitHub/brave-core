@@ -26,6 +26,7 @@ static_library("tor") {
   public_deps = [
     ":common",
     "//brave/components/tor/buildflags",
+    "//ui/base/unowned_user_data",
   ]
 
   sources = [ "tor_launcher_observer.h" ]
@@ -71,6 +72,7 @@ static_library("tor") {
     "//components/crx_file",
     "//components/pref_registry",
     "//components/prefs",
+    "//components/tabs:public",
     "//components/user_prefs",
     "//content/public/browser",
     "//crypto",
@@ -112,6 +114,7 @@ source_set("tor_unit_tests") {
   sources = [
     "tor_control_unittest.cc",
     "tor_file_watcher_unittest.cc",
+    "tor_profile_service_unittest.cc",
     "tor_utils_unittest.cc",
   ]
 
@@ -119,6 +122,7 @@ source_set("tor_unit_tests") {
     "//base/test:test_support",
     "//brave/components/tor",
     "//brave/components/tor:common",
+    "//components/prefs:test_support",
     "//content/public/browser",
     "//content/test:test_support",
     "//testing/gtest",

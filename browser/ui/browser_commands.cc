@@ -78,6 +78,7 @@
 #include "components/split_tabs/split_tab_visual_data.h"
 #include "components/tab_groups/tab_group_visual_data.h"
 #include "components/tabs/public/tab_group.h"
+#include "components/tabs/public/tab_interface.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/page_navigator.h"
 #include "content/public/browser/web_contents.h"
@@ -139,7 +140,6 @@
 #include "brave/components/containers/content/browser/storage_partition_utils.h"
 #include "brave/components/containers/core/browser/containers_service.h"
 #include "brave/components/containers/core/mojom/containers.mojom.h"
-#include "components/tabs/public/tab_interface.h"
 #if defined(TOOLKIT_VIEWS)
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #endif
@@ -278,8 +278,8 @@ void MaybeDistillAndShowSpeedreaderBubble(BrowserWindowInterface* browser) {
   if (!contents) {
     return;
   }
-  if (auto* tab_helper =
-          speedreader::SpeedreaderTabHelper::FromWebContents(contents)) {
+  if (auto* tab_helper = speedreader::SpeedreaderTabHelper::From(
+          tabs::TabInterface::MaybeGetFromContents(contents))) {
     tab_helper->ProcessIconClick();
   }
 #endif  // BUILDFLAG(ENABLE_SPEEDREADER)
@@ -533,8 +533,8 @@ void ToggleShieldsEnabled(BrowserWindowInterface* browser) {
   if (!contents) {
     return;
   }
-  auto* shields =
-      brave_shields::BraveShieldsTabHelper::FromWebContents(contents);
+  auto* shields = brave_shields::BraveShieldsTabHelper::From(
+      tabs::TabInterface::MaybeGetFromContents(contents));
   if (!shields) {
     return;
   }
@@ -551,8 +551,8 @@ void ToggleJavascriptEnabled(BrowserWindowInterface* browser) {
   if (!contents) {
     return;
   }
-  auto* shields =
-      brave_shields::BraveShieldsTabHelper::FromWebContents(contents);
+  auto* shields = brave_shields::BraveShieldsTabHelper::From(
+      tabs::TabInterface::MaybeGetFromContents(contents));
   if (!shields) {
     return;
   }
@@ -1226,6 +1226,44 @@ void ForcePasteInWebContents(content::WebContents* web_contents) {
 }
 
 #if BUILDFLAG(ENABLE_CONTAINERS)
+bool MaybeAddTabAtInheritingActiveContainer(
+    BrowserWindowInterface* browser,
+    const GURL& url,
+    int index,
+    bool foreground,
+    std::optional<tab_groups::TabGroupId> group,
+    bool pinned) {
+  auto* tab_strip_model = browser->tab_strip_model();
+  auto* active_web_contents = tab_strip_model->GetActiveWebContents();
+  if (!active_web_contents) {
+    // Fall back to default behavior if no active tab
+    return false;
+  }
+
+  // Get the container ID from the active tab
+  const std::string container_id =
+      containers::GetContainerIdForWebContents(active_web_contents);
+  if (container_id.empty()) {
+    // Fall back to default behavior if no container.
+    return false;
+  }
+
+  // Use Navigate directly to set storage_partition_config
+  NavigateParams params(browser, url, ui::PAGE_TRANSITION_TYPED);
+  params.disposition = foreground ? WindowOpenDisposition::NEW_FOREGROUND_TAB
+                                  : WindowOpenDisposition::NEW_BACKGROUND_TAB;
+  params.tabstrip_index = index;
+  params.group = group;
+  if (pinned) {
+    params.tabstrip_add_types |= AddTabTypes::ADD_PINNED;
+  }
+  params.storage_partition_config = content::StoragePartitionConfig::Create(
+      browser->GetProfile(), containers::kContainersStoragePartitionDomain,
+      container_id, browser->GetProfile()->IsOffTheRecord());
+  Navigate(&params);
+  return true;
+}
+
 void OpenTabUrlsInContainer(BrowserWindowInterface* bwi,
                             const std::vector<tabs::TabHandle>& tabs,
                             const containers::mojom::ContainerPtr& container) {

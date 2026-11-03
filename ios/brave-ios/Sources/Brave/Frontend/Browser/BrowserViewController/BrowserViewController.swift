@@ -243,11 +243,6 @@ public class BrowserViewController: UIViewController {
     return toolbar ?? topToolbar
   }
 
-  // Keep track of allowed `URLRequest`s from `webView(_:decidePolicyFor:decisionHandler:)` so
-  // that we can obtain the originating `URLRequest` when a `URLResponse` is received. This will
-  // allow us to re-trigger the `URLRequest` if the user requests a file to be downloaded.
-  var pendingRequests = [String: URLRequest]()
-
   let downloadQueue = DownloadQueue()
 
   private var cancellables: Set<AnyCancellable> = []
@@ -2337,6 +2332,12 @@ public class BrowserViewController: UIViewController {
     return super.preferredStatusBarStyle
   }
 
+  /// Align with Safari. Swipe in middle of horizontal edges will use stage
+  /// manager, otherwise edge swipes will use Brave back/forward actions
+  public override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
+    [.left, .right]
+  }
+
   func updateStatusBarOverlayColor() {
     if #available(iOS 26.0, *) {
       statusBarOverlay.backgroundColor = privateBrowsingManager.browserColors.chromeBackground
@@ -2362,12 +2363,7 @@ public class BrowserViewController: UIViewController {
       if !url.isNewTabURL, !InternalURL.isValid(url: url) || url.isInternalURL(for: .readermode),
         !url.isFileURL
       {
-        // Only add history of a url which is not a localhost url
         if !url.isInternalURL(for: .readermode) {
-          if !tab.isPrivate {
-            profileController.historyAPI.add(url: url, title: tab.title ?? "", dateAdded: Date())
-          }
-
           // Saving Tab.
           tabManager.saveTab(tab)
         }
@@ -3190,6 +3186,20 @@ extension BrowserViewController {
   }
 
   public func submitSearchText(_ text: String, isBraveSearchPromotion: Bool = false) {
+    // Tor keeps its independent engine preference in both search architectures.
+    if FeatureList.kUseChromiumSearchEngines.enabled && !privateBrowsingManager.isTorBrowsing {
+      if let searchURL = templateURLSearchURL(
+        for: text,
+        isBraveSearchPromotion: isBraveSearchPromotion,
+        isWidgetSearchAttribution: tabManager.selectedTab?.widgetSearchTabHelper != nil
+      ) {
+        finishEditingAndSubmit(searchURL)
+      } else {
+        assertionFailure("Couldn't generate search URL: \(text)")
+      }
+      return
+    }
+
     var engine = profile.searchEngines.defaultEngine(
       forType: .init(
         isPrivate: privateBrowsingManager.isPrivateBrowsing,

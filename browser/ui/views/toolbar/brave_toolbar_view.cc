@@ -53,6 +53,7 @@
 #include "chrome/browser/ui/views/toolbar/toolbar_button.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_divider.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
+#include "chrome/common/pref_names.h"
 #include "chrome/grit/generated_resources.h"
 #include "components/bookmarks/common/bookmark_pref_names.h"
 #include "components/prefs/pref_service.h"
@@ -353,7 +354,7 @@ void BraveToolbarView::Init() {
                        back_button_index.value_or(0));
     vertical_tab_toggle_->SetVectorIcon(
         vertical_tabs_collapsed_.GetValue()
-            ? kVerticalTabStripToggleCollapsedIcon
+            ? kLeoWindowTabsVerticalCollapsedIcon
             : kLeoWindowTabsVerticalExpandedIcon);
 
     auto target_index = GetIndexOf(vertical_tab_toggle_);
@@ -500,23 +501,6 @@ void BraveToolbarView::OnCompactModePrefChanged() {
   InvalidateLayout();
 }
 
-void BraveToolbarView::OnThemeChanged() {
-  ToolbarView::OnThemeChanged();
-
-  if (!brave_initialized_) {
-    return;
-  }
-
-  if (display_mode_ == DisplayMode::kNormal && bookmark_) {
-    bookmark_->UpdateImageAndText();
-  }
-#if BUILDFLAG(ENABLE_BRAVE_WALLET)
-  if (display_mode_ == DisplayMode::kNormal && wallet_) {
-    wallet_->UpdateImageAndText();
-  }
-#endif
-}
-
 void BraveToolbarView::OnProfileAdded(const base::FilePath& profile_path) {
   Update(nullptr);
 }
@@ -524,18 +508,6 @@ void BraveToolbarView::OnProfileAdded(const base::FilePath& profile_path) {
 void BraveToolbarView::OnProfileWasRemoved(const base::FilePath& profile_path,
                                            const std::u16string& profile_name) {
   Update(nullptr);
-}
-
-void BraveToolbarView::LoadImages() {
-  ToolbarView::LoadImages();
-  if (bookmark_) {
-    bookmark_->UpdateImageAndText();
-  }
-#if BUILDFLAG(ENABLE_BRAVE_WALLET)
-  if (wallet_) {
-    wallet_->UpdateImageAndText();
-  }
-#endif
 }
 
 void BraveToolbarView::Update(content::WebContents* tab) {
@@ -796,7 +768,7 @@ void BraveToolbarView::UpdateVerticalTabToggleState() {
   const bool is_expanded = !vertical_tabs_collapsed_.GetValue();
   vertical_tab_toggle_->SetVectorIcon(
       is_expanded ? kLeoWindowTabsVerticalExpandedIcon
-                  : kVerticalTabStripToggleCollapsedIcon);
+                  : kLeoWindowTabsVerticalCollapsedIcon);
   vertical_tab_toggle_->SetTooltipText(l10n_util::GetStringUTF16(
       is_expanded ? IDS_VERTICAL_TABS_MINIMIZE : IDS_VERTICAL_TABS_EXPAND));
   vertical_tab_toggle_->SetAccessibleName(l10n_util::GetStringUTF16(

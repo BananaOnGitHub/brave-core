@@ -25,6 +25,10 @@ class SidePanelUI;
 class TabStripModel;
 enum class SidePanelEntryId;
 
+namespace content {
+class WebContents;
+}  // namespace content
+
 namespace sidebar {
 
 class Sidebar;
@@ -69,6 +73,11 @@ class SidebarController : public SidebarService::Observer,
   void HandleSidePanelOpened(SidePanelEntryId id);
   void HandleSidePanelClosed();
 
+  // Called by BraveSidePanelCoordinator before showing an entry. True when a
+  // surface the side panel is about to replace is already on screen, so the
+  // open should not animate.
+  bool ShouldSuppressSidePanelOpenAnimation() const;
+
   // Toggles a session-only "pin" that forces the sidebar control view
   // visible regardless of the current show option. Pinned state is cleared
   // when the show option changes (via OnShowSidebarOptionChanged) and when
@@ -92,8 +101,13 @@ class SidebarController : public SidebarService::Observer,
 
   void TearDownPreBrowserWindowDestruction();
 
-  // No-op when no web panel is open.
-  void CloseWebPanel();
+  // Synchronous and shutdown-only. No-op when no web panel is open. See
+  // SidebarWebPanelController::CloseWebPanelForShutdown().
+  void CloseWebPanelForShutdown();
+
+  // True when `contents` is this window's open web panel.
+  bool IsWebPanelTab(const content::WebContents* contents) const;
+
   void SetSidebar(Sidebar& sidebar);
 
   Sidebar* sidebar() const { return sidebar_; }

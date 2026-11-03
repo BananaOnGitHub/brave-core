@@ -1092,6 +1092,12 @@ void AdsServiceImpl::ShutdownAdsService() {
   // callback fires against a partially torn-down service.
   bat_ads_service_weak_ptr_factory_.InvalidateWeakPtrs();
 
+  // Supersedes any `Launch` whose delayed bind is still pending on its own
+  // dedicated thread, so it either drops its receiver or closes the service
+  // it already bound, instead of leaving a stale service running after this
+  // shutdown.
+  bat_ads_service_factory_->Invalidate();
+
   bat_ads_client_notifier_remote_.reset();
   bat_ads_client_notifier_pending_receiver_.reset();
   bat_ads_associated_remote_.reset();
@@ -1803,11 +1809,12 @@ void AdsServiceImpl::OnRewardsWalletCreated() {
 }
 
 void AdsServiceImpl::OnExternalWalletConnected() {
-  ShowReminder(mojom::ReminderType::kExternalWalletConnected);
-
   ShutdownAds(base::BindOnce(
       &AdsServiceImpl::ClearDataPrefsAndAdsServiceDataAndMaybeRestart,
-      weak_ptr_factory_.GetWeakPtr(), /*intentional*/ base::DoNothing()));
+      weak_ptr_factory_.GetWeakPtr(),
+      base::IgnoreArgs<bool>(base::BindOnce(
+          &AdsServiceImpl::ShowReminder, weak_ptr_factory_.GetWeakPtr(),
+          mojom::ReminderType::kExternalWalletConnected))));
 }
 
 void AdsServiceImpl::OnCompleteReset(bool success) {

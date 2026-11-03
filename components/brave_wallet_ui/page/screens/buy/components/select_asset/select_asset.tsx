@@ -20,7 +20,7 @@ import {
 } from '../../../../../options/network-filter-options'
 
 // Queries
-import { useGetNetworksQuery } from '$wallet/common/slices/api.slice'
+import { useGetVisibleNetworksQuery } from '$wallet/common/slices/api.slice'
 
 // Types
 import { BraveWallet, MeldCryptoCurrency } from '../../../../../constants/types'
@@ -95,15 +95,16 @@ export const AssetListItem = ({
   onSelect,
   network,
 }: AssetListItemProps) => {
-  const { symbolImageUrl, currencyCode, chainName } = asset
+  const { symbolImageUrl, currencyCode } = asset
 
   // Computed
   const assetSymbol = asset.symbol
+  const chainName = network?.chainName ?? ''
   const networkDescription =
     currencyCode !== ''
       ? getLocale(S.BRAVE_WALLET_PORTFOLIO_ASSET_NETWORK_DESCRIPTION)
           .replace('$1', assetSymbol ?? '')
-          .replace('$2', chainName ?? '')
+          .replace('$2', chainName)
       : chainName
 
   // Methods
@@ -174,12 +175,16 @@ export const SelectAsset = (props: SelectAssetProps) => {
   )
 
   // Queries
-  const { data: networkList = [] } = useGetNetworksQuery()
+  const { data: networkList = [] } = useGetVisibleNetworksQuery()
 
   // Memos
   const assetsFilteredByNetwork = React.useMemo(() => {
+    const visibleChainIds = new Set(
+      networkList.map((network) => network.chainId),
+    )
+
     if (selectedNetworkFilter.chainId === AllNetworksOption.chainId) {
-      return assets
+      return assets.filter((asset) => visibleChainIds.has(asset.chainId))
     }
     return assets.filter(
       (asset) => asset.chainId === selectedNetworkFilter.chainId,

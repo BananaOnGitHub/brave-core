@@ -38,6 +38,10 @@ export const isZCashShieldedTransactionsEnabled = ({ wallet }: State) =>
 export const isZCashIronwoodEnabled = ({ wallet }: State) =>
   wallet.isZCashIronwoodEnabled
 export const isPolkadotEnabled = ({ wallet }: State) => wallet.isPolkadotEnabled
+export const isPolkadotDappSupportEnabled = ({ wallet }: State) =>
+  wallet.isPolkadotDappSupportEnabled
+export const isCardStackUiEnabled = ({ wallet }: State) =>
+  wallet.isCardStackUiEnabled
 
 // memoized selectors (safe for objects and arrays)
 export const allowedNewWalletAccountTypeNetworkIds = createSelector(

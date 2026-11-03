@@ -12,7 +12,8 @@ extension BrowserViewController {
   func presentActivityViewController(
     _ url: URL,
     tab: (any TabState)? = nil,
-    source: SharePopoverSource
+    source: SharePopoverSource,
+    onDismiss: (() -> Void)? = nil
   ) {
     if let tab = tab ?? tabManager.selectedTab, tab.isTor {
       let controller = ShareExtensionHelper(url: url, tab: tab).createActivityViewController()
@@ -42,7 +43,10 @@ extension BrowserViewController {
         },
         onDisplayCertificate: { [weak self] in self?.displayPageCertificateInfo() },
         onShowSubmitReport: { [weak self] url in self?.showSubmitReportView(for: url) },
-        onCleanUp: { [weak self] in self?.showQueuedAlertIfAvailable() }
+        onCleanUp: { [weak self] in
+          onDismiss?()
+          self?.showQueuedAlertIfAvailable()
+        }
       )
     )
   }

@@ -90,6 +90,34 @@ class SearchEnginesTests: XCTestCase {
     XCTAssertFalse(source.braveSearchPromotionAvailable)
   }
 
+  func testTorDefaultSurvivesStableQuickSearchIDMigration() async throws {
+    let oldOrder = Preferences.Search.quickSearchOrder.value
+    let oldDisabled = Preferences.Search.quickSearchDisabled.value
+    defer {
+      Preferences.Search.quickSearchOrder.value = oldOrder
+      Preferences.Search.quickSearchDisabled.value = oldDisabled
+    }
+    Preferences.Search.quickSearchOrder.reset()
+    Preferences.Search.quickSearchDisabled.reset()
+    let engines = SearchEngines()
+    await engines.loadSearchEngines()
+    let torEngine = try XCTUnwrap(engines.orderedEngines.first { $0.shortName == "Qwant" })
+    engines.updateDefaultEngine(torEngine.shortName, forType: .tor)
+    let standard = Preferences.Search.defaultEngineName.value
+    let privateEngine = Preferences.Search.defaultPrivateEngineName.value
+    Preferences.Search.quickSearchOrder.reset()
+    engines.migrateQuickSearchIfNeeded(engines: engines.orderedEngines)
+    XCTAssertNotNil(Preferences.Search.quickSearchOrder.value)
+    XCTAssertEqual(engines.defaultEngine(forType: .tor)?.shortName, torEngine.shortName)
+    XCTAssertEqual(Preferences.Search.defaultEngineName.value, standard)
+    XCTAssertEqual(Preferences.Search.defaultPrivateEngineName.value, privateEngine)
+    let query = "Tor search & unicode café"
+    XCTAssertEqual(
+      engines.defaultEngine(forType: .tor)?.searchURLForQuery(query),
+      torEngine.searchURLForQuery(query)
+    )
+  }
+
   func testIncludesExpectedEngines() async {
     // Verify that the set of shipped engines includes the expected subset.
     let engines = SearchEngines()
