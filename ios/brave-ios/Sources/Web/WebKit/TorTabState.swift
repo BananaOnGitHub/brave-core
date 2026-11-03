@@ -395,7 +395,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     }
     return null;
     """
-  public func createFullPagePDF() async throws -> Data? {
+  @MainActor public func createFullPagePDF() async throws -> Data? {
     guard let browser else { return nil }
     let configuration = WKPDFConfiguration()
     configuration.rect = CGRect(origin: .zero, size: browser.scrollView.contentSize)
@@ -574,7 +574,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     activeLinkPreview?.close()
     activeLinkPreview = nil
   }
-  public func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision { .deny }
+  public func webView(_ webView: WKWebView, decideMediaCapturePermissionsFor origin: WKSecurityOrigin, initiatedBy frame: WKFrameInfo, type: WKMediaCaptureType) async -> WKPermissionDecision { .deny }
 }
 
 extension TabState {

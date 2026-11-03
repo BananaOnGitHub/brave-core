@@ -146,6 +146,16 @@ final class TorTabStateTests: XCTestCase {
     XCTAssertNil(tab.onionLocation)
   }
 
+  func testWebKitRecognizesMediaCaptureDenialDelegate() {
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
+    let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
+    defer { tab.close() }
+    let delegate: any WKUIDelegate = tab
+    XCTAssertTrue(delegate.responds(to: #selector(
+      WKUIDelegate.webView(_:decideMediaCapturePermissionsFor:initiatedBy:type:)
+    )))
+  }
+
   func testWebKitRecognizesTorContextMenuDelegateCallbacks() {
     let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false)
     let tab = TorTabState(id: UUID(), profile: ContractProfile(), session: session)
