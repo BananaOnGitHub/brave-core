@@ -33,6 +33,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   private var observations: [NSKeyValueObservation] = []
   private var observers: [AnyTabObserver] = []
   private var deciders: [AnyTabPolicyDecider] = []
+  private var downloads: [ObjectIdentifier: TorDownload] = [:]
   private var pendingRequest: URLRequest?
   private var virtualURL: URL?
   private var initialURL: URL?
@@ -84,6 +85,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   isolated deinit {
+    for download in downloads.values { download.cancelTransfer() }
     faviconTask?.cancel()
     creationTask?.cancel()
     if let tabSession { session.closeTabSession(tabSession) }
@@ -174,6 +176,9 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   }
 
   public func deleteWebView() {
+    let pendingDownloads = Array(downloads.values)
+    downloads.removeAll()
+    pendingDownloads.forEach { $0.cancelTransfer() }
     data[TorOnionLocationKey.self] = .init()
     activeLinkPreview?.close()
     activeLinkPreview = nil
@@ -474,7 +479,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
   public func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction, preferences: WKWebpagePreferences) async -> (WKNavigationActionPolicy, WKWebpagePreferences) {
     TorWebPolicy.applyPagePreferences(preferences, javaScriptEnabled: true)
     preferences.preferredContentMode = currentUserAgentType == .desktop ? .desktop : .mobile
-    guard !action.shouldPerformDownload, let url = action.request.url else { return (.cancel, preferences) }
+    guard let url = action.request.url else { return (.cancel, preferences) }
     if url.absoluteString == "about:blank" || (url.absoluteString == "about:srcdoc" && action.targetFrame?.isMainFrame == false) {
       return (.allow, preferences)
     }
@@ -489,18 +494,64 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     for decider in deciders {
       if await decider.tab(self, shouldAllowRequest: action.request, requestInfo: info) == .cancel { return (.cancel, preferences) }
     }
+    if action.shouldPerformDownload {
+      return (downloadDelegate != nil ? .download : .cancel, preferences)
+    }
     return (.allow, preferences)
   }
   public func webView(_ webView: WKWebView, decidePolicyFor response: WKNavigationResponse) async -> WKNavigationResponsePolicy {
     let mime = response.response.mimeType?.lowercased() ?? ""
-    guard response.canShowMIMEType, !mime.hasPrefix("audio/"), !mime.hasPrefix("video/") else { return .cancel }
+    guard let url = response.response.url else { return .cancel }
+    let isBlankDocument = url.absoluteString == "about:blank"
+      || (url.absoluteString == "about:srcdoc" && !response.isForMainFrame)
+    guard isBlankDocument || TorDestination.isAllowed(url) else { return .cancel }
     for decider in deciders {
       if await decider.tab(self, shouldAllowResponse: response.response, responseInfo: .init(isForMainFrame: response.isForMainFrame)) == .cancel { return .cancel }
     }
+    let disposition = (response.response as? HTTPURLResponse)?
+      .value(forHTTPHeaderField: "Content-Disposition")?.lowercased() ?? ""
+    if !response.canShowMIMEType || disposition.hasPrefix("attachment") {
+      return !isBlankDocument && response.isForMainFrame && downloadDelegate != nil ? .download : .cancel
+    }
+    guard !mime.hasPrefix("audio/"), !mime.hasPrefix("video/") else { return .cancel }
     if response.isForMainFrame { contentsMimeType = mime }
     receiveOnionLocationResponse(response.response, isMainFrame: response.isForMainFrame)
     return .allow
   }
+  public func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+    adoptDownload(download, from: navigationAction.request.url)
+  }
+  public func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+    adoptDownload(download, from: navigationResponse.response.url)
+  }
+
+  private func adoptDownload(_ download: WKDownload, from url: URL?) {
+    guard let url, TorDestination.isAllowed(url), downloadDelegate != nil else {
+      download.cancel { _ in }
+      return
+    }
+    let key = ObjectIdentifier(download)
+    downloads[key] = TorDownload(task: download, originalURL: url, ready: { [weak self] transfer in
+      guard let self, let delegate = self.downloadDelegate else { transfer.cancelTransfer(); return }
+      delegate.tab(self, didCreateDownload: transfer)
+    }, finished: { [weak self] transfer, error in
+      guard let self else {
+        transfer.delegate?.download(transfer, didCompleteWithError: error ?? URLError(.cancelled))
+        return
+      }
+      self.downloads.removeValue(forKey: key)
+      self.downloadDelegate?.tab(self, didFinishDownload: transfer, error: error)
+    })
+  }
+
+  public func downloadLink(_ url: URL) {
+    guard TorDestination.isAllowed(url), let browser, downloadDelegate != nil else { return }
+    browser.startDownload(using: URLRequest(url: url)) { [weak self] download in
+      guard let self, self.browser === browser else { download.cancel { _ in }; return }
+      self.adoptDownload(download, from: url)
+    }
+  }
+
   public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
     data[TorOnionLocationKey.self] = .init()
     observers.forEach { $0.tabDidStartNavigation(self) }

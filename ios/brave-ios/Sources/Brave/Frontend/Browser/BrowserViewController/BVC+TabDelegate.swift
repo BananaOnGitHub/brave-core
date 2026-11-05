@@ -811,7 +811,13 @@ extension BrowserViewController {
         formatTypes: [.omitDefaults, .omitTrivialSubdomains],
         unescapeOptions: .normal
       )
-      return UIMenu(title: formattedURL, children: [open, copy, copyClean, share, toggle])
+      let download = UIAction(title: Strings.download, image: UIImage(braveSystemNamed: "leo.folder.download")) {
+        [weak self, weak tab] _ in
+        guard let self, let tab, self.tabManager.allTabs.contains(where: { $0 === tab }) else { return }
+        tab.downloadLink(url)
+      }
+      download.accessibilityLabel = "linkContextMenu.downloadInTor"
+      return UIMenu(title: formattedURL, children: [open, download, copy, copyClean, share, toggle])
     }
   }
 }

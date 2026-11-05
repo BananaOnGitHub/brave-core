@@ -84,8 +84,9 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
   Other browsing modes retain their own process configuration.
 - Tor tab sessions, URLs and screenshots are excluded from session persistence.
   Ordinary tab helpers, native metadata/favicons, translation, external schemes,
-  native sharing, voice search, and decentralized
-  address resolution are detached or blocked. Downloads and media remain blocked.
+  native sharing services, voice search, and decentralized
+  address resolution are detached or blocked. Website downloads use the dedicated
+  WebKit path described below; media playback remains blocked.
 
 ## Storage and circuit policy
 
@@ -289,3 +290,44 @@ Device checks: visit an HTTPS site advertising Onion-Location, tap the icon,
 verify the new tab stays in Tor, navigate away, switch tab groups and confirm
 the icon follows the selected tab. Verify placement and VoiceOver on phone and
 iPad, and test the private-browsing lock when opening from regular mode.
+
+
+## Tor website downloads
+
+Tor tabs adopt `WKDownload` loads from their own nonpersistent, proxied website
+store. Attachment responses, unsupported main-frame MIME types, download links,
+and the link context menu's Download action use Brave's confirmation/progress UI
+and save completed files to its existing Downloads directory. No native
+URLSession, Chromium downloader, Safari handoff, contact import, or Wallet-pass
+import is used for Tor transfers. HTTP(S), including onion hosts, is supported;
+blob/data URLs and privileged, local, or numeric-IP destinations remain rejected.
+Redirects are checked against the same destination policy. Normal TLS trust
+validation remains in place; new HTTP-auth/client-certificate prompts are not
+supported. Existing session cookies stay in the originating Tor store.
+
+The user confirms every Tor download. Pending downloads do not hold an idle-timer
+assertion. Once a transfer starts, a process-wide coordinator keeps the device
+awake while at least one Tor download is active and the app is foregrounded,
+unless Low Power Mode is enabled. Power-state and app-state notifications update
+this dynamically. Completion, failure and cancellation release only this
+coordinator's assertion, restoring the prior idle-timer state. This does not
+prevent manual locking, app switching, or system termination. Tor continues to
+suspend in the background; no background-processing task is scheduled for these
+transfers. Interrupted downloads fail closed and must be retried manually;
+resume data is not persisted or replayed through another stack.
+
+Closing/shredding a source tab cancels its transfers before releasing its store.
+Cancellation waits for WebKit's acknowledgement before removing partial files.
+Suggested filenames strip paths, controls and bidi characters; each transfer has
+a unique temporary destination. Explicitly saved files persist after Tor tabs
+close and are not part of website-data shredding.
+
+The native harness compiles the real Download/TorDownload sources. Tests exercise
+SOCKS credentials and redirects in both storage modes, gate closure during a
+transfer, cancellation before choosing a destination, filename sanitization,
+concurrent awake assertions, Low Power Mode and background-state changes. These
+native tests require Xcode; Linux source checks do not establish routing safety.
+On device, test attachments and long-press downloads, simultaneous transfers,
+reject/cancel, source-tab closure/Shred, route changes, Low Power Mode toggling,
+auto-lock behavior, and HTTPS/onion requests with a traffic capture. Confirm
+that a failed Tor path never creates a direct request.

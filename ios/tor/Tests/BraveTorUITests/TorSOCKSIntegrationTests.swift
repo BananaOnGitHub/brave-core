@@ -8,9 +8,80 @@ import Network
 import WebKit
 import XCTest
 @testable import BraveTorUI
+#if canImport(WebTabContracts)
+@testable import WebTabContracts
+#endif
 
 @MainActor
 final class TorSOCKSIntegrationTests: XCTestCase {
+  #if canImport(WebTabContracts)
+  func testDownloadsAndRedirectsRetainSOCKSCredentialsInBothStorageModes() async throws {
+    for separate in [true, false] {
+      try await exerciseDownload(separate: separate, slow: false, cancelBeforeStart: false)
+    }
+  }
+
+  func testClosingGateFailsDownloadAndRemovesItsPartialFile() async throws {
+    try await exerciseDownload(separate: true, slow: true, cancelBeforeStart: false)
+  }
+
+  func testCancellingDownloadBeforeDestinationDoesNotCreateAFile() async throws {
+    try await exerciseDownload(separate: true, slow: false, cancelBeforeStart: true)
+  }
+
+  private func exerciseDownload(separate: Bool, slow: Bool, cancelBeforeStart: Bool) async throws {
+    let gate = TorSOCKSGate()
+    let session = TorBrowsingSession(runtime: TorRuntime(), automaticallyConnect: false, gate: gate)
+    let tabSession = session.openTabSession(keepTabsSeparate: separate)
+    let identity = try XCTUnwrap(tabSession.isolationID).uuidString
+    let ready = expectation(description: "Download SOCKS server ready")
+    let requests = expectation(description: "Download requests reach SOCKS with unresolved hostnames")
+    requests.expectedFulfillmentCount = slow ? 1 : 2
+    let server = try SOCKSProbeServer(serveScriptedPage: false, ready: { ready.fulfill() },
+      destination: { hostname in
+        XCTAssertTrue(["brave-tor-download.invalid", "brave-tor-download-file.invalid",
+                       "brave-tor-download-slow.invalid"].contains(hostname ?? ""))
+      }, observedRequest: { _, username, password in
+        XCTAssertEqual(username, identity)
+        XCTAssertEqual(password, identity)
+        requests.fulfill()
+      })
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    defer {
+      gate.close(); server.stop(); session.closeTabSession(tabSession)
+      try? FileManager.default.removeItem(at: directory)
+    }
+    server.start()
+    await fulfillment(of: [ready], timeout: 10)
+    gate.forward(to: try TorEndpoint(listener: "127.0.0.1:\(try XCTUnwrap(server.port))"))
+    let configuration = try await session.configuration(for: tabSession)
+    XCTAssertFalse(configuration.websiteDataStore.isPersistent)
+    XCTAssertTrue(configuration.websiteDataStore.proxyConfigurations.allSatisfy { !$0.allowFailover })
+    let view = WKWebView(frame: .zero, configuration: configuration)
+    let destination = directory.appendingPathComponent("result.txt")
+    let started = expectation(description: "WebKit offered a destination")
+    let finished = expectation(description: "Transfer finished or failed")
+    let probe = TorDownloadProbe(destination: destination, cancelBeforeStart: cancelBeforeStart,
+      started: started, finished: finished)
+    let host = slow ? "brave-tor-download-slow.invalid" : "brave-tor-download.invalid"
+    let url = try XCTUnwrap(URL(string: "http://\(host)/file"))
+    view.startDownload(using: URLRequest(url: url)) { probe.adopt($0, url: url) }
+    await fulfillment(of: [started, requests], timeout: 20)
+    if slow { gate.close() }
+    await fulfillment(of: [finished], timeout: 20)
+    if slow || cancelBeforeStart {
+      XCTAssertNotNil(probe.error)
+      XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+    } else {
+      XCTAssertNil(probe.error)
+      XCTAssertEqual(try Data(contentsOf: destination), Data("tor-download-payload".utf8))
+      XCTAssertEqual(probe.transfer?.filename, "report.txt")
+      XCTAssertEqual(probe.transfer?.mimeType, "application/octet-stream")
+    }
+  }
+  #endif
+
   func testAuthenticationOnTheWireMatchesTabAndSharedSessionBoundaries() async throws {
     let gate = TorSOCKSGate()
     let session = TorBrowsingSession(
@@ -274,6 +345,37 @@ final class TorSOCKSIntegrationTests: XCTestCase {
   }
 }
 
+#if canImport(WebTabContracts)
+@MainActor
+private final class TorDownloadProbe {
+  var transfer: TorDownload?
+  var error: Error?
+  let destination: URL
+  let cancelBeforeStart: Bool
+  let started: XCTestExpectation
+  let finished: XCTestExpectation
+
+  init(destination: URL, cancelBeforeStart: Bool, started: XCTestExpectation, finished: XCTestExpectation) {
+    self.destination = destination
+    self.cancelBeforeStart = cancelBeforeStart
+    self.started = started
+    self.finished = finished
+  }
+
+  func adopt(_ download: WKDownload, url: URL) {
+    transfer = TorDownload(task: download, originalURL: url, ready: { [weak self] transfer in
+      guard let self else { transfer.cancelTransfer(); return }
+      if self.cancelBeforeStart { transfer.cancelTransfer() }
+      else { transfer.startDownloadToLocalFileAtPath(self.destination.path) }
+      self.started.fulfill()
+    }, finished: { [weak self] _, error in
+      self?.error = error
+      self?.finished.fulfill()
+    })
+  }
+}
+#endif
+
 @MainActor
 private final class ScriptResultProbe: NSObject, WKScriptMessageHandler {
   private let result: (String?) -> Void
@@ -473,7 +575,22 @@ private final class SOCKSProbeServer: @unchecked Sendable {
     let status: String
     let headers: String
     let body: String
+    if hostname == "brave-tor-download-slow.invalid" {
+      // Keep the response open until the gate closes to exercise partial-transfer failure.
+      connection.send(content: Data(("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n"
+        + "Content-Length: 200000\r\nContent-Disposition: attachment; filename=report.txt\r\n\r\npartial").utf8),
+        completion: .contentProcessed { _ in })
+      return
+    }
     switch hostname {
+    case "brave-tor-download.invalid":
+      status = "302 Found"
+      headers = "Location: http://brave-tor-download-file.invalid/file\r\n"
+      body = ""
+    case "brave-tor-download-file.invalid":
+      status = "200 OK"
+      headers = "Content-Type: application/octet-stream\r\nContent-Disposition: attachment; filename=report.txt\r\n"
+      body = "tor-download-payload"
     case "brave-tor-storage.invalid" where serveStoragePage:
       status = "200 OK"
       headers = "Content-Type: text/html; charset=utf-8\r\n"

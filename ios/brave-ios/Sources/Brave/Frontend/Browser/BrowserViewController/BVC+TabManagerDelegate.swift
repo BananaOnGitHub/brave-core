@@ -384,6 +384,7 @@ extension BrowserViewController: TabManagerDelegate {
         tab.nightMode = NightModeTabHelper(tab: tab)
       }
       observeTorMenuStatus()
+      tab.downloadDelegate = self
       tab.delegate = self
       tab.addObserver(self)
       updateTabsBarVisibility()

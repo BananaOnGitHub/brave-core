@@ -99,6 +99,15 @@ targets:
         PRODUCT_MODULE_NAME: BraveStrings
         DEFINES_MODULE: YES
         SWIFT_VERSION: "5.0"
+  ContractBraveShared:
+    type: library.static
+    platform: iOS
+    sources: [TabContracts/BraveShared]
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: BraveShared
+        DEFINES_MODULE: YES
+        SWIFT_VERSION: "5.0"
   WebTabContracts:
     type: library.static
     platform: iOS
@@ -106,6 +115,9 @@ targets:
       - TabContracts/Generated
       - TabContracts/Web
       - ../../brave-ios/Sources/Web/WebKit/TorTabState.swift
+      - ../../brave-ios/Sources/Web/WebKit/TorDownload.swift
+      - ../../brave-ios/Sources/Web/WebKit/TorDownloadActivity.swift
+      - ../../brave-ios/Sources/Web/Download.swift
       - ../../brave-ios/Sources/Web/WebKit/SafeJavaScript.swift
       - ../../brave-ios/Sources/Web/TabObserver.swift
       - ../../brave-ios/Sources/Web/TabDelegate.swift
@@ -113,6 +125,7 @@ targets:
       - ../../brave-ios/Sources/Web/TabPolicyDecider.swift
     dependencies:
       - target: ContractBraveCore
+      - target: ContractBraveShared
       - target: ContractFaviconModels
       - target: ContractBraveStrings
       - package: BraveTor
