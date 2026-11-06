@@ -34,3 +34,8 @@ WKProcessPool *BraveTorProcessPoolForTimeZone(NSString *timeZone) {
   return pool;
 #endif
 }
+
+// WebKit's private _WKNavigationActionPolicyAllowWithoutTryingAppLink value.
+WKNavigationActionPolicy BraveTorInWebViewNavigationPolicy(void) {
+  return (WKNavigationActionPolicy)(WKNavigationActionPolicyAllow + 2);
+}

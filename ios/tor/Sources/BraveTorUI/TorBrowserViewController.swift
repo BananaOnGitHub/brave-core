@@ -338,7 +338,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
       decisionHandler(.cancel, preferences)
       return
     }
-    decisionHandler(.allow, preferences)
+    decisionHandler(TorWebPolicy.inWebViewNavigationPolicy, preferences)
   }
 
   public func webView(

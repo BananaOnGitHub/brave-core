@@ -8,4 +8,6 @@ NS_ASSUME_NONNULL_BEGIN
 FOUNDATION_EXPORT WKProcessPool * _Nullable BraveTorUTCProcessPool(void);
 /// Exposed for an independent non-UTC control in native WebKit tests.
 FOUNDATION_EXPORT WKProcessPool * _Nullable BraveTorProcessPoolForTimeZone(NSString *timeZone);
+/// Keeps universal links in WebKit rather than opening their associated apps.
+FOUNDATION_EXPORT WKNavigationActionPolicy BraveTorInWebViewNavigationPolicy(void);
 NS_ASSUME_NONNULL_END

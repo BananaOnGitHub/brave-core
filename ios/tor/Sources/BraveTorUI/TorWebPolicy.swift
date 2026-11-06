@@ -10,6 +10,10 @@ import WebKit
 
 @MainActor
 public enum TorWebPolicy {
+  public static var inWebViewNavigationPolicy: WKNavigationActionPolicy {
+    BraveTorInWebViewNavigationPolicy()
+  }
+
   // Onion Browser's Mysk mitigation uses the ping resource type for DNS prefetch.
   // Media is blocked until AVFoundation/streaming routes have been verified.
   static let contentRules = """

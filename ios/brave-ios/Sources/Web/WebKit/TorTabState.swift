@@ -481,7 +481,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     preferences.preferredContentMode = currentUserAgentType == .desktop ? .desktop : .mobile
     guard let url = action.request.url else { return (.cancel, preferences) }
     if url.absoluteString == "about:blank" || (url.absoluteString == "about:srcdoc" && action.targetFrame?.isMainFrame == false) {
-      return (.allow, preferences)
+      return (TorWebPolicy.inWebViewNavigationPolicy, preferences)
     }
     guard TorDestination.isAllowed(url) else { return (.cancel, preferences) }
     let info = WebRequestInfo(
@@ -497,7 +497,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     if action.shouldPerformDownload {
       return (downloadDelegate != nil ? .download : .cancel, preferences)
     }
-    return (.allow, preferences)
+    return (TorWebPolicy.inWebViewNavigationPolicy, preferences)
   }
   public func webView(_ webView: WKWebView, decidePolicyFor response: WKNavigationResponse) async -> WKNavigationResponsePolicy {
     let mime = response.response.mimeType?.lowercased() ?? ""
