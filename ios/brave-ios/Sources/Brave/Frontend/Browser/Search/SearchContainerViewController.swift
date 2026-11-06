@@ -29,7 +29,7 @@ class SearchContainerViewController: UIViewController {
   weak var delegate: SearchContainerViewControllerDelegate?
 
   let inputBar: SearchURLBarInputView
-  private let topSitesController: UIViewController
+  private let topSitesController: TopSitesViewController
   private let isTor: Bool
   private let browserColors: any BrowserColors
   private let searchController: SearchViewController
@@ -83,10 +83,13 @@ class SearchContainerViewController: UIViewController {
     searchLoader.addListener(searchController)
     self.searchLoader = searchLoader
 
-    self.topSitesController = privateBrowsingManager.isTorBrowsing ? UIViewController() : TopSitesViewController(
+    self.topSitesController = TopSitesViewController(
       privateBrowsingManager: privateBrowsingManager,
       defaultSearchEngine: searchEngines.defaultEngine(
-        forType: privateBrowsingManager.isPrivateBrowsing ? .privateMode : .standard
+        forType: .init(
+          isPrivate: privateBrowsingManager.isPrivateBrowsing,
+          isTor: privateBrowsingManager.isTorBrowsing
+        )
       ),
       tileSource: tileSource,
       topSiteAction: topSiteAction,
@@ -128,9 +131,6 @@ class SearchContainerViewController: UIViewController {
 
     addChild(topSitesController)
     view.addSubview(topSitesController.view)
-    if isTor {
-      topSitesController.view.backgroundColor = browserColors.favoritesAndSearchScreenBackground
-    }
     topSitesController.view.snp.makeConstraints { $0.edges.equalTo(view) }
     topSitesController.didMove(toParent: self)
 
