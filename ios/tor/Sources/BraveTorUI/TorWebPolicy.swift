@@ -36,7 +36,7 @@ public enum TorWebPolicy {
     let ruleID = supportsMediaPlayback ? "brave-tor-dns-containment-v2" : "brave-tor-dns-containment-v1"
     // This local compilation has no cancellable WebKit API. Callers check their
     // lifecycle generation after the callback and before creating any web view.
-    try await withCheckedThrowingContinuation { continuation in
+    return try await withCheckedThrowingContinuation { continuation in
       WKContentRuleListStore.default().compileContentRuleList(
         forIdentifier: ruleID, encodedContentRuleList: contentRules
       ) { ruleList, error in
