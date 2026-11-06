@@ -513,7 +513,7 @@ public final class TorTabState: NSObject, TabState, WKNavigationDelegate, WKUIDe
     if !response.canShowMIMEType || disposition.hasPrefix("attachment") {
       return !isBlankDocument && response.isForMainFrame && downloadDelegate != nil ? .download : .cancel
     }
-    guard !mime.hasPrefix("audio/"), !mime.hasPrefix("video/") else { return .cancel }
+    guard TorWebPolicy.allowsResponseMIMEType(mime) else { return .cancel }
     if response.isForMainFrame { contentsMimeType = mime }
     receiveOnionLocationResponse(response.response, isMainFrame: response.isForMainFrame)
     return .allow

@@ -114,7 +114,7 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     let address = UIStackView(arrangedSubviews: [addressField, goButton])
     address.spacing = 8
     let explanation = UILabel()
-    explanation.text = Self.text("Changing JavaScript disconnects. Media, downloads, and text selection are disabled.")
+    explanation.text = Self.text("Changing JavaScript disconnects. Downloads and text selection are disabled.")
     explanation.font = .preferredFont(forTextStyle: .footnote)
     explanation.adjustsFontForContentSizeCategory = true
     explanation.textColor = .secondaryLabel
@@ -346,9 +346,9 @@ public final class TorBrowserViewController: UIViewController, WKNavigationDeleg
     decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void
   ) {
     let mime = navigationResponse.response.mimeType?.lowercased() ?? ""
-    let isMedia = mime.hasPrefix("audio/") || mime.hasPrefix("video/")
     decisionHandler(
-      browsingAllowed && navigationResponse.canShowMIMEType && !isMedia ? .allow : .cancel
+      browsingAllowed && navigationResponse.canShowMIMEType
+        && TorWebPolicy.allowsResponseMIMEType(mime) ? .allow : .cancel
     )
   }
 

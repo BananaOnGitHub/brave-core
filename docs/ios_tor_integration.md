@@ -86,7 +86,10 @@ Branch: `feature/ios-private-with-tor`, based on the validated embedded Tor prot
   Ordinary tab helpers, native metadata/favicons, translation, external schemes,
   native sharing services, voice search, and decentralized
   address resolution are detached or blocked. Website downloads use the dedicated
-  WebKit path described below; media playback remains blocked.
+  WebKit path described below. Audio and video playback requires AVFoundation's
+  exclusive client loader, which WebKit uses to fetch media through the tab's
+  network session. Platforms without that capability retain the media block.
+  Playback requires a user gesture. AirPlay and Picture in Picture are disabled.
 
 ## Storage and circuit policy
 
@@ -244,8 +247,8 @@ even if the active browsing group changes while a menu is open.
 
 The preview is a separate TorTabState using the source tab's frozen isolation
 mode and TorBrowsingSession. It uses the same fail-closed SOCKS gate, nonpersistent
-store policy, UTC process pool, destination restrictions, and media/download
-blocks. With tab isolation ON it has a fresh storage context and SOCKS identity;
+store policy, UTC process pool, destination restrictions, and media policy.
+Preview downloads are blocked. With tab isolation ON it has a fresh storage context and SOCKS identity;
 with isolation OFF it joins that Tor session's shared store. It never creates
 a Chromium preview, LinkPresentation fetch, Quick Look download, or native URL
 session. Dismissal, source web-view deletion, and source closure release its
