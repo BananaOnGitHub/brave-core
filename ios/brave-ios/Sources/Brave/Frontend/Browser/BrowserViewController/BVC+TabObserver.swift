@@ -36,11 +36,11 @@ extension BrowserViewController: TabObserver {
 
   public func tabDidStartNavigation(_ tab: some TabState) {
     if !tab.isTor { tab.clearOnionLocation() }
+    tab.contentBlocker?.clearPageStats()
     if tab.isTor {
       if tab === tabManager.selectedTab { updateInContentHomePanel(tab.visibleURL) }
       return
     }
-    tab.contentBlocker?.clearPageStats()
 
     let visibleURL = tab.visibleURL
 
